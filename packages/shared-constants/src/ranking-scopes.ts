@@ -1,0 +1,5 @@
+export const RANKING_SCOPE = {
+  GLOBAL: 'GLOBAL',
+  CATEGORY: 'CATEGORY',
+  PROVINCE: 'PROVINCE',
+} as const

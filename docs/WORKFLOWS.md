@@ -1,0 +1,1094 @@
+# WORKFLOWS.md
+
+# Enterprise Evaluation & Ranking System (EERS)
+
+Version: 1.0
+Status: Locked
+Priority: 4th (see DECISIONS.md D-027)
+
+---
+
+## How to use this document
+
+This document defines the business logic for every use case.
+
+Rules for AI agents:
+
+```
+- Each workflow = one UseCase class
+- Follow steps in exact order listed
+- Do NOT skip steps
+- Side effects (notifications, audit logs, cache) are mandatory, not optional
+- Transactions wrap ALL multi-table writes
+- When a precondition fails, throw the domain exception listed
+- Do NOT add steps not listed here
+```
+
+---
+
+## Transaction Rule
+
+Any workflow touching more than one table MUST use a transaction:
+
+```typescript
+await this.prisma.$transaction(async (tx) => {
+  // all steps here
+})
+```
+
+Side effects that happen AFTER the transaction (SSE push, cache invalidation)
+are called OUTSIDE the transaction block.
+
+---
+
+# Section 1. Auth Workflows
+
+---
+
+## WF-AUTH-001 — Register
+
+**UseCase:** `RegisterUseCase`
+**Trigger:** `POST /auth/register`
+
+Preconditions:
+
+```
+- email is not already taken (users table, deletedAt IS NULL)
+```
+
+Steps:
+
+```
+1. Validate DTO (name, email, password)
+2. Check email uniqueness → throw EMAIL_ALREADY_EXISTS if taken
+3. Hash password with bcrypt (rounds=12)
+4. Load role record WHERE roleName = 'USER'
+5. Create user record:
+     name, email, password=hash, roleId, status='active'
+6. Return { userId, name, email, role: 'USER' }
+```
+
+Transaction: wraps step 5 only (single table write).
+
+Side effects: none.
+
+---
+
+## WF-AUTH-002 — Login
+
+**UseCase:** `LoginUseCase`
+**Trigger:** `POST /auth/login`
+
+Preconditions:
+
+```
+- User with email exists (deletedAt IS NULL)
+- User is not banned (status != 'banned')
+```
+
+Steps:
+
+```
+1. Find user by email WHERE deletedAt IS NULL
+2. If not found → throw INVALID_CREDENTIALS (do NOT reveal which field is wrong)
+3. Compare password with bcrypt.compare()
+4. If mismatch → throw INVALID_CREDENTIALS
+5. If user.status = 'banned' → throw USER_BANNED
+6. Generate accessToken (JWT, sub=userId, role=roleName, exp=15min)
+7. Generate refreshToken (JWT, sub=userId, exp=7days)
+8. Persist refreshToken to refresh_tokens table:
+     userId, token=hash(refreshToken), expiresAt=now()+7days
+9. Return { accessToken, expiresIn: 900, user }
+   Set-Cookie: refreshToken (HttpOnly, see API.md)
+```
+
+Transaction: wraps step 8 only.
+
+Side effects:
+
+```
+- Audit log: action='LOGIN_SUCCESS', entityType='User', entityId=userId
+```
+
+---
+
+## WF-AUTH-003 — Google OAuth
+
+**UseCase:** `GoogleAuthUseCase`
+**Trigger:** `POST /auth/google`
+
+Steps:
+
+```
+1. Verify idToken with Google OAuth2 client library
+2. If verification fails → throw INVALID_GOOGLE_TOKEN
+3. Extract { email, name, picture } from Google payload
+4. Find user by email WHERE deletedAt IS NULL
+5a. If user exists AND status = 'banned' → throw USER_BANNED
+5b. If user exists → proceed to step 7
+6.  If user not exists → create new user:
+      name=googleName, email, password=randomSecureString (unusable),
+      roleId=USER, status='active'
+7. Generate accessToken + refreshToken (same as WF-AUTH-002 steps 6-8)
+8. Return { accessToken, expiresIn: 900, user }
+   Set-Cookie: refreshToken
+```
+
+Transaction: wraps step 6 (if new user created).
+
+---
+
+## WF-AUTH-004 — Refresh Token
+
+**UseCase:** `RefreshTokenUseCase`
+**Trigger:** `POST /auth/refresh`
+
+Steps:
+
+```
+1. Read refreshToken from HttpOnly Cookie
+2. If missing → throw INVALID_REFRESH_TOKEN
+3. Verify JWT signature
+4. If invalid → throw INVALID_REFRESH_TOKEN
+5. If expired → throw TOKEN_EXPIRED
+6. Find token record WHERE token=hash(refreshToken)
+   AND expiresAt > now() AND revokedAt IS NULL
+7. If not found → throw INVALID_REFRESH_TOKEN
+8. Load user WHERE userId=sub AND deletedAt IS NULL
+9. If user.status = 'banned' → throw USER_BANNED
+10. Generate new accessToken (JWT, 15min)
+11. Return { accessToken, expiresIn: 900 }
+```
+
+Transaction: none (read-only).
+
+---
+
+## WF-AUTH-005 — Logout
+
+**UseCase:** `LogoutUseCase`
+**Trigger:** `POST /auth/logout`
+
+Steps:
+
+```
+1. Read refreshToken from HttpOnly Cookie
+2. If present → set revokedAt=now() on refresh_tokens record
+3. Clear Set-Cookie: refreshToken
+4. Return { message: 'Logged out successfully' }
+```
+
+Transaction: wraps step 2 only.
+
+Note: Step 2 is best-effort. If token not found, still return success.
+
+---
+
+# Section 2. User Workflows
+
+---
+
+## WF-USER-001 — Update Profile
+
+**UseCase:** `UpdateProfileUseCase`
+**Trigger:** `PATCH /users/profile`
+
+Steps:
+
+```
+1. Load current user by userId from JWT
+2. Update name field
+3. Return { userId, name }
+```
+
+Transaction: single table write, no explicit transaction needed.
+
+---
+
+## WF-USER-002 — Change Password
+
+**UseCase:** `ChangePasswordUseCase`
+**Trigger:** `PATCH /users/change-password`
+
+Steps:
+
+```
+1. Load current user by userId from JWT
+2. Compare currentPassword with stored hash via bcrypt.compare()
+3. If mismatch → throw INVALID_PASSWORD
+4. Hash newPassword with bcrypt (rounds=12)
+5. Update user.password = newHash
+6. Revoke all existing refresh tokens for this user:
+     UPDATE refresh_tokens SET revokedAt=now()
+     WHERE userId=userId AND revokedAt IS NULL
+```
+
+Transaction: wraps steps 5-6.
+
+Side effects:
+
+```
+- Audit log: action='PASSWORD_CHANGED', entityType='User', entityId=userId
+```
+
+---
+
+## WF-USER-003 — Upload Avatar
+
+**UseCase:** `UploadAvatarUseCase`
+**Trigger:** `POST /users/avatar`
+
+Steps:
+
+```
+1. Validate file type (jpg/jpeg/png/webp) and size (max 10MB)
+2. If existing avatar → delete old image from Cloudinary using publicId
+   AND delete old images record WHERE userId=currentUserId
+3. Upload new file to Cloudinary
+4. Create images record:
+     userId=currentUserId, reviewId=NULL, businessId=NULL,
+     cloudinaryPublicId, secureUrl, width, height, format
+5. Return { avatarUrl: secureUrl }
+```
+
+Transaction: wraps step 4 only (Cloudinary upload is outside transaction).
+
+---
+
+# Section 3. Business Workflows
+
+---
+
+## WF-BUS-001 — Create Business
+
+**UseCase:** `CreateBusinessUseCase`
+**Trigger:** `POST /businesses`
+
+Preconditions:
+
+```
+- phone is unique across businesses (deletedAt IS NULL)
+- email is unique across businesses if provided (deletedAt IS NULL)
+- all categoryIds exist in categories table
+- at least 1 location provided
+- at least 1 categoryId provided
+```
+
+Steps:
+
+```
+1. Validate all categoryIds exist → throw CATEGORY_NOT_FOUND if any missing
+2. Check phone uniqueness → throw PHONE_ALREADY_EXISTS if taken
+3. Check email uniqueness if provided → throw EMAIL_ALREADY_EXISTS if taken
+4. BEGIN TRANSACTION:
+   a. Create business record:
+        name, description, phone, email,
+        ownerUserId=currentUserId, status='pending', avgRating=0
+   b. Create location records for each location in request
+   c. Create business_locations join records
+   d. Create business_categories join records for each categoryId
+5. Return { businessId, status: 'pending' }
+```
+
+Transaction: wraps step 4a-4d.
+
+Side effects: none (admin will be notified via admin dashboard, no push needed).
+
+---
+
+## WF-BUS-002 — Update Business
+
+**UseCase:** `UpdateBusinessUseCase`
+**Trigger:** `PATCH /businesses/:businessId`
+
+Preconditions:
+
+```
+- Business exists (deletedAt IS NULL)
+- Current user is owner OR admin
+```
+
+Steps:
+
+```
+1. Load business by businessId WHERE deletedAt IS NULL
+2. If not found → throw BUSINESS_NOT_FOUND
+3. If currentUser.role != 'ADMIN' AND business.ownerUserId != currentUserId
+   → throw FORBIDDEN
+4. If phone provided → check uniqueness (excluding this business)
+   → throw PHONE_ALREADY_EXISTS if taken
+5. If email provided → check uniqueness (excluding this business)
+   → throw EMAIL_ALREADY_EXISTS if taken
+6. Update fields provided (partial update)
+7. Return { businessId }
+```
+
+Transaction: wraps step 6 only.
+
+---
+
+## WF-BUS-003 — Delete Business
+
+**UseCase:** `DeleteBusinessUseCase`
+**Trigger:** `DELETE /businesses/:businessId`
+
+Preconditions:
+
+```
+- Business exists (deletedAt IS NULL)
+- Current user is owner OR admin
+```
+
+Steps:
+
+```
+1. Load business WHERE deletedAt IS NULL
+2. If not found → throw BUSINESS_NOT_FOUND
+3. If currentUser.role != 'ADMIN' AND business.ownerUserId != currentUserId
+   → throw FORBIDDEN
+4. Set business.deletedAt = now()
+```
+
+Transaction: wraps step 4 only.
+
+Side effects:
+
+```
+- Audit log: action='BUSINESS_DELETED', entityType='Business', entityId=businessId
+```
+
+---
+
+## WF-BUS-004 — Add Location
+
+**UseCase:** `AddLocationUseCase`
+**Trigger:** `POST /businesses/:businessId/locations`
+
+Preconditions:
+
+```
+- Business exists (deletedAt IS NULL)
+- Current user is owner OR admin
+```
+
+Steps:
+
+```
+1. Load business WHERE deletedAt IS NULL
+2. If not found → throw BUSINESS_NOT_FOUND
+3. Check ownership → throw FORBIDDEN if not owner or admin
+4. BEGIN TRANSACTION:
+   a. Create location record
+   b. Create business_locations join record
+5. Return { locationId }
+```
+
+---
+
+## WF-BUS-005 — Remove Location
+
+**UseCase:** `RemoveLocationUseCase`
+**Trigger:** `DELETE /businesses/:businessId/locations/:locationId`
+
+Preconditions:
+
+```
+- Business exists and user has access
+- Location exists and belongs to this business
+- Business has more than 1 location
+```
+
+Steps:
+
+```
+1. Load business WHERE deletedAt IS NULL → throw BUSINESS_NOT_FOUND
+2. Check ownership → throw FORBIDDEN
+3. Count current locations for this business
+4. If count = 1 → throw LAST_LOCATION_ERROR
+5. Load business_locations WHERE businessId AND locationId
+   → throw LOCATION_NOT_FOUND if missing
+6. BEGIN TRANSACTION:
+   a. Delete business_locations record
+   b. Delete location record
+```
+
+---
+
+# Section 4. Review Workflows
+
+---
+
+## WF-REV-001 — Create Review
+
+**UseCase:** `CreateReviewUseCase`
+**Trigger:** `POST /reviews`
+
+Preconditions:
+
+```
+- Business exists (deletedAt IS NULL) AND status = 'approved'
+- Current user has NOT reviewed this business before
+- overallRating is integer 1-5
+- all criterionIds exist AND belong to business's categories
+- criteriaRatings values are integer 1-5
+```
+
+Steps:
+
+```
+1. Load business by businessId WHERE deletedAt IS NULL
+2. If not found → throw BUSINESS_NOT_FOUND
+3. If business.status != 'approved' → throw BUSINESS_NOT_APPROVED
+4. Check UNIQUE(writerUserId, businessId) in reviews (deletedAt IS NULL)
+   → throw REVIEW_ALREADY_EXISTS if exists
+5. Validate overallRating 1-5 → throw INVALID_RATING
+6. Load criteria for this business via category_criteria join
+7. Validate each criterionId in criteriaRatings belongs to business criteria
+   → throw INVALID_CRITERION if any invalid
+8. Validate each ratingValue 1-5 → throw INVALID_RATING
+9. BEGIN TRANSACTION:
+   a. Create review record:
+        writerUserId=currentUserId, businessId,
+        overallRating, content, status='pending',
+        sentiment=NULL
+   b. Create review_criteria records for each criteriaRating entry
+10. Return { reviewId, status: 'pending' }
+```
+
+Transaction: wraps step 9a-9b.
+
+Side effects: none at creation (notification triggered after admin approval).
+
+---
+
+## WF-REV-002 — Update Review
+
+**UseCase:** `UpdateReviewUseCase`
+**Trigger:** `PATCH /reviews/:reviewId`
+
+Preconditions:
+
+```
+- Review exists (deletedAt IS NULL)
+- Current user is review author OR admin
+```
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL
+2. If not found → throw REVIEW_NOT_FOUND
+3. If currentUser.role != 'ADMIN' AND review.writerUserId != currentUserId
+   → throw FORBIDDEN
+4. If overallRating provided → validate 1-5 → throw INVALID_RATING
+5. If criteriaRatings provided:
+   a. Validate each criterionId belongs to business criteria
+      → throw INVALID_CRITERION
+   b. Validate each ratingValue 1-5 → throw INVALID_RATING
+6. BEGIN TRANSACTION:
+   a. Update review: overallRating?, content?, status='pending'
+   b. If criteriaRatings provided:
+      - Delete existing review_criteria for this reviewId
+      - Insert new review_criteria records
+7. Return { reviewId, status: 'pending' }
+```
+
+Transaction: wraps step 6a-6b.
+
+Note: status ALWAYS resets to 'pending' after any edit, regardless of who edits.
+
+---
+
+## WF-REV-003 — Delete Review
+
+**UseCase:** `DeleteReviewUseCase`
+**Trigger:** `DELETE /reviews/:reviewId`
+
+Preconditions:
+
+```
+- Review exists (deletedAt IS NULL)
+- Current user is review author OR admin
+```
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL
+2. If not found → throw REVIEW_NOT_FOUND
+3. Check ownership → throw FORBIDDEN
+4. Set review.deletedAt = now()
+```
+
+Side effects:
+
+```
+- Audit log: action='REVIEW_DELETED', entityType='Review', entityId=reviewId
+```
+
+---
+
+# Section 5. Reply Workflows
+
+---
+
+## WF-REPLY-001 — Create Reply
+
+**UseCase:** `CreateReplyUseCase`
+**Trigger:** `POST /reviews/:reviewId/reply`
+
+Preconditions:
+
+```
+- Review exists (deletedAt IS NULL)
+- Current user role = BUSINESS_OWNER
+- The review's business is owned by current user
+- No existing reply for this review (UNIQUE constraint)
+```
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL
+2. If not found → throw REVIEW_NOT_FOUND
+3. Load business by review.businessId
+4. If business.ownerUserId != currentUserId → throw FORBIDDEN
+5. Check if reply already exists for this reviewId
+   → throw REPLY_ALREADY_EXISTS if exists
+6. Create reply record:
+     reviewId, userId=currentUserId, content
+7. Return { replyId }
+```
+
+Transaction: wraps step 6 only.
+
+---
+
+## WF-REPLY-002 — Update Reply
+
+**UseCase:** `UpdateReplyUseCase`
+**Trigger:** `PATCH /replies/:replyId`
+
+Steps:
+
+```
+1. Load reply by replyId
+2. If not found → throw REPLY_NOT_FOUND
+3. If reply.userId != currentUserId → throw FORBIDDEN
+4. Update reply.content
+5. Return { replyId }
+```
+
+---
+
+## WF-REPLY-003 — Delete Reply
+
+**UseCase:** `DeleteReplyUseCase`
+**Trigger:** `DELETE /replies/:replyId`
+
+Steps:
+
+```
+1. Load reply by replyId
+2. If not found → throw REPLY_NOT_FOUND
+3. If currentUser.role != 'ADMIN' AND reply.userId != currentUserId
+   → throw FORBIDDEN
+4. Delete reply record (hard delete — replies have no soft delete)
+```
+
+---
+
+# Section 6. Report Workflows
+
+---
+
+## WF-RPT-001 — Create Report
+
+**UseCase:** `CreateReportUseCase`
+**Trigger:** `POST /reports`
+
+Preconditions:
+
+```
+- Review exists (deletedAt IS NULL)
+- Reason exists
+- Current user has NOT reported this review before
+```
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL
+2. If not found → throw REVIEW_NOT_FOUND
+3. Load reason by reasonId → throw REASON_NOT_FOUND if missing
+4. Check UNIQUE(userId, reviewId) in reports
+   → throw REPORT_ALREADY_EXISTS if exists
+5. Create report record:
+     userId=currentUserId, reviewId, reasonId,
+     description, status='pending'
+6. Return { reportId, status: 'pending' }
+```
+
+Transaction: wraps step 5 only.
+
+---
+
+## WF-RPT-002 — Withdraw Report
+
+**UseCase:** `WithdrawReportUseCase`
+**Trigger:** `DELETE /reports/:reportId`
+
+Steps:
+
+```
+1. Load report by reportId
+2. If not found → throw REPORT_NOT_FOUND
+3. If report.userId != currentUserId → throw FORBIDDEN
+4. If report.status != 'pending' → throw REPORT_NOT_WITHDRAWABLE
+5. Delete report record (hard delete)
+```
+
+---
+
+# Section 7. Admin Moderation Workflows
+
+---
+
+## WF-ADMIN-001 — Approve Business
+
+**UseCase:** `ApproveBusinessUseCase`
+**Trigger:** `POST /admin/businesses/:businessId/approve`
+
+Preconditions:
+
+```
+- Business exists (deletedAt IS NULL)
+- Business status = 'pending'
+```
+
+Steps:
+
+```
+1. Load business WHERE deletedAt IS NULL
+2. If not found → throw BUSINESS_NOT_FOUND
+3. If business.status != 'pending' → throw BUSINESS_NOT_PENDING
+4. BEGIN TRANSACTION:
+   a. Update business:
+        status='approved', approvedByUserId=currentUserId
+   b. Create notification record:
+        userId=business.ownerUserId,
+        type='BUSINESS_APPROVED',
+        title='Business Approved',
+        content='Your business "{name}" has been approved.'
+   c. Create audit log:
+        action='BUSINESS_APPROVED', entityType='Business',
+        entityId=businessId, userId=currentUserId,
+        newData={ status: 'approved' }
+5. Push SSE event to business.ownerUserId:
+     { event: 'notification', type: 'BUSINESS_APPROVED', ... }
+6. Return { businessId, status: 'approved' }
+```
+
+Transaction: wraps steps 4a-4c.
+SSE push (step 5): OUTSIDE transaction, after commit.
+
+---
+
+## WF-ADMIN-002 — Reject Business
+
+**UseCase:** `RejectBusinessUseCase`
+**Trigger:** `POST /admin/businesses/:businessId/reject`
+
+Steps:
+
+```
+1. Load business WHERE deletedAt IS NULL → throw BUSINESS_NOT_FOUND
+2. If business.status != 'pending' → throw BUSINESS_NOT_PENDING
+3. BEGIN TRANSACTION:
+   a. Update business.status = 'rejected'
+   b. Create notification:
+        userId=business.ownerUserId,
+        type='BUSINESS_REJECTED',
+        title='Business Rejected',
+        content='Your business "{name}" was rejected. Reason: {reason}'
+   c. Create audit log:
+        action='BUSINESS_REJECTED', entityType='Business',
+        entityId=businessId, userId=currentUserId
+4. Push SSE event to business.ownerUserId
+5. Return { businessId, status: 'rejected' }
+```
+
+Transaction: wraps step 3a-3c.
+
+---
+
+## WF-ADMIN-003 — Approve Review
+
+**UseCase:** `ApproveReviewUseCase`
+**Trigger:** `POST /admin/reviews/:reviewId/approve`
+
+Preconditions:
+
+```
+- Review exists (deletedAt IS NULL)
+- Review status = 'pending'
+```
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL → throw REVIEW_NOT_FOUND
+2. If review.status != 'pending' → throw REVIEW_NOT_PENDING
+3. BEGIN TRANSACTION:
+   a. Update review:
+        status='approved', managedByUserId=currentUserId
+   b. Create notification:
+        userId=review.writerUserId,
+        type='REVIEW_APPROVED',
+        title='Review Approved',
+        content='Your review has been approved.'
+   c. Create audit log:
+        action='REVIEW_APPROVED', entityType='Review',
+        entityId=reviewId, userId=currentUserId
+4. Push SSE event to review.writerUserId
+5. Return { reviewId, status: 'approved' }
+```
+
+Transaction: wraps step 3a-3c.
+
+Note: Review becomes eligible for ranking in the NEXT cron run.
+Do NOT trigger immediate ranking recalculation here.
+
+---
+
+## WF-ADMIN-004 — Reject Review
+
+**UseCase:** `RejectReviewUseCase`
+**Trigger:** `POST /admin/reviews/:reviewId/reject`
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL → throw REVIEW_NOT_FOUND
+2. If review.status != 'pending' → throw REVIEW_NOT_PENDING
+3. BEGIN TRANSACTION:
+   a. Update review:
+        status='rejected', managedByUserId=currentUserId
+   b. Create notification:
+        userId=review.writerUserId,
+        type='REVIEW_REJECTED',
+        title='Review Rejected',
+        content='Your review has been rejected. Reason: {reason}'
+   c. Create audit log:
+        action='REVIEW_REJECTED', entityType='Review',
+        entityId=reviewId, userId=currentUserId
+4. Push SSE event to review.writerUserId
+5. Return { reviewId, status: 'rejected' }
+```
+
+Transaction: wraps step 3a-3c.
+
+---
+
+## WF-ADMIN-005 — Resolve Report
+
+**UseCase:** `ResolveReportUseCase`
+**Trigger:** `POST /admin/reports/:reportId/resolve`
+
+Steps:
+
+```
+1. Load report by reportId → throw REPORT_NOT_FOUND
+2. BEGIN TRANSACTION:
+   a. Update report.status = 'resolved'
+   b. Create notification:
+        userId=report.userId,
+        type='REPORT_RESOLVED',
+        title='Report Resolved',
+        content='Your report has been reviewed and resolved.'
+   c. Create audit log:
+        action='REPORT_RESOLVED', entityType='Report',
+        entityId=reportId, userId=currentUserId
+3. Push SSE event to report.userId
+4. Return { reportId, status: 'resolved' }
+```
+
+Transaction: wraps step 2a-2c.
+
+---
+
+## WF-ADMIN-006 — Ban User
+
+**UseCase:** `BanUserUseCase`
+**Trigger:** `PATCH /admin/users/:userId/ban`
+
+Preconditions:
+
+```
+- User exists (deletedAt IS NULL)
+- Target user role != 'ADMIN'
+```
+
+Steps:
+
+```
+1. Load user WHERE deletedAt IS NULL → throw USER_NOT_FOUND
+2. If user.role = 'ADMIN' → throw CANNOT_BAN_ADMIN
+3. BEGIN TRANSACTION:
+   a. Update user.status = 'banned'
+   b. Revoke all refresh tokens:
+        UPDATE refresh_tokens SET revokedAt=now()
+        WHERE userId=userId AND revokedAt IS NULL
+   c. Create audit log:
+        action='USER_BANNED', entityType='User',
+        entityId=userId, userId=currentUserId,
+        newData={ reason }
+4. Return { userId, status: 'banned' }
+```
+
+Transaction: wraps step 3a-3c.
+
+---
+
+# Section 8. Ranking Workflow
+
+---
+
+## WF-RANK-001 — Recalculate Rankings
+
+**UseCase:** `RankingRecalculationJob`
+**Trigger:** Cron `0 * * * *` OR `POST /admin/rankings/recalculate`
+
+Steps:
+
+```
+1. Load all businesses WHERE status='approved' AND deletedAt IS NULL
+
+2. For each business:
+   a. Load all reviews WHERE businessId=id
+                        AND status='approved'
+                        AND deletedAt IS NULL
+   b. Compute n = count of approved reviews
+   c. Compute avgRating = AVG(overallRating) — 0 if n=0
+   d. Compute Bayesian score:
+        score = (3.5 × 10 + avgRating × n) / (10 + n)
+        (see DECISIONS.md D-012 for formula and constants)
+
+3. Sort businesses by score DESC → assign rank (1 = highest)
+
+4. BEGIN TRANSACTION:
+   a. Delete all existing ranking_snapshots (full replace strategy)
+   b. Insert new ranking_snapshots for each business:
+        - scope='GLOBAL', scopeId=NULL, rank, rankingScore=score,
+          avgRating, reviewCount=n, businessId
+   c. Insert category-scoped snapshots:
+        - For each category, re-rank businesses in that category only
+        - scope='CATEGORY', scopeId=categoryId
+   d. Insert province-scoped snapshots:
+        - For each unique province (from locations), re-rank businesses
+        - scope='PROVINCE', scopeId=NULL (filter by province name via join)
+   e. Update businesses.avgRating for each business
+
+5. Invalidate Redis ranking cache:
+     DELETE ranking:global
+     DELETE ranking:category:*
+     DELETE ranking:province:*
+
+6. Log completion:
+     action='RANKING_RECALCULATED', entityType='System', userId=NULL,
+     newData={ totalBusinesses, calculatedAt }
+```
+
+Transaction: wraps step 4a-4e.
+Cache invalidation (step 5): OUTSIDE transaction, after commit.
+
+Performance note:
+
+```
+- Load all data in batches, not one by one (avoid N+1)
+- Use a single query with aggregation where possible:
+    SELECT businessId, COUNT(*) as n, AVG(overallRating) as avgRating
+    FROM reviews
+    WHERE status='approved' AND deletedAt IS NULL
+    GROUP BY businessId
+```
+
+---
+
+# Section 9. Notification Workflow
+
+---
+
+## WF-NOTI-001 — Create and Push Notification
+
+**UseCase:** `CreateNotificationUseCase`
+**Called by:** All moderation workflows (not a direct API endpoint)
+
+Steps:
+
+```
+1. Create notification record in PostgreSQL:
+     userId, type, title, content, isRead=false
+2. Return saved notification (with notificationId)
+3. Attempt SSE push to userId via NotificationSseService
+   - If user has no active SSE connection → skip silently
+   - If push fails → log warning, do NOT throw
+```
+
+Critical rule:
+
+```
+Step 1 (persist) MUST succeed before step 3 (push).
+SSE failure MUST NOT roll back the notification record.
+This means SSE push happens OUTSIDE any transaction.
+```
+
+---
+
+# Section 10. Search Workflow
+
+---
+
+## WF-SEARCH-001 — Search Businesses
+
+**UseCase:** Called inside `GetBusinessListUseCase`
+**Trigger:** `GET /businesses?search=...`
+
+Steps:
+
+```
+1. If search param provided:
+   Build FTS query:
+     WHERE to_tsvector('simple', name || ' ' || coalesce(description, ''))
+           @@ plainto_tsquery('simple', :searchTerm)
+     AND status = 'approved'
+     AND deletedAt IS NULL
+
+2. Apply additional filters:
+     categoryId → JOIN business_categories WHERE categoryId=:id
+     province   → JOIN business_locations → JOIN locations WHERE province=:province
+
+3. Apply sorting:
+     avgRating   → ORDER BY avg_rating DESC
+     reviewCount → ORDER BY review_count DESC (from ranking_snapshots)
+     createdAt   → ORDER BY created_at DESC
+
+4. Apply pagination (LIMIT/OFFSET)
+
+5. Return paginated results
+```
+
+---
+
+# Section 11. State Transition Reference
+
+## Business Status
+
+```
+ALLOWED transitions:
+  pending  → approved  (WF-ADMIN-001)
+  pending  → rejected  (WF-ADMIN-002)
+  approved → hidden    (WF-ADMIN, hide action)
+  hidden   → approved  (admin manual, not a separate workflow)
+
+FORBIDDEN transitions:
+  approved → pending
+  rejected → pending
+  rejected → approved (must create new business)
+```
+
+## Review Status
+
+```
+ALLOWED transitions:
+  pending  → approved  (WF-ADMIN-003)
+  pending  → rejected  (WF-ADMIN-004)
+  approved → hidden    (WF-ADMIN, hide action)
+  any      → pending   (WF-REV-002, after edit)
+
+FORBIDDEN transitions:
+  rejected → approved  (must create new review)
+  hidden   → approved
+```
+
+## Report Status
+
+```
+ALLOWED transitions:
+  pending  → reviewing  (admin picks up)
+  pending  → resolved   (WF-ADMIN-005)
+  reviewing → resolved  (WF-ADMIN-005)
+  pending  → rejected   (WF-ADMIN reject report)
+  pending  → [deleted]  (WF-RPT-002, user withdraws)
+
+FORBIDDEN transitions:
+  resolved → any
+  rejected → any
+```
+
+---
+
+# Section 12. Domain Exceptions Reference
+
+Every exception below maps to an HTTP status code in REFERENCE.md.
+Throw the domain exception by name — the global filter handles HTTP mapping.
+
+```
+Auth:
+  INVALID_CREDENTIALS
+  INVALID_REFRESH_TOKEN
+  TOKEN_EXPIRED
+  INVALID_GOOGLE_TOKEN
+  USER_BANNED
+
+User:
+  USER_NOT_FOUND
+  INVALID_PASSWORD
+  CANNOT_BAN_ADMIN
+
+Business:
+  BUSINESS_NOT_FOUND
+  BUSINESS_NOT_APPROVED
+  BUSINESS_NOT_PENDING
+  PHONE_ALREADY_EXISTS
+  EMAIL_ALREADY_EXISTS
+  LAST_LOCATION_ERROR
+
+Review:
+  REVIEW_NOT_FOUND
+  REVIEW_ALREADY_EXISTS
+  REVIEW_NOT_PENDING
+  INVALID_RATING
+  INVALID_CRITERION
+
+Reply:
+  REPLY_NOT_FOUND
+  REPLY_ALREADY_EXISTS
+
+Report:
+  REPORT_NOT_FOUND
+  REPORT_ALREADY_EXISTS
+  REPORT_NOT_WITHDRAWABLE
+  REASON_NOT_FOUND
+
+Category / Criteria:
+  CATEGORY_NOT_FOUND
+  CATEGORY_ALREADY_EXISTS
+  CRITERION_NOT_FOUND
+  CRITERION_ALREADY_EXISTS
+  ASSIGNMENT_ALREADY_EXISTS
+  ASSIGNMENT_NOT_FOUND
+  LOCATION_NOT_FOUND
+
+Notification:
+  NOTIFICATION_NOT_FOUND
+
+General:
+  FORBIDDEN
+  VALIDATION_ERROR
+  INTERNAL_SERVER_ERROR
+```
+
+---
+
+End of WORKFLOWS.md — v1.0

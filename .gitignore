@@ -1,0 +1,73 @@
+# =========================
+# DEPENDENCIES
+# =========================
+node_modules/
+
+# pnpm store (optional - chỉ ignore nếu có local store)
+.pnpm-store/
+
+# =========================
+# BUILD OUTPUT
+# =========================
+dist/
+build/
+out/
+coverage/
+
+# Turbo build cache
+.turbo/
+**/.turbo/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# =========================
+# ENV FILES (RẤT QUAN TRỌNG)
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# LOGS
+# =========================
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# =========================
+# PRISMA
+# =========================
+**/prisma/migrations/**/migration_lock.toml
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# OS FILES
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# TEMP FILES
+# =========================
+tmp/
+temp/
+.cache/
+
+# =========================
+# OPTIONAL: DOC/LOCAL FILES
+# =========================
+structure.txt
+
+# =========================
+# DOCKER (nếu không muốn push runtime artifacts)
+# =========================
+docker-compose.override.yml

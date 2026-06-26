@@ -1,0 +1,413 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+enum UserStatus {
+  active
+  inactive
+  banned
+  deleted
+}
+
+enum BusinessStatus {
+  pending
+  approved
+  rejected
+  hidden
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+  hidden
+}
+
+enum ReportStatus {
+  pending
+  reviewing
+  resolved
+  rejected
+}
+
+enum SentimentType {
+  positive
+  neutral
+  negative
+}
+
+// ============================================================================
+// Module: Auth
+// ============================================================================
+
+model Role {
+  roleId   Int    @id @default(autoincrement()) @map("role_id") @db.SmallInt
+  roleName String @unique @map("role_name") @db.VarChar(50)
+
+  users User[]
+
+  @@map("roles")
+}
+
+model RefreshToken {
+  tokenId   BigInt   @id @default(autoincrement()) @map("token_id")
+  token     String   @unique @db.Text
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz
+
+  userId BigInt @map("user_id")
+  user   User   @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================================================
+// Module: User
+// ============================================================================
+
+model User {
+  userId    BigInt      @id @default(autoincrement()) @map("user_id")
+  name      String      @db.VarChar(100)
+  email     String      @unique @db.VarChar(255)
+  password  String      @db.VarChar(255)
+  status    UserStatus  @default(active)
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt DateTime?   @map("deleted_at") @db.Timestamptz
+
+  roleId Int  @map("role_id") @db.SmallInt
+  role   Role @relation(fields: [roleId], references: [roleId])
+
+  // avatar stored via images table
+  images            Image[]
+  businesses        Business[]        @relation("BusinessOwner")
+  approvedBusiness  Business[]        @relation("BusinessApprover")
+  reviews           Review[]          @relation("ReviewWriter")
+  managedReviews    Review[]          @relation("ReviewManager")
+  replies           Reply[]
+  reports           Report[]
+  notifications     Notification[]
+  refreshTokens     RefreshToken[]
+  logs              Log[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ============================================================================
+// Module: Business
+// ============================================================================
+
+model Business {
+  businessId  BigInt         @id @default(autoincrement()) @map("business_id")
+  name        String         @db.VarChar(150)
+  description String?        @db.Text
+  phone       String         @unique @db.VarChar(20)
+  email       String?        @unique @db.VarChar(255)
+  status      BusinessStatus @default(pending)
+  avgRating   Decimal        @default(0) @map("avg_rating") @db.Decimal(3, 2)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz
+
+  ownerUserId      BigInt  @map("owner_user_id")
+  owner            User    @relation("BusinessOwner", fields: [ownerUserId], references: [userId])
+
+  approvedByUserId BigInt? @map("approved_by_user_id")
+  approvedBy       User?   @relation("BusinessApprover", fields: [approvedByUserId], references: [userId])
+
+  images              Image[]
+  locations           BusinessLocation[]
+  businessCategories  BusinessCategory[]
+  reviews             Review[]
+  rankingSnapshots    RankingSnapshot[]
+
+  @@index([status])
+  @@index([ownerUserId])
+  @@index([name])
+  @@map("businesses")
+}
+
+model Location {
+  locationId  BigInt   @id @default(autoincrement()) @map("location_id")
+  addressLine String   @map("address_line") @db.Text
+  ward        String   @db.VarChar(100)
+  province    String   @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  businessLocations BusinessLocation[]
+
+  @@index([province])
+  @@map("locations")
+}
+
+model BusinessLocation {
+  businessId BigInt @map("business_id")
+  locationId BigInt @map("location_id")
+
+  business Business @relation(fields: [businessId], references: [businessId])
+  location Location @relation(fields: [locationId], references: [locationId])
+
+  @@id([businessId, locationId])
+  @@map("business_locations")
+}
+
+// ============================================================================
+// Module: Category
+// ============================================================================
+
+model Category {
+  categoryId   Int    @id @default(autoincrement()) @map("category_id") @db.SmallInt
+  categoryName String @unique @map("category_name") @db.VarChar(100)
+
+  categoryCriteria  CategoryCriterion[]
+  businessCategories BusinessCategory[]
+
+  @@map("categories")
+}
+
+model BusinessCategory {
+  businessId BigInt @map("business_id")
+  categoryId Int    @map("category_id") @db.SmallInt
+
+  business Business  @relation(fields: [businessId], references: [businessId])
+  category Category  @relation(fields: [categoryId], references: [categoryId])
+
+  @@id([businessId, categoryId])
+  @@map("business_categories")
+}
+
+// ============================================================================
+// Module: Criteria
+// ============================================================================
+
+model Criterion {
+  criterionId Int     @id @default(autoincrement()) @map("criterion_id") @db.SmallInt
+  name        String  @unique @db.VarChar(100)
+  description String? @db.Text
+
+  categoryCriteria CategoryCriterion[]
+  reviewCriteria   ReviewCriterion[]
+
+  @@map("criteria")
+}
+
+model CategoryCriterion {
+  categoryId  Int @map("category_id") @db.SmallInt
+  criterionId Int @map("criterion_id") @db.SmallInt
+
+  category  Category  @relation(fields: [categoryId], references: [categoryId])
+  criterion Criterion @relation(fields: [criterionId], references: [criterionId])
+
+  @@id([categoryId, criterionId])
+  @@map("category_criteria")
+}
+
+// ============================================================================
+// Module: Review
+// ============================================================================
+
+model Review {
+  reviewId   BigInt        @id @default(autoincrement()) @map("review_id")
+  content    String        @db.Text
+  overallRating Int        @map("overall_rating") @db.SmallInt
+  sentiment  SentimentType?
+  status     ReviewStatus  @default(pending)
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt  DateTime?     @map("deleted_at") @db.Timestamptz
+
+  writerUserId    BigInt  @map("writer_user_id")
+  writer          User    @relation("ReviewWriter", fields: [writerUserId], references: [userId])
+
+  businessId      BigInt   @map("business_id")
+  business        Business @relation(fields: [businessId], references: [businessId])
+
+  managedByUserId BigInt?  @map("managed_by_user_id")
+  managedBy       User?    @relation("ReviewManager", fields: [managedByUserId], references: [userId])
+
+  images          Image[]
+  reviewCriteria  ReviewCriterion[]
+  replies         Reply[]
+  reports         Report[]
+
+  @@unique([writerUserId, businessId])
+  @@index([businessId])
+  @@index([writerUserId])
+  @@index([status])
+  @@map("reviews")
+}
+
+model ReviewCriterion {
+  reviewId    BigInt   @map("review_id")
+  criterionId Int      @map("criterion_id") @db.SmallInt
+  ratingValue Int      @map("rating_value") @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  review    Review    @relation(fields: [reviewId], references: [reviewId])
+  criterion Criterion @relation(fields: [criterionId], references: [criterionId])
+
+  @@id([reviewId, criterionId])
+  @@map("review_criteria")
+}
+
+model Reply {
+  replyId   BigInt   @id @default(autoincrement()) @map("reply_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  userId   BigInt @map("user_id")
+  user     User   @relation(fields: [userId], references: [userId])
+
+  reviewId BigInt @map("review_id")
+  review   Review @relation(fields: [reviewId], references: [reviewId])
+
+  @@unique([reviewId])
+  @@index([reviewId])
+  @@map("replies")
+}
+
+// ============================================================================
+// Module: Report
+// ============================================================================
+
+model Reason {
+  reasonId    Int      @id @default(autoincrement()) @map("reason_id") @db.SmallInt
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  reports Report[]
+
+  @@map("reasons")
+}
+
+model Report {
+  reportId    BigInt       @id @default(autoincrement()) @map("report_id")
+  description String?      @db.Text
+  status      ReportStatus @default(pending)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  reasonId Int    @map("reason_id") @db.SmallInt
+  reason   Reason @relation(fields: [reasonId], references: [reasonId])
+
+  userId BigInt @map("user_id")
+  user   User   @relation(fields: [userId], references: [userId])
+
+  reviewId BigInt @map("review_id")
+  review   Review @relation(fields: [reviewId], references: [reviewId])
+
+  @@unique([userId, reviewId])
+  @@index([reviewId])
+  @@index([status])
+  @@map("reports")
+}
+
+// ============================================================================
+// Module: Notification
+// ============================================================================
+
+model Notification {
+  notificationId BigInt   @id @default(autoincrement()) @map("notification_id")
+  type           String   @db.VarChar(100)
+  title          String   @db.VarChar(255)
+  content        String   @db.Text
+  isRead         Boolean  @default(false) @map("is_read")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId BigInt @map("user_id")
+  user   User   @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ============================================================================
+// Module: Ranking
+// ============================================================================
+
+model RankingSnapshot {
+  snapshotId    BigInt   @id @default(autoincrement()) @map("snapshot_id")
+  scope         String   @db.VarChar(50)
+  scopeId       BigInt?  @map("scope_id")
+  rank          Int
+  rankingScore  Decimal  @map("ranking_score") @db.Decimal(10, 4)
+  avgRating     Decimal  @map("avg_rating") @db.Decimal(3, 2)
+  reviewCount   Int      @map("review_count")
+  calculatedAt  DateTime @default(now()) @map("calculated_at") @db.Timestamptz
+
+  businessId BigInt   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [businessId])
+
+  @@unique([scope, scopeId, businessId])
+  @@index([scope, scopeId, rank])
+  @@index([businessId])
+  @@map("ranking_snapshots")
+}
+
+// ============================================================================
+// Module: Images
+// ============================================================================
+
+model Image {
+  imageId            BigInt   @id @default(autoincrement()) @map("image_id")
+  cloudinaryPublicId String   @map("cloudinary_public_id") @db.Text
+  secureUrl          String   @map("secure_url") @db.Text
+  width              Int?
+  height             Int?
+  format             String?  @db.VarChar(10)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Exactly one of these must be non-null (enforced via CHECK constraint in migration)
+  userId     BigInt?   @map("user_id")
+  reviewId   BigInt?   @map("review_id")
+  businessId BigInt?   @map("business_id")
+
+  user     User?     @relation(fields: [userId], references: [userId])
+  review   Review?   @relation(fields: [reviewId], references: [reviewId])
+  business Business? @relation(fields: [businessId], references: [businessId])
+
+  @@index([userId])
+  @@index([reviewId])
+  @@index([businessId])
+  @@map("images")
+}
+
+// ============================================================================
+// Module: Audit Log
+// ============================================================================
+
+model Log {
+  logId      BigInt   @id @default(autoincrement()) @map("log_id")
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(100)
+  entityId   BigInt?  @map("entity_id")
+  oldData    Json?    @map("old_data")
+  newData    Json?    @map("new_data")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId BigInt? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@map("logs")
+}
