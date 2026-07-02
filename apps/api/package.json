@@ -35,6 +35,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cloudinary": "^2.10.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.0.0",
     "google-auth-library": "^10.7.0",
     "ioredis": "^5.11.1",
     "multer": "^2.2.0",
@@ -46,6 +48,8 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@eers/shared-constants": "workspace:*",
+    "@eers/shared-types": "workspace:*",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
@@ -73,9 +77,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0",
-    "@eers/shared-types": "workspace:*",
-    "@eers/shared-constants": "workspace:*"
+    "typescript-eslint": "^8.20.0"
   },
   "jest": {
     "moduleFileExtensions": [

@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
+import cookieParser from 'cookie-parser'
 import { AppModule } from './app.module'
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { ResponseInterceptor } from './common/interceptors/response.interceptor'
@@ -11,6 +12,12 @@ async function bootstrap() {
   // Set global prefix
   const apiPrefix = process.env.API_PREFIX || 'api/v1'
   app.setGlobalPrefix(apiPrefix)
+
+  // Set up cookie parser for refresh token cookie support
+  app.use(cookieParser())
+
+  // Enable CORS so browser clients can send cookies on refresh
+  app.enableCors({ origin: true, credentials: true })
 
   // Global validation pipe
   app.useGlobalPipes(

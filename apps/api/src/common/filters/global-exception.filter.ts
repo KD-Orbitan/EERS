@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common'
 import { Response } from 'express'
+import { AppException } from '../exceptions/app.exception'
 
 export class DomainException extends Error {
   constructor(
@@ -94,7 +95,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let errorCode = 'INTERNAL_SERVER_ERROR'
     let message = 'Internal server error'
 
-    if (exception instanceof DomainException) {
+    if (exception instanceof AppException) {
+      statusCode = exception.status
+      errorCode = exception.code
+      message = exception.message
+    } else if (exception instanceof DomainException) {
       statusCode = exception.statusCode
       errorCode = exception.code
       message = exception.message
