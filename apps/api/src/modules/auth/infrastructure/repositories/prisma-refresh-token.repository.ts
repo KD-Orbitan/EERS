@@ -18,10 +18,10 @@ export class PrismaRefreshTokenRepository extends RefreshTokenRepository {
     })
   }
 
-  async findActiveByToken(token: string): Promise<unknown> {
-    return this.prisma.refreshToken.findFirst({
+  async findActiveTokensByUserId(userId: number): Promise<unknown[]> {
+    return this.prisma.refreshToken.findMany({
       where: {
-        token,
+        userId: Number(userId),
         revokedAt: null,
         expiresAt: { gt: new Date() },
       },

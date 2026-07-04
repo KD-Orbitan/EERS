@@ -20,6 +20,7 @@ describe('LoginUseCase', () => {
       userRepository as unknown as UserRepository,
       refreshTokenRepository as unknown as RefreshTokenRepository,
       { sign: jest.fn().mockReturnValue('token') } as any,
+      undefined,
       {
         compare: jest.fn().mockResolvedValue(true),
         hash: jest.fn().mockResolvedValue('hashed-refresh'),

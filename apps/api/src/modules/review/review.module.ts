@@ -1,0 +1,59 @@
+import { Module } from '@nestjs/common'
+import { JwtModule } from '@nestjs/jwt'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { InfrastructureModule } from '../../infrastructure/infrastructure.module'
+import { ReviewController } from './presentation/controllers/review.controller'
+import { ReplyController } from './presentation/controllers/reply.controller'
+import { ReviewRepository } from './domain/repositories/review.repository'
+import { ReplyRepository } from './domain/repositories/reply.repository'
+import { PrismaReviewRepository } from './infrastructure/repositories/prisma-review.repository'
+import { PrismaReplyRepository } from './infrastructure/repositories/prisma-reply.repository'
+import { CreateReviewUseCase } from './application/use-cases/create-review.use-case'
+import { UpdateReviewUseCase } from './application/use-cases/update-review.use-case'
+import { DeleteReviewUseCase } from './application/use-cases/delete-review.use-case'
+import { GetReviewByIdUseCase } from './application/use-cases/get-review-by-id.use-case'
+import { GetBusinessReviewsUseCase } from './application/use-cases/get-business-reviews.use-case'
+import { GetMyReviewsUseCase } from './application/use-cases/get-my-reviews.use-case'
+import { GetReviewStatisticsUseCase } from './application/use-cases/get-review-statistics.use-case'
+import { CreateReplyUseCase } from './application/use-cases/create-reply.use-case'
+import { UpdateReplyUseCase } from './application/use-cases/update-reply.use-case'
+import { DeleteReplyUseCase } from './application/use-cases/delete-reply.use-case'
+import { BusinessModule } from '../business/business.module'
+
+@Module({
+  imports: [
+    ConfigModule,
+    InfrastructureModule,
+    BusinessModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('jwt.accessSecret') || 'change-me-access-secret',
+      }),
+    }),
+  ],
+  controllers: [ReviewController, ReplyController],
+  providers: [
+    {
+      provide: ReviewRepository,
+      useClass: PrismaReviewRepository,
+    },
+    {
+      provide: ReplyRepository,
+      useClass: PrismaReplyRepository,
+    },
+    CreateReviewUseCase,
+    UpdateReviewUseCase,
+    DeleteReviewUseCase,
+    GetReviewByIdUseCase,
+    GetBusinessReviewsUseCase,
+    GetMyReviewsUseCase,
+    GetReviewStatisticsUseCase,
+    CreateReplyUseCase,
+    UpdateReplyUseCase,
+    DeleteReplyUseCase,
+  ],
+  exports: [GetReviewStatisticsUseCase],
+})
+export class ReviewModule {}

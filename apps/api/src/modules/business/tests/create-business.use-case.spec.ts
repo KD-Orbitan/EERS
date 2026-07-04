@@ -1,0 +1,97 @@
+import { CreateBusinessUseCase } from '../application/use-cases/create-business.use-case'
+import { BusinessRepository } from '../domain/repositories/business.repository'
+import { CategoryNotFoundException, EmailAlreadyExistsException, PhoneAlreadyExistsException } from '../domain/exceptions/business.exceptions'
+
+describe('CreateBusinessUseCase', () => {
+  let businessRepository: jest.Mocked<Pick<BusinessRepository, 'findCategoriesExist' | 'findByPhone' | 'findByEmail' | 'createBusinessWithLocationsAndCategories'>>
+  let useCase: CreateBusinessUseCase
+
+  beforeEach(() => {
+    businessRepository = {
+      findCategoriesExist: jest.fn(),
+      findByPhone: jest.fn(),
+      findByEmail: jest.fn(),
+      createBusinessWithLocationsAndCategories: jest.fn(),
+    }
+    useCase = new CreateBusinessUseCase(businessRepository as unknown as BusinessRepository)
+  })
+
+  it('creates business with pending status', async () => {
+    businessRepository.findCategoriesExist.mockResolvedValue(true)
+    businessRepository.findByPhone.mockResolvedValue(null)
+    businessRepository.findByEmail.mockResolvedValue(null)
+    businessRepository.createBusinessWithLocationsAndCategories.mockResolvedValue({ businessId: 1, status: 'pending' })
+
+    const result = await useCase.execute({
+      userId: 5,
+      dto: {
+        name: 'Test Business',
+        description: 'Description',
+        phone: '123456',
+        email: 'test@biz.com',
+        categoryIds: [1],
+        locations: [{ addressLine: 'Line', ward: 'Ward', province: 'Province' }],
+      },
+    })
+
+    expect(result).toEqual({ businessId: 1, status: 'pending' })
+    expect(businessRepository.createBusinessWithLocationsAndCategories).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ownerUserId: 5,
+        name: 'Test Business',
+      }),
+    )
+  })
+
+  it('throws CATEGORY_NOT_FOUND when category IDs are invalid', async () => {
+    businessRepository.findCategoriesExist.mockResolvedValue(false)
+
+    await expect(
+      useCase.execute({
+        userId: 5,
+        dto: {
+          name: 'Test Business',
+          phone: '123456',
+          categoryIds: [999],
+          locations: [{ addressLine: 'Line', ward: 'Ward', province: 'Province' }],
+        },
+      }),
+    ).rejects.toBeInstanceOf(CategoryNotFoundException)
+  })
+
+  it('throws PHONE_ALREADY_EXISTS when phone is taken', async () => {
+    businessRepository.findCategoriesExist.mockResolvedValue(true)
+    businessRepository.findByPhone.mockResolvedValue({ businessId: 1 } as any)
+
+    await expect(
+      useCase.execute({
+        userId: 5,
+        dto: {
+          name: 'Test Business',
+          phone: '123456',
+          categoryIds: [1],
+          locations: [{ addressLine: 'Line', ward: 'Ward', province: 'Province' }],
+        },
+      }),
+    ).rejects.toBeInstanceOf(PhoneAlreadyExistsException)
+  })
+
+  it('throws EMAIL_ALREADY_EXISTS when email is taken', async () => {
+    businessRepository.findCategoriesExist.mockResolvedValue(true)
+    businessRepository.findByPhone.mockResolvedValue(null)
+    businessRepository.findByEmail.mockResolvedValue({ businessId: 2 } as any)
+
+    await expect(
+      useCase.execute({
+        userId: 5,
+        dto: {
+          name: 'Test Business',
+          phone: '123456',
+          email: 'taken@biz.com',
+          categoryIds: [1],
+          locations: [{ addressLine: 'Line', ward: 'Ward', province: 'Province' }],
+        },
+      }),
+    ).rejects.toBeInstanceOf(EmailAlreadyExistsException)
+  })
+})

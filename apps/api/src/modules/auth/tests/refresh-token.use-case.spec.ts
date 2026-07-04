@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt'
 import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.use-case'
 import { UserRepository } from '../domain/repositories/user.repository'
 import { RefreshTokenRepository } from '../domain/repositories/refresh-token.repository'
@@ -8,13 +9,13 @@ import {
 } from '../domain/exceptions/auth.exceptions'
 
 describe('RefreshTokenUseCase', () => {
-  let refreshTokenRepository: jest.Mocked<Pick<RefreshTokenRepository, 'findActiveByToken'>>
+  let refreshTokenRepository: jest.Mocked<Pick<RefreshTokenRepository, 'findActiveTokensByUserId'>>
   let userRepository: jest.Mocked<Pick<UserRepository, 'findById'>>
   let useCase: RefreshTokenUseCase
 
   beforeEach(() => {
     refreshTokenRepository = {
-      findActiveByToken: jest.fn(),
+      findActiveTokensByUserId: jest.fn(),
     }
     userRepository = {
       findById: jest.fn(),
@@ -23,11 +24,15 @@ describe('RefreshTokenUseCase', () => {
       refreshTokenRepository as unknown as RefreshTokenRepository,
       userRepository as unknown as UserRepository,
       { verify: jest.fn().mockReturnValue({ sub: 11 }), sign: jest.fn().mockReturnValue('fresh-token') } as any,
+      undefined,
     )
   })
 
   it('returns new accessToken on valid cookie', async () => {
-    refreshTokenRepository.findActiveByToken.mockResolvedValue({ tokenId: 3 } as any)
+    const hashedToken = await bcrypt.hash('valid-refresh-token', 12)
+    refreshTokenRepository.findActiveTokensByUserId.mockResolvedValue([
+      { tokenId: 3, token: hashedToken },
+    ] as any)
     userRepository.findById.mockResolvedValue({ userId: 11, status: 'active', role: { roleName: 'USER' } } as any)
 
     const result = await useCase.execute('valid-refresh-token')
@@ -49,6 +54,7 @@ describe('RefreshTokenUseCase', () => {
       refreshTokenRepository as unknown as RefreshTokenRepository,
       userRepository as unknown as UserRepository,
       { verify, sign: jest.fn() } as any,
+      undefined,
     )
 
     await expect(useCase.execute('expired-token')).rejects.toBeInstanceOf(TokenExpiredException)

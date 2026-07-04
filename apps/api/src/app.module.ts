@@ -5,6 +5,11 @@ import { AppService } from './app.service'
 import { InfrastructureModule } from './infrastructure/infrastructure.module'
 import { HealthModule } from './modules/health/health.module'
 import { AuthModule } from './modules/auth/auth.module'
+import { UserModule } from './modules/user/user.module'
+import { CategoryModule } from './modules/category/category.module'
+import { CriteriaModule } from './modules/criteria/criteria.module'
+import { BusinessModule } from './modules/business/business.module'
+import { ReviewModule } from './modules/review/review.module'
 import appConfig from './config/app.config'
 import databaseConfig from './config/database.config'
 import jwtConfig from './config/jwt.config'
@@ -21,9 +26,13 @@ import cloudinaryConfig from './config/cloudinary.config'
     InfrastructureModule,
     HealthModule,
     AuthModule,
+    UserModule,
+    CategoryModule,
+    CriteriaModule,
+    BusinessModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
-})
 })
 export class AppModule {}

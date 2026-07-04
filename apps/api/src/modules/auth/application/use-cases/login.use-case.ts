@@ -1,4 +1,5 @@
 import { Injectable, Optional } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
@@ -12,6 +13,7 @@ export class LoginUseCase {
     private readonly userRepository: UserRepository,
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly jwtService: JwtService,
+    @Optional() private readonly configService?: ConfigService,
     @Optional() private readonly bcryptService: { compare: (...args: any[]) => Promise<boolean>; hash: (...args: any[]) => Promise<string> } | typeof bcrypt = bcrypt,
     private readonly prisma: PrismaService,
   ) {}
@@ -32,8 +34,9 @@ export class LoginUseCase {
       throw new UserBannedException()
     }
 
-    const accessToken = this.jwtService.sign({ sub: user.userId, role: user.roleName || user.role?.roleName || 'USER' }, { expiresIn: '15m' })
-    const refreshToken = this.jwtService.sign({ sub: user.userId }, { expiresIn: '7d' })
+    const accessSecret = this.configService?.get<string>('jwt.accessSecret') || 'change-me-access-secret'
+    const accessToken = this.jwtService.sign({ sub: user.userId, role: user.roleName || user.role?.roleName || 'USER' }, { expiresIn: '15m', secret: accessSecret })
+    const refreshToken = this.jwtService.sign({ sub: user.userId }, { expiresIn: '7d', secret: accessSecret })
 
     const refreshTokenHash = await this.bcryptService.hash(refreshToken, 12)
 

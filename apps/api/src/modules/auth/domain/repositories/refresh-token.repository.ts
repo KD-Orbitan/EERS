@@ -5,7 +5,7 @@ export abstract class RefreshTokenRepository {
     expiresAt: Date
   }): Promise<unknown>
 
-  abstract findActiveByToken(token: string): Promise<unknown>
+  abstract findActiveTokensByUserId(userId: number): Promise<unknown[]>
 
   abstract revoke(tokenId: number): Promise<void>
 }
