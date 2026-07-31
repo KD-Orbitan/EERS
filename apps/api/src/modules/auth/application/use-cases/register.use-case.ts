@@ -1,7 +1,7 @@
 import { Injectable, Optional } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
 import { EmailAlreadyExistsException } from '../../domain/exceptions/auth.exceptions'
-import { UserRepository } from '../../domain/repositories/user.repository'
+import { UserRepository } from '../../../user/domain/repositories/user.repository'
 
 @Injectable()
 export class RegisterUseCase {

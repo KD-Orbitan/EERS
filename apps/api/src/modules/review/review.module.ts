@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { InfrastructureModule } from '../../infrastructure/infrastructure.module'
 import { ReviewController } from './presentation/controllers/review.controller'
 import { ReplyController } from './presentation/controllers/reply.controller'
+import { BusinessReviewController } from './presentation/controllers/business-review.controller'
 import { ReviewRepository } from './domain/repositories/review.repository'
 import { ReplyRepository } from './domain/repositories/reply.repository'
 import { PrismaReviewRepository } from './infrastructure/repositories/prisma-review.repository'
@@ -18,6 +19,7 @@ import { GetReviewStatisticsUseCase } from './application/use-cases/get-review-s
 import { CreateReplyUseCase } from './application/use-cases/create-reply.use-case'
 import { UpdateReplyUseCase } from './application/use-cases/update-reply.use-case'
 import { DeleteReplyUseCase } from './application/use-cases/delete-reply.use-case'
+import { GetApprovedReviewsUseCase } from './application/use-cases/get-approved-reviews.use-case'
 import { BusinessModule } from '../business/business.module'
 
 @Module({
@@ -33,7 +35,7 @@ import { BusinessModule } from '../business/business.module'
       }),
     }),
   ],
-  controllers: [ReviewController, ReplyController],
+  controllers: [ReviewController, ReplyController, BusinessReviewController],
   providers: [
     {
       provide: ReviewRepository,
@@ -50,10 +52,11 @@ import { BusinessModule } from '../business/business.module'
     GetBusinessReviewsUseCase,
     GetMyReviewsUseCase,
     GetReviewStatisticsUseCase,
+    GetApprovedReviewsUseCase,
     CreateReplyUseCase,
     UpdateReplyUseCase,
     DeleteReplyUseCase,
   ],
-  exports: [GetReviewStatisticsUseCase],
+  exports: [GetReviewStatisticsUseCase, ReviewRepository],
 })
 export class ReviewModule {}

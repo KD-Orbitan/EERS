@@ -101,6 +101,7 @@ model User {
   notifications     Notification[]
   refreshTokens     RefreshToken[]
   logs              Log[]
+  trustScore        UserTrustScore?
 
   @@index([email])
   @@map("users")
@@ -175,6 +176,7 @@ model Category {
 
   categoryCriteria  CategoryCriterion[]
   businessCategories BusinessCategory[]
+  criterionWeights  CriterionWeight[]
 
   @@map("categories")
 }
@@ -201,6 +203,7 @@ model Criterion {
 
   categoryCriteria CategoryCriterion[]
   reviewCriteria   ReviewCriterion[]
+  criterionWeights CriterionWeight[]
 
   @@map("criteria")
 }
@@ -214,6 +217,63 @@ model CategoryCriterion {
 
   @@id([categoryId, criterionId])
   @@map("category_criteria")
+}
+
+model CriterionWeight {
+  weightId    Int      @id @default(autoincrement()) @map("weight_id") @db.SmallInt
+  categoryId  Int      @map("category_id") @db.SmallInt
+  criterionId Int      @map("criterion_id") @db.SmallInt
+  weight      Decimal  @default(1.0) @db.Decimal(5, 4)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  category  Category  @relation(fields: [categoryId], references: [categoryId])
+  criterion Criterion @relation(fields: [criterionId], references: [criterionId])
+
+  @@unique([categoryId, criterionId])
+  @@map("criterion_weights")
+}
+
+model ScoringConfig {
+  configId Int @id @default(autoincrement()) @map("config_id") @db.SmallInt
+
+  bayesianC        Decimal @default(3.5) @map("bayesian_c") @db.Decimal(4, 2)
+  bayesianM        Int     @default(10) @map("bayesian_m")
+
+  fraudLambda1 Decimal @default(0.4) @map("fraud_lambda_1") @db.Decimal(4, 3)
+  fraudLambda2 Decimal @default(0.4) @map("fraud_lambda_2") @db.Decimal(4, 3)
+  fraudLambda3 Decimal @default(0.2) @map("fraud_lambda_3") @db.Decimal(4, 3)
+
+  thetaDup  Decimal @default(0.85) @map("theta_dup") @db.Decimal(4, 3)
+  lDup      Int     @default(20) @map("l_dup")
+
+  thetaSpam       Int     @default(5) @map("theta_spam")
+  spamWindowHours Int     @default(24) @map("spam_window_hours")
+
+  thetaSus    Decimal @default(0.3) @map("theta_sus") @db.Decimal(4, 3)
+  thetaReject Decimal @default(0.7) @map("theta_reject") @db.Decimal(4, 3)
+
+  trustAlpha Decimal @default(0.5) @map("trust_alpha") @db.Decimal(4, 3)
+  trustBeta  Decimal @default(0.3) @map("trust_beta") @db.Decimal(4, 3)
+  trustGamma Decimal @default(0.2) @map("trust_gamma") @db.Decimal(4, 3)
+
+  suspiciousDelta Decimal @default(0.3) @map("suspicious_delta") @db.Decimal(4, 3)
+
+  timeDecayLambda Decimal @default(0.01) @map("time_decay_lambda") @db.Decimal(6, 4)
+
+  sentimentLambda Decimal @default(0.0) @map("sentiment_lambda") @db.Decimal(4, 3)
+
+  weightAlpha Decimal @default(0.4) @map("weight_alpha") @db.Decimal(4, 3)
+  weightBeta  Decimal @default(0.4) @map("weight_beta") @db.Decimal(4, 3)
+  weightGamma Decimal @default(0.2) @map("weight_gamma") @db.Decimal(4, 3)
+
+  lMin Int @default(10) @map("l_min")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("scoring_config")
 }
 
 // ============================================================================
@@ -243,6 +303,7 @@ model Review {
   reviewCriteria  ReviewCriterion[]
   replies         Reply[]
   reports         Report[]
+  fraudScore      ReviewFraudScore?
 
   @@unique([writerUserId, businessId])
   @@index([businessId])
@@ -262,6 +323,37 @@ model ReviewCriterion {
 
   @@id([reviewId, criterionId])
   @@map("review_criteria")
+}
+
+model ReviewFraudScore {
+  fraudScoreId    BigInt   @id @default(autoincrement()) @map("fraud_score_id")
+  reviewId        BigInt   @map("review_id")
+  fraudScore      Decimal  @map("fraud_score") @db.Decimal(5, 4)
+  duplicateSignal Decimal  @default(0) @map("duplicate_signal") @db.Decimal(5, 4)
+  spamSignal      Decimal  @default(0) @map("spam_signal") @db.Decimal(5, 4)
+  trustSignal     Decimal  @default(0) @map("trust_signal") @db.Decimal(5, 4)
+  fraudStatus     String   @default("VALID") @map("fraud_status") @db.VarChar(20)
+  calculatedAt    DateTime @default(now()) @map("calculated_at") @db.Timestamptz
+
+  review Review @relation(fields: [reviewId], references: [reviewId])
+
+  @@unique([reviewId])
+  @@map("review_fraud_scores")
+}
+
+model UserTrustScore {
+  trustScoreId    BigInt   @id @default(autoincrement()) @map("trust_score_id")
+  userId          BigInt   @map("user_id")
+  trustScore      Decimal  @map("trust_score") @db.Decimal(5, 4)
+  validReviews    Int      @default(0) @map("valid_reviews")
+  accountAgeDays  Int      @default(0) @map("account_age_days")
+  flaggedCount    Int      @default(0) @map("flagged_count")
+  calculatedAt    DateTime @default(now()) @map("calculated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [userId])
+
+  @@unique([userId])
+  @@map("user_trust_scores")
 }
 
 model Reply {

@@ -1,26 +1,22 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 import { UserRepository } from '../../domain/repositories/user.repository'
+import { UserMapper } from './user.mapper'
 import { UserEntity } from '../../domain/entities/user.entity'
-
-interface PrismaUserWithRole {
-  userId: bigint
-  name: string
-  email: string
-  password: string
-  status: string
-  avatarUrl: string | null
-  createdAt: Date
-  updatedAt: Date
-  deletedAt: Date | null
-  roleId: number
-  role: { roleName: string; roleId: number }
-}
 
 @Injectable()
 export class PrismaUserRepository extends UserRepository {
   constructor(private readonly prisma: PrismaService) {
     super()
+  }
+
+  async findByEmail(email: string): Promise<UserEntity | null> {
+    const user = await this.prisma.user.findFirst({
+      where: { email, deletedAt: null },
+      include: { role: true },
+    })
+
+    return user ? UserMapper.toEntity(user as any) : null
   }
 
   async findById(userId: number): Promise<UserEntity | null> {
@@ -29,7 +25,20 @@ export class PrismaUserRepository extends UserRepository {
       include: { role: true },
     })
 
-    return user ? this.mapToEntity(user as PrismaUserWithRole) : null
+    return user ? UserMapper.toEntity(user as any) : null
+  }
+
+  async create(user: Partial<UserEntity>): Promise<UserEntity> {
+    const created = await this.prisma.user.create({
+      data: UserMapper.toCreateData(user),
+      include: { role: true },
+    })
+
+    return UserMapper.toEntity(created as any)
+  }
+
+  async findRoleByName(roleName: string): Promise<{ roleId: number; roleName: string } | null> {
+    return this.prisma.role.findUnique({ where: { roleName } })
   }
 
   async updateProfile(userId: number, name: string): Promise<{ userId: number; name: string }> {
@@ -50,21 +59,5 @@ export class PrismaUserRepository extends UserRepository {
     })
 
     return { userId: Number(updated.userId) }
-  }
-
-  private mapToEntity(user: PrismaUserWithRole): UserEntity {
-    return {
-      userId: Number(user.userId),
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      status: user.status,
-      avatarUrl: user.avatarUrl,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      deletedAt: user.deletedAt,
-      roleName: user.role?.roleName,
-      roleId: user.roleId,
-    }
   }
 }

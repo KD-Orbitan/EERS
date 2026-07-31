@@ -9,8 +9,21 @@ export class PrismaReplyRepository extends ReplyRepository {
   }
 
   async findByReviewId(reviewId: number) {
-    const reply = await this.prisma.reply.findFirst({ where: { reviewId: BigInt(reviewId) } })
-    return reply ? { replyId: Number(reply.replyId), content: reply.content, createdAt: reply.createdAt, updatedAt: reply.updatedAt, userId: Number(reply.userId), reviewId: Number(reply.reviewId) } : null
+    const reply = await this.prisma.reply.findFirst({
+      where: { reviewId: BigInt(reviewId) },
+      include: { user: true },
+    })
+    return reply
+      ? {
+          replyId: Number(reply.replyId),
+          content: reply.content,
+          createdAt: reply.createdAt,
+          updatedAt: reply.updatedAt,
+          userId: Number(reply.userId),
+          reviewId: Number(reply.reviewId),
+          userName: reply.user.name,
+        }
+      : null
   }
 
   async findById(replyId: number) {

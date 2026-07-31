@@ -14,7 +14,7 @@ describe('UpdateReviewUseCase', () => {
       findBusinessCriteria: jest.fn(),
       updateReviewWithCriteria: jest.fn(),
     }
-    prisma = { $transaction: jest.fn() }
+    prisma = { $transaction: jest.fn((callback: any) => callback()) }
     useCase = new UpdateReviewUseCase(reviewRepository as unknown as ReviewRepository, prisma as unknown as PrismaService)
   })
 

@@ -1,5 +1,5 @@
 import { LoginUseCase } from '../application/use-cases/login.use-case'
-import { UserRepository } from '../domain/repositories/user.repository'
+import { UserRepository } from '../../user/domain/repositories/user.repository'
 import { RefreshTokenRepository } from '../domain/repositories/refresh-token.repository'
 import { InvalidCredentialsException, UserBannedException } from '../domain/exceptions/auth.exceptions'
 

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { ScheduleModule } from '@nestjs/schedule'
 import { ConfigModule } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -10,6 +11,10 @@ import { CategoryModule } from './modules/category/category.module'
 import { CriteriaModule } from './modules/criteria/criteria.module'
 import { BusinessModule } from './modules/business/business.module'
 import { ReviewModule } from './modules/review/review.module'
+import { AdminModule } from './modules/admin/admin.module'
+import { RankingModule } from './modules/ranking/ranking.module'
+// import { RankingRecalculationJob } from './jobs/ranking-recalculation.job'
+// import { TrustScoreJob } from './jobs/trust-score.job'
 import appConfig from './config/app.config'
 import databaseConfig from './config/database.config'
 import jwtConfig from './config/jwt.config'
@@ -23,6 +28,7 @@ import cloudinaryConfig from './config/cloudinary.config'
       load: [appConfig, databaseConfig, jwtConfig, redisConfig, cloudinaryConfig],
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
     InfrastructureModule,
     HealthModule,
     AuthModule,
@@ -31,8 +37,11 @@ import cloudinaryConfig from './config/cloudinary.config'
     CriteriaModule,
     BusinessModule,
     ReviewModule,
+    AdminModule,
+    RankingModule,
   ],
   controllers: [AppController],
+  // providers: [AppService, RankingRecalculationJob, TrustScoreJob],
   providers: [AppService],
 })
 export class AppModule {}

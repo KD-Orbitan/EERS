@@ -42,14 +42,12 @@ export class CreateReviewUseCase {
       }
     }
 
-    return this.prisma.$transaction(async () => {
-      return this.reviewRepository.createReviewWithCriteria({
-        writerUserId: currentUserId,
-        businessId: dto.businessId,
-        overallRating: dto.overallRating,
-        content: dto.content,
-        criteriaRatings: dto.criteriaRatings,
-      })
+    return this.reviewRepository.createReviewWithCriteria({
+      writerUserId: currentUserId,
+      businessId: dto.businessId,
+      overallRating: dto.overallRating,
+      content: dto.content,
+      criteriaRatings: dto.criteriaRatings,
     })
   }
 }

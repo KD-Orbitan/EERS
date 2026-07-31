@@ -8,7 +8,7 @@ import {
   UserBannedException,
 } from '../../domain/exceptions/auth.exceptions'
 import { RefreshTokenRepository } from '../../domain/repositories/refresh-token.repository'
-import { UserRepository } from '../../domain/repositories/user.repository'
+import { UserRepository } from '../../../user/domain/repositories/user.repository'
 
 @Injectable()
 export class RefreshTokenUseCase {

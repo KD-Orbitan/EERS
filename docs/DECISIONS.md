@@ -239,7 +239,7 @@ Rules:
 
 ---
 
-# Section 6. Ranking Engine
+<!-- # Section 6. Ranking Engine
 
 ## D-011 — Ranking Calculation Strategy
 
@@ -306,11 +306,273 @@ Supported:
 
 Each dimension is a separate ranking snapshot scope.
 
+--- -->
+
+
+# Section 6. Ranking Engine
+
+## D-011 — Ranking Calculation Strategy
+
+**Decision:** Precomputed snapshots
+
+- **Trigger:** Scheduled cron job (every hour) + Admin manual trigger
+- **Not supported:** Real-time calculation per request
+
+### Cron Schedules
+
+| Job | Schedule | Description |
+|------|----------|-------------|
+| Ranking Job | `0 * * * *` | Runs every hour |
+| Trust Score Job | `0 2 * * *` | Runs daily at 2:00 AM |
+| Fraud Score | Part of Ranking Job | Executed during ranking calculation |
+
 ---
+
+## D-012 — Ranking Pipeline
+
+The ranking pipeline processes reviews in the following order:
+
+```text
+Review Input
+      ↓
+Validation
+      ↓
+Fraud Detection
+      ↓
+Scoring
+      ↓
+Weighting
+      ↓
+Aggregation
+      ↓
+Bayesian Adjustment
+      ↓
+Ranking
+```
+
+### Step 1 — Validation
+
+Eligible reviews **must** satisfy:
+
+- `status = 'approved'`
+- `deletedAt IS NULL`
+
+Excluded reviews:
+
+- `pending`
+- `rejected`
+- `hidden`
+- Soft-deleted reviews
+
+Excluded businesses:
+
+- `status != 'approved'`
+
+---
+
+### Step 2 — Fraud Detection
+
+#### Duplicate Signal
+
+```math
+D_i =
+\begin{cases}
+1, & \text{if } similarity(r_i,r_j) > \theta_{dup}
+\text{ and } length(r_i)\ge l_{dup} \\
+0, & \text{otherwise}
+\end{cases}
+```
+
+Similarity implementation:
+
+- **MVP:** `pg_trgm`
+- **Future:** `pgvector`
+
+#### Spam Signal
+
+```math
+S_i = \min\left(1,\frac{count\_reviews(u_i,\Delta t)}{\theta_{spam}}\right)
+```
+
+#### Trust Score (per user)
+
+Computed daily by cron.
+
+```math
+Trust(u)=sigmoid(\alpha \cdot \log(1+n)+\beta \cdot a-\gamma \cdot f)
+```
+
+Where:
+
+- `n` = valid review count
+- `a` = account age (days)
+- `f` = flagged review count
+
+```math
+sigmoid(x)=\frac1{1+e^{-x}}
+```
+
+#### Fraud Score
+
+```math
+FraudScore(r)=
+\lambda_1 D
++\lambda_2 S
++\lambda_3(1-Trust(u))
+```
+
+Status classification:
+
+| Condition | Result |
+|-----------|--------|
+| `FraudScore ≥ θ_reject` | **REJECTED** |
+| `θ_sus ≤ FraudScore < θ_reject` | **SUSPICIOUS** |
+| Otherwise | **VALID** |
+
+---
+
+### Step 3 — Multi-criteria Scoring
+
+#### Normalization
+
+```math
+x'_{ik}=\frac{x_{ik}-x_{min}}{x_{max}-x_{min}}
+```
+
+#### Weighted Sum
+
+```math
+S_i=\sum_k w_k x'_{ik}
+```
+
+Where:
+
+- `w_k` = criterion weight (configurable by admin per category)
+
+#### Sentiment Adjustment
+
+MVP:
+
+```text
+Sentiment = 0
+```
+
+Formula:
+
+```math
+\hat S_i=S_i+\lambda_{sentiment}\cdot Sentiment_i
+```
+
+---
+
+### Step 4 — Review Weighting
+
+```math
+W_i=
+\alpha_w T_i
++\beta_w R_{s_i}
++\gamma_w D_i
+```
+
+Where:
+
+- `T_i` = `Trust(u_i)`
+- `R_{s_i}` =
+  - `1` if **VALID**
+  - `δ` if **SUSPICIOUS**
+  - `0` if **REJECTED**
+- `D_i = e^{-\lambda_{decay}\Delta t}` (time decay)
+
+---
+
+### Step 5 — Weighted Aggregation
+
+```math
+R_j=
+\frac{\sum W_i \hat S_i}
+{\sum W_i}
+```
+
+Fallback:
+
+```text
+If ΣW_i = 0
+
+R_j = C
+```
+
+Where:
+
+- `C` = prior mean
+
+---
+
+### Step 6 — Bayesian Adjustment
+
+```math
+FinalScore_j=
+\frac{v_j}{v_j+m}R_j
++
+\frac{m}{v_j+m}C
+```
+
+Where:
+
+- `v_j` = number of eligible reviews
+- `C` = `bayesian_c` (prior mean)
+- `m` = `bayesian_m` (minimum review threshold)
+
+Both `C` and `m` are configurable by administrators.
+
+---
+
+### Step 7 — Ranking
+
+Businesses are sorted by:
+
+1. `FinalScore DESC`
+2. `v_j DESC`
+3. `R_j DESC`
+
+---
+
+## D-013 — Ranking Dimensions
+
+Supported ranking scopes:
+
+- **Global** — All approved businesses
+- **Category** — Businesses within the same category
+- **Province** — Businesses within the same province
+
+---
+
+## D-014 — Configurable Parameters
+
+Pipeline parameters are stored in the `scoring_config` table (singleton row).
+
+Characteristics:
+
+- Editable via Admin API
+- Changes take effect on the next ranking cron execution
+
+Criterion weights (`w_k`) are stored in the `criterion_weights` table.
+
+Each record represents a `(category, criterion)` pair and can be updated independently through the Admin API.
+
+---
+
+## D-015 — Similarity Engine
+
+Current implementation:
+
+- **MVP:** PostgreSQL `pg_trgm`
+- **Future:** `pgvector` (semantic vector similarity)
+
+The similarity implementation is abstracted behind `SimilarityService`, allowing the underlying algorithm to be replaced without changing the ranking pipeline.
 
 # Section 7. File Storage
 
-## D-014 — File Storage Provider
+## D-016 — File Storage Provider
 
 ```
 Decision : Cloudinary
@@ -336,7 +598,7 @@ Max size: 10MB per file
 
 # Section 8. Realtime Communication
 
-## D-015 — Realtime Transport
+## D-017 — Realtime Transport
 
 ```
 Decision : Server-Sent Events (SSE)
@@ -357,7 +619,7 @@ SSE rules:
 
 # Section 9. Search
 
-## D-016 — Search Engine
+## D-018 — Search Engine
 
 ```
 Decision : PostgreSQL Full Text Search with GIN indexes
@@ -368,7 +630,7 @@ NOT      : Elasticsearch, Meilisearch, Algolia, Typesense
 
 # Section 10. Background Jobs
 
-## D-017 — Job Scheduler
+## D-019 — Job Scheduler
 
 ```
 Decision : @nestjs/schedule
@@ -379,7 +641,7 @@ NOT      : BullMQ, Agenda, node-cron (standalone)
 
 # Section 11. Architecture
 
-## D-018 — Backend Architecture Style
+## D-020 — Backend Architecture Style
 
 ```
 Decision : Vertical Slice Architecture + Clean Architecture
@@ -407,7 +669,7 @@ MUST NOT: Module A Repository → Module B Repository
 
 ---
 
-## D-019 — Module Ownership Rule
+## D-021 — Module Ownership Rule
 
 Every table and business concept has exactly ONE owner module.
 
@@ -435,7 +697,7 @@ MUST NOT  : query another module's tables directly
 
 ---
 
-## D-020 — Frontend Architecture Style
+## D-022 — Frontend Architecture Style
 
 ```
 Decision : Feature-Based Architecture
@@ -462,7 +724,7 @@ NOT           : localStorage, sessionStorage
 
 # Section 12. API Design
 
-## D-021 — API Style
+## D-023 — API Style
 
 ```
 Decision : REST
@@ -472,7 +734,7 @@ NOT      : GraphQL, gRPC, SOAP
 
 ---
 
-## D-022 — Response Envelope
+## D-024 — Response Envelope
 
 All API responses MUST use this envelope:
 
@@ -526,7 +788,7 @@ Rules:
 
 ---
 
-## D-023 — Pagination Strategy
+## D-025 — Pagination Strategy
 
 ```
 Type    : Offset pagination
@@ -538,7 +800,7 @@ Maximum : limit=100 (cap automatically, do not throw error)
 
 # Section 13. Validation & Security
 
-## D-024 — Request Validation
+## D-026 — Request Validation
 
 ```
 Library : class-validator + class-transformer
@@ -547,7 +809,7 @@ Scope   : All request DTOs, applied at Controller level via ValidationPipe
 
 ---
 
-## D-025 — Security Headers & Policies
+## D-027 — Security Headers & Policies
 
 ```
 CORS     : Configured, whitelist frontend origin only
@@ -565,7 +827,7 @@ passwords, tokens, refresh tokens, secrets, API keys
 
 # Section 14. Testing
 
-## D-026 — Testing Requirements
+## D-028 — Testing Requirements
 
 ```
 Framework : Jest
@@ -588,7 +850,7 @@ Mandatory test coverage areas:
 
 # Section 15. Conflict Resolution
 
-## D-027 — Document Priority Order
+## D-029 — Document Priority Order
 
 When documents conflict, resolve in this order:
 
@@ -606,7 +868,7 @@ is for human reading only. AI agents MUST NOT use them as implementation source.
 
 ---
 
-## D-028 — Agent Stop Conditions
+## D-030 — Agent Stop Conditions
 
 Agent MUST stop and request clarification if:
 

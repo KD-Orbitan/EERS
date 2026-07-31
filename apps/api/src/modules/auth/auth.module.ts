@@ -8,9 +8,8 @@ import { LoginUseCase } from './application/use-cases/login.use-case'
 import { GoogleAuthUseCase } from './application/use-cases/google-auth.use-case'
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case'
 import { LogoutUseCase } from './application/use-cases/logout.use-case'
-import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.repository'
 import { PrismaRefreshTokenRepository } from './infrastructure/repositories/prisma-refresh-token.repository'
-import { UserRepository } from './domain/repositories/user.repository'
+import { UserModule } from '../user/user.module'
 import { RefreshTokenRepository } from './domain/repositories/refresh-token.repository'
 import { JwtStrategy } from '../../common/strategies/jwt.strategy'
 import { JwtRefreshStrategy } from '../../common/strategies/jwt-refresh.strategy'
@@ -30,16 +29,13 @@ import { InfrastructureModule } from '../../infrastructure/infrastructure.module
         signOptions: { expiresIn: (configService.get<string>('jwt.accessExpiresIn') || '15m') as any },
       }),
     }),
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [
     JwtStrategy,
     JwtRefreshStrategy,
     JwtAuthGuard,
-    {
-      provide: UserRepository,
-      useClass: PrismaUserRepository,
-    },
     {
       provide: RefreshTokenRepository,
       useClass: PrismaRefreshTokenRepository,

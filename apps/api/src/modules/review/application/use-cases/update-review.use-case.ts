@@ -39,12 +39,10 @@ export class UpdateReviewUseCase {
       }
     }
 
-    return this.prisma.$transaction(async () => {
-      return this.reviewRepository.updateReviewWithCriteria(reviewId, {
-        overallRating: dto.overallRating,
-        content: dto.content,
-        criteriaRatings: dto.criteriaRatings,
-      })
+    return this.reviewRepository.updateReviewWithCriteria(reviewId, {
+      overallRating: dto.overallRating,
+      content: dto.content,
+      criteriaRatings: dto.criteriaRatings,
     })
   }
 }

@@ -1,5 +1,5 @@
 import { RegisterUseCase } from '../application/use-cases/register.use-case'
-import { UserRepository } from '../domain/repositories/user.repository'
+import { UserRepository } from '../../user/domain/repositories/user.repository'
 import { EmailAlreadyExistsException } from '../domain/exceptions/auth.exceptions'
 
 describe('RegisterUseCase', () => {

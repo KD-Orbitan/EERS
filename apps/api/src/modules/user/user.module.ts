@@ -27,5 +27,8 @@ import { PrismaRefreshTokenRepository } from './infrastructure/repositories/pris
     UpdateProfileUseCase,
     ChangePasswordUseCase,
   ],
+  exports: [
+    UserRepository,
+  ],
 })
 export class UserModule {}

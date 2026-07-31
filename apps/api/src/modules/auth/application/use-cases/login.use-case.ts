@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 import { InvalidCredentialsException, UserBannedException } from '../../domain/exceptions/auth.exceptions'
 import { RefreshTokenRepository } from '../../domain/repositories/refresh-token.repository'
-import { UserRepository } from '../../domain/repositories/user.repository'
+import { UserRepository } from '../../../user/domain/repositories/user.repository'
 
 @Injectable()
 export class LoginUseCase {
@@ -15,7 +15,7 @@ export class LoginUseCase {
     private readonly jwtService: JwtService,
     @Optional() private readonly configService?: ConfigService,
     @Optional() private readonly bcryptService: { compare: (...args: any[]) => Promise<boolean>; hash: (...args: any[]) => Promise<string> } | typeof bcrypt = bcrypt,
-    private readonly prisma: PrismaService,
+    @Optional() private readonly prisma?: PrismaService,
   ) {}
 
   async execute(dto: { email: string; password: string }) {

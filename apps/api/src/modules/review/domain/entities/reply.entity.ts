@@ -5,4 +5,5 @@ export class ReplyEntity {
   updatedAt!: Date
   userId!: number
   reviewId!: number
+  userName?: string
 }

@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt'
 import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.use-case'
-import { UserRepository } from '../domain/repositories/user.repository'
+import { UserRepository } from '../../user/domain/repositories/user.repository'
 import { RefreshTokenRepository } from '../domain/repositories/refresh-token.repository'
 import {
   InvalidRefreshTokenException,
