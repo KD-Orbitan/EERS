@@ -1,78 +1,110 @@
-# EERS Frontend — Phase 0 & Phase 1 Implementation Guide
+# EERS Frontend — Phase 0 & Phase 1 Implementation
 
-**Status:** Initial Bootstrap + Authentication
-**Framework:** Next.js 16.2.12, App Router, TypeScript
-**State Management:** TanStack Query v5 + React hooks
-**Port:** 3001 (backend runs on 3000)
+**Scope:** MVP Authentication Flow (Login/Register/Logout)
+**Framework:** Next.js 16.2.12 (App Router, TypeScript)
+**Port:** 3001 (backend on 3000)
+**Status:** Starting from fresh Next.js app
 
 ---
 
-## Critical Rules (NON-NEGOTIABLE)
+## Critical Architecture Rules
 
-1. Access Token: MEMORY ONLY (not localStorage)
+These are NON-NEGOTIABLE. Do not deviate.
+
+1. Access Token: MEMORY ONLY (never localStorage/sessionStorage)
 2. Refresh Token: HttpOnly Cookie (automatic via withCredentials)
-3. All API calls: go through apiClient (never direct fetch)
-4. All data fetching: via TanStack Query useQuery/useMutation
-5. No hardcoded API URLs (use NEXT_PUBLIC_API_URL)
-6. Component Structure: Feature-based organization
-7. Passwords: NEVER log or return in responses
+3. All API calls: MUST go through centralized apiClient
+4. All data fetching: MUST use TanStack Query (useQuery/useMutation)
+5. No hardcoded API URLs: use process.env.NEXT_PUBLIC_API_URL
+6. API responses: follow { success, data, meta?, error? } envelope
+7. Component structure: Feature-based organization
+8. No passwords logged, returned, or visible in responses
 
 ---
 
-## Phase 0: Bootstrap
+# PHASE 0: Frontend Bootstrap
 
-### What This Phase Does
-- Initialize project structure
-- Setup API client with JWT interceptors
-- Setup TanStack Query
-- Setup auth context/hook
-- Test API connection to backend
+**Goal:** Working Next.js app with API client connected to backend
 
-### Deliverables
-✓ pnpm dev runs without errors on port 3001
-✓ API client connects to http://localhost:3000/api/v1
-✓ GET /auth/me call works
-✓ No hydration mismatch warnings
-✓ TanStack Query DevTools visible
-
+**Deliverables after Phase 0:**
+✓ pnpm dev runs on port 3001 without errors
+✓ No hydration mismatch warnings in console
+✓ GET /auth/me returns 401 (not authenticated yet)
+✓ TanStack Query DevTools visible at bottom-right
+✓ Home page shows "Welcome to EERS" + login/register buttons
 ---
 
 ## Task P0.1: Environment Configuration
 
-**Create:** `apps/web/.env.local`
+**Requirement:** Setup environment variables for frontend
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id-here
-```
+**Must create file:** `apps/web/.env.local`
+
+**Must define:**
+- `NEXT_PUBLIC_API_URL` → Backend base URL (http://localhost:3000/api/v1)
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` → Google OAuth client ID (can be placeholder for now)
+
+**Verification:**
+- File exists at correct path
+- Variables accessible via `process.env.NEXT_PUBLIC_*`
+- No hardcoded values in source code
 
 ---
 
 ## Task P0.2: Install Dependencies
 
-```bash
-pnpm add @tanstack/react-query@5 @tanstack/react-query-devtools
-pnpm add axios
-pnpm add react-hook-form @hookform/resolvers zod
-pnpm add lucide-react sonner js-cookie
-pnpm add @radix-ui/react-dialog
+**Requirement:** Install all required packages for frontend development
 
+**Must run:**
+```bash
+cd apps/web
+pnpm add @tanstack/react-query@5 @tanstack/react-query-devtools axios react-hook-form @hookform/resolvers zod lucide-react sonner js-cookie @radix-ui/react-dialog
 pnpm add -D @types/js-cookie
 ```
+
+**Purpose of each package:**
+- `@tanstack/react-query`: Server state management (data fetching/caching)
+- `axios`: HTTP client
+- `react-hook-form` + `@hookform/resolvers` + `zod`: Form validation
+- `lucide-react`: Icon library
+- `sonner`: Toast notifications
+- `js-cookie`: Cookie management
+- `@radix-ui/react-dialog`: Dialog component primitives
+
+**Verification:**
+- All packages in `package.json` dependencies
+- No peer dependency warnings
+- `pnpm install` completes successfully
 
 ---
 
 ## Task P0.3: Initialize shadcn/ui
 
+**Requirement:** Setup shadcn/ui component library
+
+**Must run:**
 ```bash
+cd apps/web
 npx shadcn-ui@latest init -d
 ```
 
-Select: Default, Slate, Yes
+**Configuration:**
+- Select "Default" style
+- Select "Slate" color scheme
+- Enable "CSS variables"
+
+**Verification:**
+- `app/components/ui/` folder created
+- `components.json` exists at web root
+- Can run `npx shadcn-ui@latest add button` successfully
 
 ---
 
-## Task P0.4: Create Folder Structure
+## Task P0.4: Create Project Structure
+
+**Requirement:** Organize folder structure for scalability
+
+**Must create folders:**
 app/
 ├── lib/
 │ ├── api-client.ts
@@ -82,919 +114,676 @@ app/
 │ └── use-auth.ts
 ├── features/
 │ └── auth/
+│ ├── components/
+│ ├── hooks/
+│ ├── mutations/
+│ └── schemas/
 ├── middleware.ts
 ├── providers.tsx
 ├── layout.tsx
 └── page.tsx
+**Purpose:**
+- `lib/`: Shared utilities (API client, query keys)
+- `hooks/`: Custom React hooks
+- `features/auth/`: Auth-specific code (components, mutations, schemas)
 
 ---
 
-## Task P0.5: API Client
+## Task P0.5: API Client with JWT Interceptors
 
-**Create:** `app/lib/api-client.ts`
+**Requirement:** Create centralized HTTP client that:
+- Attaches access token to all requests
+- Automatically refreshes expired tokens
+- Handles 401 responses
+- Uses HttpOnly cookies for refresh tokens
 
-```typescript
-import axios from 'axios'
+**Must implement:** `app/lib/api-client.ts`
 
-let accessToken: string | null = null
+**Requirements:**
+1. Create axios instance with baseURL from `NEXT_PUBLIC_API_URL`
+2. Store access token in **memory only** (module-level variable)
+3. Request interceptor:
+   - If accessToken exists → attach `Authorization: Bearer {token}` header
+   - Pass request through
+4. Response interceptor:
+   - On success → return response
+   - On 401 error (and not already retried):
+     - Attempt POST to `/auth/refresh` with `withCredentials: true`
+     - Extract new accessToken from response
+     - Update token in memory
+     - Retry original request with new token
+     - If refresh fails → clear token, reject error
+   - On other errors → reject error
+5. Export functions:
+   - `setAccessToken(token)` → sets token in memory
+   - `getAccessToken()` → returns current token
+   - Default export → axios instance
 
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
-})
-
-apiClient.interceptors.request.use((config) => {
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`
-  }
-  return config
-})
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        )
-        accessToken = response.data.data.accessToken
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
-        return apiClient(originalRequest)
-      } catch {
-        accessToken = null
-        return Promise.reject(error)
-      }
-    }
-
-    return Promise.reject(error)
-  }
-)
-
-export const setAccessToken = (token: string | null) => {
-  accessToken = token
-}
-
-export const getAccessToken = () => accessToken
-
-export default apiClient
-```
+**Verification:**
+- File compiles without TypeScript errors
+- All exports present
+- Interceptors properly structured
+- No secrets hardcoded
 
 ---
 
-## Task P0.6: Query Keys
+## Task P0.6: Query Keys Factory
 
-**Create:** `app/lib/query-keys.ts`
+**Requirement:** Create centralized query key management
 
-```typescript
-export const QUERY_KEYS = {
-  AUTH_ME: ['auth', 'me'],
-  BUSINESSES: ['businesses'],
-  BUSINESS_DETAIL: (id: number) => ['businesses', id],
-  BUSINESS_REVIEWS: (id: number) => ['businesses', id, 'reviews'],
-  BUSINESS_STATS: (id: number) => ['businesses', id, 'stats'],
-  MY_BUSINESSES: ['businesses', 'my'],
-  REVIEWS: ['reviews'],
-  REVIEW_DETAIL: (id: number) => ['reviews', id],
-  MY_REVIEWS: ['reviews', 'my'],
-  RANKINGS: ['rankings'],
-  RANKINGS_TOP: ['rankings', 'top'],
-  CATEGORIES: ['categories'],
-  CRITERIA: ['criteria'],
-  NOTIFICATIONS: ['notifications'],
-  UNREAD_COUNT: ['notifications', 'unread-count'],
-  REPORTS: ['reports'],
-  MY_REPORTS: ['reports', 'my'],
-  REPORT_REASONS: ['reports', 'reasons'],
-} as const
-```
+**Must implement:** `app/lib/query-keys.ts`
 
----
+**Requirements:**
+1. Export `QUERY_KEYS` object with all query keys
+2. Structure:
+   - Static keys (arrays): `AUTH_ME: ['auth', 'me']`
+   - Dynamic keys (functions): `BUSINESS_DETAIL: (id: number) => ['businesses', id]`
+3. Cover all endpoints needed in Phase 0+1:
+   - Auth: AUTH_ME
+   - Businesses: BUSINESSES, BUSINESS_DETAIL, MY_BUSINESSES
+   - Reviews: REVIEWS, MY_REVIEWS
+   - Rankings: RANKINGS, RANKINGS_TOP
+   - Categories: CATEGORIES, CRITERIA
+   - Notifications: NOTIFICATIONS, UNREAD_COUNT
+   - Reports: REPORTS, MY_REPORTS, REPORT_REASONS
+4. Make all keys readonly (`as const`)
 
-## Task P0.7: Providers
-
-**Create:** `app/providers.tsx`
-
-```typescript
-'use client'
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { ReactNode } from 'react'
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000,
-      gcTime: 5 * 60 * 1000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-    mutations: {
-      retry: 0,
-    },
-  },
-})
-
-export function Providers({ children }: { children: ReactNode }) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools
-        initialIsOpen={false}
-        buttonPosition="bottom-right"
-      />
-    </QueryClientProvider>
-  )
-}
-```
+**Verification:**
+- Keys follow naming convention (UPPER_SNAKE_CASE)
+- Dynamic keys are functions
+- All keys exported
 
 ---
 
-## Task P0.8: Root Layout
+## Task P0.7: TanStack Query Setup
 
-**File:** `app/layout.tsx`
+**Requirement:** Configure QueryClient with sensible defaults
 
-```typescript
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Providers } from './providers'
-import './globals.css'
+**Must implement:** `app/providers.tsx`
 
-const geist = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
+**Requirements:**
+1. Create single global QueryClient instance
+2. Configure defaultOptions:
+   - queries: staleTime=60s, gcTime=5min, retry=1, refetchOnWindowFocus=false
+   - mutations: retry=0
+3. Create `<Providers>` component that wraps children with:
+   - `<QueryClientProvider>`
+   - `<ReactQueryDevtools>` (initialIsOpen=false, buttonPosition=bottom-right)
+4. Must be Client Component (`'use client'`)
+5. Export default from component
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
+**Verification:**
+- Component is Client Component
+- QueryClient properly configured
+- Devtools included for debugging
+- Properly exports Providers
 
-export const metadata: Metadata = {
-  title: 'EERS - Enterprise Evaluation & Ranking System',
-  description: 'Rate and rank businesses with confidence',
-}
+---
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geist.variable} ${geistMono.variable} antialiased`}
-      >
-        <Providers>{children}</Providers>
-      </body>
-    </html>
-  )
-}
-```
+## Task P0.8: Root Layout with Providers
+
+**Requirement:** Setup root layout that wraps entire app with providers
+
+**Must update:** `app/layout.tsx`
+
+**Requirements:**
+1. Import Providers from `providers.tsx`
+2. Wrap `{children}` with `<Providers>`
+3. Keep existing metadata and fonts (Geist)
+4. Add `suppressHydrationWarning` to `<html>` tag (prevents hydration mismatch warnings)
+5. Maintain existing styling
+
+**Verification:**
+- Layout properly wraps children with Providers
+- No hydration warnings on page refresh
+- Metadata preserved
 
 ---
 
 ## Task P0.9: Auth Hook
 
-**Create:** `app/hooks/use-auth.ts`
+**Requirement:** Create custom hook to access authenticated user and auth state
 
-```typescript
-'use client'
+**Must implement:** `app/hooks/use-auth.ts`
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import apiClient, { setAccessToken, getAccessToken } from '@/lib/api-client'
-import { QUERY_KEYS } from '@/lib/query-keys'
+**Requirements:**
+1. Must be Client Hook (`'use client'`)
+2. Define `User` interface with fields:
+   - userId, name, email, avatarUrl, role, status, createdAt
+3. Implement `useAuth()` hook that:
+   - Uses `useQuery` with key `QUERY_KEYS.AUTH_ME`
+   - Fetches from GET `/auth/me` using apiClient
+   - Has retry: false (no retry on 401)
+   - Returns object with:
+     - `user`: User data (or undefined if not authenticated)
+     - `isLoading`: boolean
+     - `isAuthenticated`: boolean (true if user exists and no error)
+     - `error`: error object (or null)
+     - `logout()`: function that clears token + queries
+     - `setAccessToken()`: function to set token
+     - `getAccessToken()`: function to get token
+4. Parse API response envelope: response.data.data contains user
 
-export interface User {
-  userId: number
-  name: string
-  email: string
-  avatarUrl: string | null
-  role: 'USER' | 'BUSINESS_OWNER' | 'ADMIN'
-  status: 'active' | 'inactive' | 'banned'
-  createdAt: string
-}
-
-export function useAuth() {
-  const queryClient = useQueryClient()
-
-  const {
-    data: user,
-    isLoading,
-    error,
-  } = useQuery<User>({
-    queryKey: QUERY_KEYS.AUTH_ME,
-    queryFn: async () => {
-      const response = await apiClient.get<{ success: boolean; data: User }>(
-        '/auth/me'
-      )
-      return response.data.data
-    },
-    retry: false,
-  })
-
-  const isAuthenticated = !!user && !error
-
-  const logout = () => {
-    setAccessToken(null)
-    queryClient.clear()
-  }
-
-  return {
-    user,
-    isLoading,
-    isAuthenticated,
-    error,
-    logout,
-    setAccessToken,
-    getAccessToken,
-  }
-}
-```
+**Verification:**
+- Hook is Client Hook
+- Properly extracts user from response
+- isAuthenticated boolean logic correct
+- logout clears useQueryClient
 
 ---
 
 ## Task P0.10: Home Page
 
-**File:** `app/page.tsx`
+**Requirement:** Create landing page that:
+- Shows "Welcome to EERS" when not authenticated
+- Shows user greeting when authenticated
+- Provides login/register links
+- Shows loading state while checking auth
 
-```typescript
-'use client'
+**Must implement:** `app/page.tsx`
 
-import { useAuth } from './hooks/use-auth'
-import Link from 'next/link'
+**Requirements:**
+1. Must be Client Component
+2. Use `useAuth()` hook
+3. Show loading spinner while `isLoading`
+4. If NOT authenticated:
+   - Show "Welcome to EERS" heading
+   - Show subtitle
+   - Show "Login" and "Register" buttons (as `<Link>` to `/login` and `/register`)
+   - Style with gradient background (blue/indigo)
+5. If authenticated:
+   - Show "Welcome back, {user.name}!" heading
+   - Show "Role: {user.role}"
+   - Show grid of navigation cards (Businesses, Rankings, Profile)
+   - These are just placeholders for now (actual functionality in Phase 2+)
 
-export default function Home() {
-  const { user, isLoading, isAuthenticated } = useAuth()
+**Styling:**
+- Use Tailwind classes
+- Keep it simple and clean
+- Responsive grid layout
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg text-gray-500">Loading...</p>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center space-y-6">
-          <h1 className="text-5xl font-bold text-gray-900">
-            Welcome to EERS
-          </h1>
-          <p className="text-xl text-gray-600">
-            Enterprise Evaluation & Ranking System
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/login"
-              className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="px-8 py-3 bg-white text-indigo-600 border border-indigo-600 rounded-lg font-semibold hover:bg-indigo-50"
-            >
-              Register
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow p-8">
-          <h1 className="text-4xl font-bold mb-2">
-            Welcome back, {user?.name}!
-          </h1>
-          <p className="mt-4 text-gray-600">Role: {user?.role}</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-```
+**Verification:**
+- Unauthenticated users see login/register buttons
+- Authenticated users see user name and role
+- Loading state visible while fetching
+- No errors in console
 
 ---
 
-## Phase 0 Checkpoint
+## ✅ Phase 0 Checkpoint
+
+After completing P0.1 through P0.10:
 
 ```bash
+cd apps/web
 pnpm dev
-# Should see: http://localhost:3001 ✓
-# No hydration errors ✓
-# Can see login/register buttons ✓
 ```
+
+**Expected output:**
+▲ Next.js 16.2.12
+
+Local: http://localhost:3001
+✓ Ready in ~1000ms
+**Manual verification checklist:**
+- [ ] http://localhost:3001 opens in browser
+- [ ] See "Welcome to EERS" + Login/Register buttons
+- [ ] No hydration mismatch errors in console
+- [ ] No TypeScript errors in terminal
+- [ ] TanStack Query DevTools visible (bottom right)
+- [ ] Open DevTools → Network → see GET /auth/me request (401 response)
+- [ ] Refresh page → still works, no errors
+
+**If all ✓ → Phase 0 complete, proceed to Phase 1**
 
 ---
 
-## Phase 1: Authentication
+# PHASE 1: Authentication
 
+**Goal:** Implement login, register, logout flows with proper token handling
+
+**Deliverables after Phase 1:**
+✓ User can register with email/password
+✓ New account created in database
+✓ User can login with credentials
+✓ Access token stored in memory
+✓ Refresh token stored in HttpOnly cookie
+✓ After login, user data visible on home page
+✓ Logout clears session + redirects to /login
+✓ Protected routes redirect unauthenticated users
+✓ No console errors or warnings
 ---
 
-## Task P1.1: Auth Schemas
+## Task P1.1: Auth Validation Schemas
 
-**Create:** `app/features/auth/schemas/auth.schema.ts`
+**Requirement:** Create Zod schemas for login and register form validation
 
-```typescript
-import { z } from 'zod'
+**Must implement:** `app/features/auth/schemas/auth.schema.ts`
 
-export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters'),
-})
+**Requirements:**
+1. Create `loginSchema` with fields:
+   - `email`: valid email format
+   - `password`: min 8 characters
+2. Create `registerSchema` with fields:
+   - `name`: required, max 100 chars
+   - `email`: valid email format
+   - `password`: min 8 characters
+   - `confirmPassword`: must match password
+3. Export TypeScript types:
+   - `LoginInput` (inferred from loginSchema)
+   - `RegisterInput` (inferred from registerSchema)
+4. Use appropriate Zod methods: `.email()`, `.min()`, `.max()`, `.refine()` for password matching
 
-export type LoginInput = z.infer<typeof loginSchema>
-
-export const registerSchema = z
-  .object({
-    name: z.string().min(1, 'Name is required').max(100),
-    email: z.string().email('Invalid email address'),
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  })
-
-export type RegisterInput = z.infer<typeof registerSchema>
-```
+**Verification:**
+- Schemas compile without errors
+- Types can be imported and used
+- Validation error messages are user-friendly
 
 ---
 
 ## Task P1.2: Login Mutation
 
-**Create:** `app/features/auth/mutations/use-login.mutation.ts`
+**Requirement:** Create mutation hook for login API call
 
-```typescript
-'use client'
+**Must implement:** `app/features/auth/mutations/use-login.mutation.ts`
 
-import { useMutation } from '@tanstack/react-query'
-import apiClient, { setAccessToken } from '@/lib/api-client'
-import { LoginInput } from '../schemas/auth.schema'
+**Requirements:**
+1. Must be Client Hook (`'use client'`)
+2. Define `LoginResponse` interface:
+   - `accessToken`: string
+   - `expiresIn`: number
+   - `user`: { userId, name, role }
+3. Implement `useLoginMutation()` hook that:
+   - Uses `useMutation` from TanStack Query
+   - `mutationFn`: POST `/auth/login` with LoginInput
+   - Parses response: `response.data.data` contains LoginResponse
+   - `onSuccess`: Call `setAccessToken(data.accessToken)`
+   - Returns mutation object with isPending, mutateAsync, etc.
 
-export interface LoginResponse {
-  accessToken: string
-  expiresIn: number
-  user: {
-    userId: number
-    name: string
-    role: 'USER' | 'BUSINESS_OWNER' | 'ADMIN'
-  }
-}
-
-export function useLoginMutation() {
-  return useMutation({
-    mutationFn: async (input: LoginInput) => {
-      const response = await apiClient.post<{
-        success: boolean
-        data: LoginResponse
-      }>('/auth/login', input)
-
-      return response.data.data
-    },
-    onSuccess: (data) => {
-      setAccessToken(data.accessToken)
-    },
-  })
-}
-```
+**Verification:**
+- Hook compiles without errors
+- Properly types input/output
+- setAccessToken called on success
+- HTTP method and endpoint correct
 
 ---
 
 ## Task P1.3: Register Mutation
 
-**Create:** `app/features/auth/mutations/use-register.mutation.ts`
+**Requirement:** Create mutation hook for registration API call
 
-```typescript
-'use client'
+**Must implement:** `app/features/auth/mutations/use-register.mutation.ts`
 
-import { useMutation } from '@tanstack/react-query'
-import apiClient from '@/lib/api-client'
-import { RegisterInput } from '../schemas/auth.schema'
+**Requirements:**
+1. Must be Client Hook (`'use client'`)
+2. Define `RegisterResponse` interface:
+   - `userId`: number
+   - `name`: string
+   - `email`: string
+   - `role`: 'USER'
+3. Implement `useRegisterMutation()` hook that:
+   - Uses `useMutation` from TanStack Query
+   - `mutationFn`: POST `/auth/register` with register input (omit confirmPassword)
+   - Parses response: `response.data.data` contains RegisterResponse
+   - Returns mutation object
 
-export interface RegisterResponse {
-  userId: number
-  name: string
-  email: string
-  role: 'USER'
-}
+**Note:** Do NOT call setAccessToken on register (user must login after)
 
-export function useRegisterMutation() {
-  return useMutation({
-    mutationFn: async (input: Omit<RegisterInput, 'confirmPassword'>) => {
-      const response = await apiClient.post<{
-        success: boolean
-        data: RegisterResponse
-      }>('/auth/register', input)
-
-      return response.data.data
-    },
-  })
-}
-```
+**Verification:**
+- Hook compiles without errors
+- Input excludes confirmPassword
+- HTTP endpoint and method correct
 
 ---
 
 ## Task P1.4: Logout Mutation
 
-**Create:** `app/features/auth/mutations/use-logout.mutation.ts`
+**Requirement:** Create mutation hook for logout API call
 
-```typescript
-'use client'
+**Must implement:** `app/features/auth/mutations/use-logout.mutation.ts`
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import apiClient, { setAccessToken } from '@/lib/api-client'
+**Requirements:**
+1. Must be Client Hook (`'use client'`)
+2. Implement `useLogoutMutation()` hook that:
+   - Uses `useMutation` from TanStack Query
+   - Gets queryClient via `useQueryClient()`
+   - `mutationFn`: POST `/auth/logout` (no request body)
+   - `onSuccess`:
+     - Call `setAccessToken(null)` to clear token
+     - Call `queryClient.clear()` to clear all cached data
+   - Returns mutation object
 
-export function useLogoutMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async () => {
-      await apiClient.post('/auth/logout')
-    },
-    onSuccess: () => {
-      setAccessToken(null)
-      queryClient.clear()
-    },
-  })
-}
-```
+**Verification:**
+- Hook compiles without errors
+- Both setAccessToken(null) and queryClient.clear() called
+- HTTP endpoint correct
 
 ---
 
-## Task P1.5: Login Form
+## Task P1.5: Login Form Component
 
-**Create:** `app/features/auth/components/login-form.tsx`
+**Requirement:** Create login form with email/password inputs, validation, error handling
 
-```typescript
-'use client'
+**Must implement:** `app/features/auth/components/login-form.tsx`
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
-import { loginSchema, LoginInput } from '../schemas/auth.schema'
-import { useLoginMutation } from '../mutations/use-login.mutation'
-import { useQueryClient } from '@tanstack/react-query'
-import { QUERY_KEYS } from '@/lib/query-keys'
-import { toast } from 'sonner'
+**Requirements:**
+1. Must be Client Component (`'use client'`)
+2. Use `useForm` from react-hook-form with loginSchema
+3. Use `useLoginMutation()` and `useQueryClient()` from TanStack Query
+4. Use `useRouter()` for navigation
+5. Form inputs:
+   - Email input field
+   - Password input field
+   - Submit button (disabled during loading)
+6. Validation:
+   - Show error messages under each field if validation fails
+   - Use `errors` object from useForm
+7. Submit handler:
+   - Call `loginMutation.mutateAsync(data)`
+   - On success:
+     - Invalidate `QUERY_KEYS.AUTH_ME` to refresh user data
+     - Show success toast: "Logged in successfully!"
+     - Redirect to `/` via `router.push('/')`
+   - On error:
+     - Extract error message from `error.response?.data?.error?.message`
+     - Show error toast with message
+8. Navigation link to register page at bottom
 
-export function LoginForm() {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const loginMutation = useLoginMutation()
+**Styling:**
+- Use Tailwind CSS
+- Keep it simple and clean
+- Input fields with focus ring
+- Submit button changes appearance when disabled
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-  })
-
-  const onSubmit = async (data: LoginInput) => {
-    try {
-      await loginMutation.mutateAsync(data)
-
-      await queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.AUTH_ME,
-      })
-
-      toast.success('Logged in successfully!')
-      router.push('/')
-    } catch (error: any) {
-      const message =
-        error.response?.data?.error?.message || 'Login failed'
-      toast.error(message)
-    }
-  }
-
-  return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input
-            {...register('email')}
-            type="email"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="you@example.com"
-          />
-          {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
-          <input
-            {...register('password')}
-            type="password"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="••••••••"
-          />
-          {errors.password && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={loginMutation.isPending}
-          className="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50"
-        >
-          {loginMutation.isPending ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-
-      <div className="text-center mt-4">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="/register" className="text-indigo-600 font-semibold">
-            Register here
-          </a>
-        </p>
-      </div>
-    </div>
-  )
-}
-```
+**Verification:**
+- Form renders without errors
+- Validation shows errors on blur/submit
+- Submit button disables during request
+- Redirects after successful login
+- Error toast shows on failure
 
 ---
 
-## Task P1.6: Register Form
+## Task P1.6: Register Form Component
 
-**Create:** `app/features/auth/components/register-form.tsx`
+**Requirement:** Create registration form with name, email, password validation
 
-```typescript
-'use client'
+**Must implement:** `app/features/auth/components/register-form.tsx`
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
-import { registerSchema, RegisterInput } from '../schemas/auth.schema'
-import { useRegisterMutation } from '../mutations/use-register.mutation'
-import { toast } from 'sonner'
+**Requirements:**
+1. Must be Client Component (`'use client'`)
+2. Use `useForm` from react-hook-form with registerSchema
+3. Use `useRegisterMutation()` from React Hook Form
+4. Use `useRouter()` for navigation
+5. Form inputs:
+   - Name input field
+   - Email input field
+   - Password input field
+   - Confirm password input field
+   - Submit button (disabled during loading)
+6. Validation:
+   - Show error messages under each field
+   - Password confirmation validation (must match)
+7. Submit handler:
+   - Call `registerMutation.mutateAsync()` with name, email, password (omit confirmPassword)
+   - On success:
+     - Show success toast: "Account created! Redirecting to login..."
+     - Redirect to `/login` via `router.push('/login')`
+   - On error:
+     - Show error toast with API error message
+8. Navigation link to login page at bottom
 
-export function RegisterForm() {
-  const router = useRouter()
-  const registerMutation = useRegisterMutation()
+**Styling:**
+- Use Tailwind CSS
+- Match login form styling
+- Clear visual hierarchy
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
-  })
-
-  const onSubmit = async (data: RegisterInput) => {
-    try {
-      await registerMutation.mutateAsync({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      })
-
-      toast.success('Account created! Redirecting to login...')
-      router.push('/login')
-    } catch (error: any) {
-      const message =
-        error.response?.data?.error?.message || 'Registration failed'
-      toast.error(message)
-    }
-  }
-
-  return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Full Name</label>
-          <input
-            {...register('name')}
-            type="text"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="John Doe"
-          />
-          {errors.name && (
-            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input
-            {...register('email')}
-            type="email"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="you@example.com"
-          />
-          {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
-          <input
-            {...register('password')}
-            type="password"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="••••••••"
-          />
-          {errors.password && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Confirm Password
-          </label>
-          <input
-            {...register('confirmPassword')}
-            type="password"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="••••••••"
-          />
-          {errors.confirmPassword && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={registerMutation.isPending}
-          className="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50"
-        >
-          {registerMutation.isPending ? 'Creating account...' : 'Register'}
-        </button>
-      </form>
-
-      <div className="text-center mt-4">
-        <p className="text-sm text-gray-600">
-          Already have an account?{' '}
-          <a href="/login" className="text-indigo-600 font-semibold">
-            Login here
-          </a>
-        </p>
-      </div>
-    </div>
-  )
-}
-```
+**Verification:**
+- Form renders without errors
+- Validation works (especially password matching)
+- Submit button disables during request
+- Redirects to login after successful registration
+- Error toast shows on failure
 
 ---
 
-## Task P1.7: Auth Layout
+## Task P1.7: Auth Layout (Route Group)
 
-**Create:** `app/(auth)/layout.tsx`
+**Requirement:** Create layout wrapper for auth pages (login/register) with centered styling
 
-```typescript
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center">
-      {children}
-    </div>
-  )
-}
-```
+**Must implement:** `app/(auth)/layout.tsx`
+
+**Requirements:**
+1. Create layout component that wraps auth pages
+2. Apply gradient background (blue to indigo)
+3. Center content vertically and horizontally
+4. Full height viewport
+5. Wrap `{children}`
+
+**Styling:**
+- Use Tailwind: `min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center`
+
+**Verification:**
+- Layout renders correctly
+- Auth pages inherit styling
 
 ---
 
 ## Task P1.8: Login Page
 
-**Create:** `app/(auth)/login/page.tsx`
+**Requirement:** Create /login page that renders login form
 
-```typescript
-'use client'
+**Must implement:** `app/(auth)/login/page.tsx`
 
-import { LoginForm } from '@/features/auth/components/login-form'
+**Requirements:**
+1. Must be Client Component (`'use client'`)
+2. Render `<LoginForm />` component
+3. That's it — layout handles styling
 
-export default function LoginPage() {
-  return <LoginForm />
-}
-```
+**Verification:**
+- Page renders at http://localhost:3001/login
+- Form displays correctly
 
 ---
 
 ## Task P1.9: Register Page
 
-**Create:** `app/(auth)/register/page.tsx`
+**Requirement:** Create /register page that renders register form
 
-```typescript
-'use client'
+**Must implement:** `app/(auth)/register/page.tsx`
 
-import { RegisterForm } from '@/features/auth/components/register-form'
+**Requirements:**
+1. Must be Client Component (`'use client'`)
+2. Render `<RegisterForm />` component
+3. That's it — layout handles styling
 
-export default function RegisterPage() {
-  return <RegisterForm />
-}
-```
+**Verification:**
+- Page renders at http://localhost:3001/register
+- Form displays correctly
 
 ---
 
-## Task P1.10: Middleware
+## Task P1.10: Route Protection Middleware
 
-**Create:** `app/middleware.ts`
+**Requirement:** Redirect unauthenticated users from protected routes
 
-```typescript
-import { NextRequest, NextResponse } from 'next/server'
+**Must implement:** `app/middleware.ts`
 
-const protectedRoutes = [
-  '/profile',
-  '/businesses/my',
-  '/businesses/create',
-  '/reviews/my',
-  '/notifications',
-  '/admin',
-]
+**Requirements:**
+1. Create middleware function that:
+   - Defines array of protected routes: `/profile`, `/businesses/*`, `/reviews/*`, `/notifications`, `/admin/*`
+   - Defines array of auth routes: `/login`, `/register`
+   - Reads `refreshToken` cookie from request
+2. Logic:
+   - If route is protected AND no refreshToken → redirect to `/login`
+   - If route is auth route AND refreshToken exists → redirect to `/`
+   - Otherwise → allow request through
+3. Export config with matcher that covers all routes except `/api/*`, `/_next/*`, etc.
 
-const authRoutes = ['/login', '/register']
+**How it works:**
+- Browser stores refresh token in HttpOnly cookie
+- Middleware can read it to determine if user is authenticated
+- No need to check actual token validity (backend will handle 401)
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const refreshToken = request.cookies.get('refreshToken')?.value
-
-  const isProtected = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  )
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
-
-  if (isProtected && !refreshToken) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  if (isAuthRoute && refreshToken) {
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
-  return NextResponse.next()
-}
-
-export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-}
-```
+**Verification:**
+- Try accessing `/profile` without logging in → redirects to `/login`
+- Try accessing `/login` while logged in → redirects to `/`
+- Public routes work normally
 
 ---
 
 ## Task P1.11: Update Home Page with Logout
 
-**File:** `app/page.tsx`
+**Requirement:** Add logout functionality to home page
 
-```typescript
-'use client'
+**Must update:** `app/page.tsx`
 
-import { useAuth } from './hooks/use-auth'
-import { useLogoutMutation } from '@/features/auth/mutations/use-logout.mutation'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+**Changes needed:**
+1. Import `useLogoutMutation` and `useRouter`
+2. In authenticated section:
+   - Add "Logout" button (right side of header)
+   - Button disabled during logout
+   - On click: call logout mutation, then redirect to `/login`
+3. Handle logout error gracefully (show toast if needed)
 
-export default function Home() {
-  const { user, isLoading, isAuthenticated } = useAuth()
-  const router = useRouter()
-  const logoutMutation = useLogoutMutation()
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg text-gray-500">Loading...</p>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center space-y-6">
-          <h1 className="text-5xl font-bold text-gray-900">
-            Welcome to EERS
-          </h1>
-          <p className="text-xl text-gray-600">
-            Enterprise Evaluation & Ranking System
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/login"
-              className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="px-8 py-3 bg-white text-indigo-600 border border-indigo-600 rounded-lg font-semibold hover:bg-indigo-50"
-            >
-              Register
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const handleLogout = async () => {
-    await logoutMutation.mutateAsync()
-    router.push('/login')
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">
-              Welcome back, {user?.name}!
-            </h1>
-            <p className="text-gray-600">Role: {user?.role}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            disabled={logoutMutation.isPending}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50"
-          >
-            Logout
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link
-            href="/businesses"
-            className="p-4 border rounded-lg hover:shadow-lg transition"
-          >
-            <h3 className="font-semibold mb-2">Businesses</h3>
-            <p className="text-sm text-gray-600">Browse and rate businesses</p>
-          </Link>
-
-          <Link
-            href="/rankings"
-            className="p-4 border rounded-lg hover:shadow-lg transition"
-          >
-            <h3 className="font-semibold mb-2">Rankings</h3>
-            <p className="text-sm text-gray-600">View top businesses</p>
-          </Link>
-
-          <Link
-            href="/profile"
-            className="p-4 border rounded-lg hover:shadow-lg transition"
-          >
-            <h3 className="font-semibold mb-2">Profile</h3>
-            <p className="text-sm text-gray-600">Manage your account</p>
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-```
+**Verification:**
+- Logout button visible when authenticated
+- Clicking logout clears session + redirects to /login
+- Cannot access protected routes after logout
 
 ---
 
-## Final Checkpoint
+## ✅ Phase 0 + 1 Final Checkpoint
+
+After completing all tasks P0.1 → P1.11:
 
 ```bash
+cd apps/web
 pnpm dev
 ```
 
-✅ Test checklist:
-- [ ] http://localhost:3001 shows login buttons
-- [ ] Register form works
-- [ ] Login form works
-- [ ] After login, shows user name
-- [ ] Logout button works
-- [ ] Clicking logout redirects to /login
-- [ ] Protected routes redirect to /login
-- [ ] No console errors
-- [ ] TanStack Query DevTools shows queries
+**End-to-end flow test:**
+
+1. **Unauthenticated:**
+   - [ ] Visit http://localhost:3001
+   - [ ] See "Welcome to EERS" + Login/Register buttons
+   - [ ] Click "Login" → goes to /login
+   - [ ] Click "Register" → goes to /register
+   - [ ] Try accessing /profile → redirects to /login
+
+2. **Register Flow:**
+   - [ ] Fill register form with: name, email@test.com, password123, confirm
+   - [ ] Submit → shows "Account created!" toast
+   - [ ] Redirected to /login
+   - [ ] Verify in backend database: new user created (optional)
+
+3. **Login Flow:**
+   - [ ] Fill login form with email@test.com, password123
+   - [ ] Submit → shows "Logged in successfully!" toast
+   - [ ] Redirected to home page
+   - [ ] See "Welcome back, [name]!" heading
+   - [ ] See "Role: USER"
+   - [ ] Logout button visible
+
+4. **Token Management:**
+   - [ ] Open DevTools → Application → Cookies
+   - [ ] See `refreshToken` HttpOnly cookie
+   - [ ] Access token NOT in localStorage/sessionStorage
+   - [ ] TanStack Query DevTools shows `auth.me` query with user data
+
+5. **After Logout:**
+   - [ ] Click Logout
+   - [ ] Shows toast, redirects to /login
+   - [ ] Try to access /profile → redirects to /login
+   - [ ] All queries cleared (DevTools shows empty)
+
+6. **Console Health:**
+   - [ ] NO hydration mismatch errors
+   - [ ] NO TypeScript errors
+   - [ ] NO API errors (401 is expected when not authenticated)
+   - [ ] NO network 404s
+
+**If all ✓ above → Phase 0 + 1 COMPLETE!**
+
+---
+
+## Troubleshooting
+
+**Hydration Mismatch Warnings:**
+- Already fixed by `suppressHydrationWarning` in root layout
+
+**401 on /auth/me endpoint:**
+- Expected when not logged in
+- Should show "Welcome to EERS" buttons
+
+**Refresh token not persisting:**
+- Check backend is setting HttpOnly cookie correctly
+- Verify `withCredentials: true` in apiClient
+
+**Protected routes not working:**
+- Ensure middleware.ts exists and correct paths
+- Check refreshToken cookie name matches backend
+
+**Form validation not showing:**
+- Ensure Zod schemas properly configured
+- Check error messages are being displayed
+
+---
+
+## Code Quality Standards
+
+When implementing, follow these principles:
+
+1. **Type Safety:** All functions have proper TypeScript types
+2. **Error Handling:** All API calls wrapped in try-catch or `.catch()`
+3. **User Feedback:** Loading states, error messages, success toasts
+4. **Performance:** No unnecessary re-renders, proper hook dependencies
+5. **Accessibility:** Proper labels, error messaging, keyboard navigation
+6. **Clean Code:** Readable function names, comments for complex logic
+
+---
+
+## What Agent Should Report
+
+After implementing each major section:
+✓ P0.1-P0.4: Environment + dependencies + structure
+
+ Files created
+ Dependencies installed
+ No errors
+
+✓ P0.5-P0.7: Core setup (API client, query keys, providers)
+
+ Files implemented
+ TypeScript clean
+ Ready to test
+
+✓ P0.8-P0.10: Layout + home page
+
+ pnpm dev runs
+ http://localhost:3001 loads
+ Home page displays correctly
+
+✓ P1.1-P1.4: Auth schemas + mutations
+
+ All files created
+ Types correct
+ No errors
+
+✓ P1.5-P1.11: Forms + middleware + flow
+
+ All routes working
+ End-to-end flow tested
+ Phase 0 + 1 COMPLETE
+ ---
+
+## Exit Criteria
+
+Phase 0 + 1 is complete when:
+Backend: http://localhost:3000/api/v1 ✓
+Frontend: http://localhost:3001 ✓
+Register → Login → Home → Logout works end-to-end ✓
+No console errors ✓
+TanStack Query DevTools shows queries ✓
+Route protection working (middleware) ✓
+API errors handled gracefully ✓
+Once complete, you're ready for **Phase 2: Business Feature**.

@@ -1,0 +1,17 @@
+export const QUERY_KEYS = {
+  AUTH_ME: ['auth', 'me'],
+  BUSINESSES: ['businesses'],
+  BUSINESS_DETAIL: (id: number) => ['businesses', id],
+  MY_BUSINESSES: ['businesses', 'me'],
+  REVIEWS: ['reviews'],
+  MY_REVIEWS: ['reviews', 'me'],
+  RANKINGS: ['rankings'],
+  RANKINGS_TOP: ['rankings', 'top'],
+  CATEGORIES: ['categories'],
+  CRITERIA: ['criteria'],
+  NOTIFICATIONS: ['notifications'],
+  UNREAD_COUNT: ['notifications', 'unread-count'],
+  REPORTS: ['reports'],
+  MY_REPORTS: ['reports', 'me'],
+  REPORT_REASONS: ['reports', 'reasons'],
+} as const;
