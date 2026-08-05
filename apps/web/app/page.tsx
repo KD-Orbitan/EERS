@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
 import { useLogoutMutation } from '@/features/auth/mutations/use-logout.mutation';
+import { TopBusinessesWidget } from '@/widgets/top-businesses-widget';
 
 const cards = [
   { title: 'Businesses', href: '/businesses' },
@@ -50,6 +51,10 @@ export default function Home() {
               Register
             </Link>
           </div>
+
+          <div className="mt-8 text-left">
+            <TopBusinessesWidget />
+          </div>
         </div>
       </main>
     );
@@ -92,6 +97,10 @@ export default function Home() {
               <p className="mt-2 text-sm text-slate-600">Explore {card.title.toLowerCase()} dashboard</p>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-6">
+          <TopBusinessesWidget />
         </div>
       </div>
     </main>

@@ -10,6 +10,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Brand tokens extracted from Figma file 0wO1xj82IEVPuSwyLZQqQ2 — see app/lib/tokens/colors.ts */
+  --color-primary-50: #eff4ff;
+  --color-primary-100: #e5eeff;
+  --color-primary-200: #dce9ff;
+  --color-primary-500: #4f46e5;
+  --color-primary-600: #3525cd;
+  --color-primary-700: #2d1fb0;
+  --color-info-100: #c9e6ff;
+  --color-info-700: #004c6e;
+  --color-ink-400: #6b7280;
+  --color-ink-500: #777587;
+  --color-ink-700: #464555;
+  --color-ink-900: #0b1c30;
 }
 
 @media (prefers-color-scheme: dark) {

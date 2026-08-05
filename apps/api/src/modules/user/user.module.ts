@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common'
+import { JwtModule } from '@nestjs/jwt'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { InfrastructureModule } from '../../infrastructure/infrastructure.module'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { GetUserProfileUseCase } from './application/use-cases/get-user-profile.use-case'
@@ -11,7 +13,17 @@ import { RefreshTokenRepository } from './domain/repositories/refresh-token.repo
 import { PrismaRefreshTokenRepository } from './infrastructure/repositories/prisma-refresh-token.repository'
 
 @Module({
-  imports: [InfrastructureModule],
+  imports: [
+    ConfigModule,
+    InfrastructureModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('jwt.accessSecret') || 'change-me-access-secret',
+      }),
+    }),
+  ],
   controllers: [UserController],
   providers: [
     JwtAuthGuard,

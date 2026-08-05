@@ -1,18 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const protectedRoutes = ['/profile', '/businesses', '/reviews', '/notifications', '/admin'];
+const protectedRoutes = ['/profile', '/reviews', '/notifications', '/admin'];
 const authRoutes = ['/login', '/register'];
+
+function isProtectedBusinessRoute(pathname: string) {
+  return (
+    pathname === '/businesses/create' ||
+    pathname === '/businesses/my' ||
+    /^\/businesses\/[^/]+\/edit$/.test(pathname) ||
+    /^\/businesses\/[^/]+\/reviews\/write$/.test(pathname)
+  );
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const refreshToken = request.cookies.get('refreshToken')?.value;
 
-  const isProtectedRoute = protectedRoutes.some((route) => {
-    if (route === '/businesses') return pathname.startsWith('/businesses');
-    if (route === '/reviews') return pathname.startsWith('/reviews');
-    if (route === '/admin') return pathname.startsWith('/admin');
-    return pathname === route || pathname.startsWith(`${route}/`);
-  });
+  const isProtectedRoute =
+    isProtectedBusinessRoute(pathname) ||
+    protectedRoutes.some((route) => {
+      if (route === '/reviews') return pathname.startsWith('/reviews');
+      if (route === '/admin') return pathname.startsWith('/admin');
+      return pathname === route || pathname.startsWith(`${route}/`);
+    });
 
   const isAuthRoute = authRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
