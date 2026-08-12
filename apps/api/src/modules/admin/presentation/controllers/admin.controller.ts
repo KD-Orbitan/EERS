@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard'
@@ -8,13 +8,29 @@ import { RejectBusinessDto } from '../../application/dto/reject-business.dto'
 import { RejectReviewDto } from '../../application/dto/reject-review.dto'
 import { UpdateScoringConfigDto } from '../../application/dto/update-scoring-config.dto'
 import { UpdateCriterionWeightDto } from '../../application/dto/update-criterion-weight.dto'
+import { UpdateRankingTrendConfigDto } from '../../application/dto/update-ranking-trend-config.dto'
+import { AdminBusinessListQueryDto } from '../../application/dto/admin-business-list-query.dto'
+import { AdminReviewListQueryDto } from '../../application/dto/admin-review-list-query.dto'
+import { AdminUserListQueryDto } from '../../application/dto/admin-user-list-query.dto'
+import { BanUserDto } from '../../application/dto/ban-user.dto'
 import { ApproveBusinessUseCase } from '../../application/use-cases/approve-business.use-case'
 import { RejectBusinessUseCase } from '../../application/use-cases/reject-business.use-case'
+import { ListAdminBusinessesUseCase } from '../../application/use-cases/list-admin-businesses.use-case'
 import { ApproveReviewUseCase } from '../../application/use-cases/approve-review.use-case'
 import { RejectReviewUseCase } from '../../application/use-cases/reject-review.use-case'
+import { ListAdminReviewsUseCase } from '../../application/use-cases/list-admin-reviews.use-case'
 import { ScoringConfigUseCase } from '../../application/use-cases/scoring-config.use-case'
 import { CriterionWeightUseCase } from '../../application/use-cases/criterion-weight.use-case'
+import { RankingTrendConfigUseCase } from '../../application/use-cases/ranking-trend-config.use-case'
+import { ListAdminUsersUseCase } from '../../application/use-cases/list-admin-users.use-case'
+import { BanUserUseCase } from '../../application/use-cases/ban-user.use-case'
+import { UnbanUserUseCase } from '../../application/use-cases/unban-user.use-case'
 import { TriggerRecalculationUseCase } from '../../../ranking/application/use-cases/trigger-recalculation.use-case'
+import { AdminReportQueryDto } from '../../../report/application/dto/admin-report-query.dto'
+import { ResolveReportDto } from '../../../report/application/dto/resolve-report.dto'
+import { ListAdminReportsUseCase } from '../../../report/application/use-cases/list-admin-reports.use-case'
+import { ResolveReportUseCase } from '../../../report/application/use-cases/resolve-report.use-case'
+import { RejectReportUseCase } from '../../../report/application/use-cases/reject-report.use-case'
 
 @ApiTags('admin')
 @Controller('admin')
@@ -22,12 +38,32 @@ export class AdminController {
   constructor(
     private readonly approveBusinessUseCase: ApproveBusinessUseCase,
     private readonly rejectBusinessUseCase: RejectBusinessUseCase,
+    private readonly listAdminBusinessesUseCase: ListAdminBusinessesUseCase,
     private readonly approveReviewUseCase: ApproveReviewUseCase,
     private readonly rejectReviewUseCase: RejectReviewUseCase,
+    private readonly listAdminReviewsUseCase: ListAdminReviewsUseCase,
     private readonly scoringConfigUseCase: ScoringConfigUseCase,
     private readonly criterionWeightUseCase: CriterionWeightUseCase,
+    private readonly rankingTrendConfigUseCase: RankingTrendConfigUseCase,
+    private readonly listAdminUsersUseCase: ListAdminUsersUseCase,
+    private readonly banUserUseCase: BanUserUseCase,
+    private readonly unbanUserUseCase: UnbanUserUseCase,
     private readonly triggerRecalculationUseCase: TriggerRecalculationUseCase,
+    private readonly listAdminReportsUseCase: ListAdminReportsUseCase,
+    private readonly resolveReportUseCase: ResolveReportUseCase,
+    private readonly rejectReportUseCase: RejectReportUseCase,
   ) {}
+
+  @Get('businesses')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async listBusinesses(@Query() query: AdminBusinessListQueryDto) {
+    const { items, total } = await this.listAdminBusinessesUseCase.execute(query)
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  }
 
   @Post('businesses/:businessId/approve')
   @ApiBearerAuth()
@@ -47,6 +83,17 @@ export class AdminController {
     @Body() dto: RejectBusinessDto,
   ) {
     return this.rejectBusinessUseCase.execute({ businessId, currentUserId: user.userId, reason: dto.reason })
+  }
+
+  @Get('reviews')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async listReviews(@Query() query: AdminReviewListQueryDto) {
+    const { items, total } = await this.listAdminReviewsUseCase.execute(query)
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
   }
 
   @Post('reviews/:reviewId/approve')
@@ -128,5 +175,75 @@ export class AdminController {
   @Roles('ADMIN')
   async triggerRecalculation() {
     return this.triggerRecalculationUseCase.execute()
+  }
+
+  @Get('rankings/trend-config')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async getRankingTrendConfig() {
+    return this.rankingTrendConfigUseCase.getConfig()
+  }
+
+  @Patch('rankings/trend-config')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async updateRankingTrendConfig(@Body() dto: UpdateRankingTrendConfigDto) {
+    return this.rankingTrendConfigUseCase.updateConfig(dto.period)
+  }
+
+  @Get('reports')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async listReports(@Query() query: AdminReportQueryDto) {
+    const { items, total } = await this.listAdminReportsUseCase.execute({ page: query.page, limit: query.limit, status: query.status })
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  }
+
+  @Post('reports/:reportId/resolve')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async resolveReport(@Param('reportId', ParseIntPipe) reportId: number, @Body() _dto: ResolveReportDto) {
+    return this.resolveReportUseCase.execute({ reportId })
+  }
+
+  @Post('reports/:reportId/reject')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async rejectReport(@Param('reportId', ParseIntPipe) reportId: number) {
+    return this.rejectReportUseCase.execute({ reportId })
+  }
+
+  @Get('users')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async listUsers(@Query() query: AdminUserListQueryDto) {
+    const { items, total } = await this.listAdminUsersUseCase.execute(query)
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  }
+
+  @Patch('users/:userId/ban')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async banUser(@CurrentUser() user: { userId: number }, @Param('userId', ParseIntPipe) userId: number, @Body() dto: BanUserDto) {
+    return this.banUserUseCase.execute({ userId, currentUserId: user.userId, reason: dto.reason })
+  }
+
+  @Patch('users/:userId/unban')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async unbanUser(@Param('userId', ParseIntPipe) userId: number) {
+    return this.unbanUserUseCase.execute({ userId })
   }
 }

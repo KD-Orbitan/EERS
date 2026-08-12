@@ -33,4 +33,10 @@ export abstract class UserRepository {
    * Update a user's password hash.
    */
   abstract updatePassword(userId: number, passwordHash: string): Promise<{ userId: number }>
+
+  /**
+   * Find the ids of all active users assigned a given role.
+   * Used to fan out notifications like REPORT_CREATED to every admin.
+   */
+  abstract findUserIdsByRole(roleName: string): Promise<number[]>
 }

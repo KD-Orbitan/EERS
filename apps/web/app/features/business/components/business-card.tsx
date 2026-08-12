@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Building2, MapPin, Star, Trash2 } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, MapPin, Star, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { BusinessLogoBadge } from '@/features/business/components/business-logo-badge';
 import { BusinessCategory, BusinessStatus } from '@/features/business/types/business.type';
 
 export interface BusinessCardData {
@@ -14,6 +15,7 @@ export interface BusinessCardData {
   province?: string | null;
   categories?: BusinessCategory[];
   description?: string | null;
+  logoUrl?: string | null;
 }
 
 const statusVariant: Record<BusinessStatus, 'neutral' | 'success' | 'warning' | 'danger'> = {
@@ -29,16 +31,14 @@ interface BusinessCardProps {
 }
 
 // Layout mirrors Figma "Card 1" (node 1:84): avatar+badge row, name, rating,
-// tag pills, divider, "View Profile" link. There is no logo/photo field on
-// Business, so the avatar slot uses a generic icon instead of an image.
+// tag pills, divider, "View Profile" link. The avatar slot shows the
+// business's logo (imageType='BUSINESS_LOGO') when set, generic icon otherwise.
 export function BusinessCard({ business, onDelete }: BusinessCardProps) {
   return (
     <div className="flex h-full flex-col justify-between rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
       <div>
         <div className="mb-3 flex items-start justify-between">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary-100">
-            <Building2 className="h-6 w-6 text-primary-600" />
-          </div>
+          <BusinessLogoBadge logoUrl={business.logoUrl} name={business.name} />
           <Badge variant={statusVariant[business.status]}>{business.status}</Badge>
         </div>
 
@@ -84,14 +84,23 @@ export function BusinessCard({ business, onDelete }: BusinessCardProps) {
         </Link>
 
         {onDelete ? (
-          <button
-            type="button"
-            onClick={() => onDelete(business.businessId)}
-            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-red-600 transition hover:bg-red-50"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </button>
+          <div className="flex items-center gap-1">
+            <Link
+              href={`/businesses/${business.businessId}/dashboard`}
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-primary-600 transition hover:bg-primary-50"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Link>
+            <button
+              type="button"
+              onClick={() => onDelete(business.businessId)}
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-red-600 transition hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </button>
+          </div>
         ) : null}
       </div>
     </div>

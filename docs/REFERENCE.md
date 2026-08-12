@@ -82,6 +82,17 @@ enum SentimentType {
 }
 ```
 
+## ImageType
+
+```typescript
+enum ImageType {
+  AVATAR            = 'AVATAR'
+  BUSINESS_COVER    = 'BUSINESS_COVER'
+  BUSINESS_GALLERY  = 'BUSINESS_GALLERY'
+  REVIEW_PHOTO      = 'REVIEW_PHOTO'
+}
+```
+
 ---
 
 # Section 2. Role Names
@@ -109,18 +120,27 @@ REVIEW_APPROVED     = 'REVIEW_APPROVED'
 REVIEW_REJECTED     = 'REVIEW_REJECTED'
 REPORT_RESOLVED     = 'REPORT_RESOLVED'
 NEW_REPLY           = 'NEW_REPLY'
+REPORT_CREATED      = 'REPORT_CREATED'
+NEW_REVIEW          = 'NEW_REVIEW'
 ```
 
 Notification templates:
 
-| Type               | Title                  | Content template                                          |
-|--------------------|------------------------|-----------------------------------------------------------|
-| BUSINESS_APPROVED  | "Business Approved"    | `Your business "{name}" has been approved.`               |
-| BUSINESS_REJECTED  | "Business Rejected"    | `Your business "{name}" was rejected. Reason: {reason}`   |
-| REVIEW_APPROVED    | "Review Approved"      | `Your review has been approved.`                          |
-| REVIEW_REJECTED    | "Review Rejected"      | `Your review has been rejected. Reason: {reason}`         |
-| REPORT_RESOLVED    | "Report Resolved"      | `Your report has been reviewed and resolved.`             |
-| NEW_REPLY          | "New Reply"            | `The business owner replied to your review.`              |
+| Type               | Title                  | Content template                                            |
+|--------------------|------------------------|---------------------------------------------------------------|
+| BUSINESS_APPROVED  | "Business Approved"    | `Your business "{name}" has been approved.`                 |
+| BUSINESS_REJECTED  | "Business Rejected"    | `Your business "{name}" was rejected. Reason: {reason}`     |
+| REVIEW_APPROVED    | "Review Approved"      | `Your review has been approved.`                             |
+| REVIEW_REJECTED    | "Review Rejected"      | `Your review has been rejected. Reason: {reason}`            |
+| REPORT_RESOLVED    | "Report Resolved"      | `Your report has been reviewed and resolved.`                |
+| NEW_REPLY          | "New Reply"            | `The business owner replied to your review.`                 |
+| REPORT_CREATED     | "New Report"            | `A new report was submitted for review #{reviewId}.`         |
+| NEW_REVIEW         | "New Review"            | `Your business "{name}" received a new review.`              |
+
+REPORT_CREATED is sent to every user with the ADMIN role (see WF-RPT-001). NEW_REVIEW
+is sent to the business owner (`business.ownerUserId`, see WF-REV-001). Both are
+delivered through the same `CreateNotificationUseCase` mechanism as every other type
+(see WF-NOTI-001) — no new endpoint or transport.
 
 ---
 
@@ -217,6 +237,19 @@ CATEGORY  = 'CATEGORY'  // scopeId = categoryId
 PROVINCE  = 'PROVINCE'  // scopeId = NULL, filter by province string
 ```
 
+## Ranking Trend Periods
+
+Stored in `ranking_trend_config.period` (see DECISIONS.md D-031). Admin-editable via
+`GET/PATCH /admin/rankings/trend-config`.
+
+```typescript
+DAY    = 'DAY'    // lookback = 1 day
+WEEK   = 'WEEK'   // lookback = 7 days
+MONTH  = 'MONTH'  // lookback = 30 days
+```
+
+Default: `WEEK`.
+
 ---
 
 # Section 7. Cache Keys
@@ -303,16 +336,25 @@ Applied via `class-validator` in DTOs.
 |--------|---------------------------------|
 | reason | required, string, minLength=10  |
 
+## Ranking Trend Config (Admin)
+
+| Field  | Rules                                  |
+|--------|-----------------------------------------|
+| period | required, isIn(['DAY','WEEK','MONTH']) |
+
 ---
 
 # Section 9. File Upload Rules
 
-| Rule         | Value                    |
-|--------------|--------------------------|
-| Allowed types| jpg, jpeg, png, webp     |
-| Max size     | 10 MB (10 * 1024 * 1024) |
-| Storage      | Cloudinary only          |
-| DB fields    | secureUrl, cloudinaryPublicId |
+| Rule              | Value                    |
+|-------------------|--------------------------|
+| Allowed types     | jpg, jpeg, png, webp     |
+| Max size          | 10 MB (10 * 1024 * 1024) |
+| Storage           | Cloudinary only          |
+| DB fields         | secureUrl, cloudinaryPublicId |
+| Max gallery images| 20 per business          |
+| Max upload batch  | 5 files per request      |
+| Max review photos | 5 per review             |
 
 MIME type whitelist:
 
@@ -420,6 +462,7 @@ Global exception filter maps these codes to HTTP responses.
 | EMAIL_ALREADY_EXISTS    | 409  | Business email already in use            |
 | LAST_LOCATION_ERROR     | 400  | Cannot remove the last location          |
 | LOCATION_NOT_FOUND      | 404  | Location does not exist                  |
+| GALLERY_LIMIT_EXCEEDED  | 400  | Maximum gallery images (20) reached      |
 
 ## Review errors
 
@@ -430,6 +473,7 @@ Global exception filter maps these codes to HTTP responses.
 | REVIEW_NOT_PENDING      | 400  | Review is not in pending status          |
 | INVALID_RATING          | 400  | Rating must be integer between 1 and 5   |
 | INVALID_CRITERION       | 400  | Criterion does not belong to business    |
+| PHOTO_LIMIT_EXCEEDED    | 400  | Maximum review photos (5) reached        |
 
 ## Reply errors
 
@@ -446,6 +490,13 @@ Global exception filter maps these codes to HTTP responses.
 | REPORT_ALREADY_EXISTS   | 409  | User already reported this review        |
 | REPORT_NOT_WITHDRAWABLE | 400  | Report status is not pending             |
 | REASON_NOT_FOUND        | 404  | Report reason does not exist             |
+
+## Bookmark errors
+
+| Code                    | HTTP | Description                              |
+|-------------------------|------|-------------------------------------------|
+| BOOKMARK_NOT_FOUND      | 404  | Bookmark does not exist                  |
+| BOOKMARK_ALREADY_EXISTS | 409  | User already bookmarked this business    |
 
 ## Category & Criteria errors
 
@@ -470,6 +521,7 @@ Global exception filter maps these codes to HTTP responses.
 |-------------------------|------|------------------------------------------|
 | INVALID_FILE_TYPE       | 400  | File type not allowed                    |
 | FILE_TOO_LARGE          | 400  | File exceeds 10MB limit                  |
+| IMAGE_NOT_FOUND         | 404  | Image not found                          |
 
 ## General errors
 
@@ -556,6 +608,14 @@ Data that MUST exist before any business logic runs.
 | Offensive Content     |
 | Conflict of Interest  |
 | Other                 |
+
+## ranking_trend_config (seeded in migration)
+
+Singleton row, seeded once:
+
+| period |
+|--------|
+| WEEK   |
 
 ---
 

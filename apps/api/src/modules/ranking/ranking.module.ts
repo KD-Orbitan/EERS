@@ -14,11 +14,13 @@ import { GetGlobalRankingUseCase } from './application/use-cases/get-global-rank
 import { GetTopBusinessesUseCase } from './application/use-cases/get-top-businesses.use-case'
 import { GetRankingMetadataUseCase } from './application/use-cases/get-ranking-metadata.use-case'
 import { GetBusinessRankingUseCase } from './application/use-cases/get-business-ranking.use-case'
+import { GetMarketCompetitorsUseCase } from './application/use-cases/get-market-competitors.use-case'
 import { TriggerRecalculationUseCase } from './application/use-cases/trigger-recalculation.use-case'
 import { SimilarityService } from './infrastructure/services/similarity.service'
 import { PgTrgmSimilarityService } from './infrastructure/services/pg-trgm-similarity.service'
 import { RankingDbService } from './infrastructure/services/ranking-db.service'
 import { RankingCacheService } from './infrastructure/services/ranking-cache.service'
+import { RankingTrendConfigService } from './infrastructure/services/ranking-trend-config.service'
 import { RankingRecalculationJob } from '../../jobs/ranking-recalculation.job'
 import { TrustScoreJob } from '../../jobs/trust-score.job'
 import { JwtModule } from '@nestjs/jwt'
@@ -38,6 +40,7 @@ import { JwtModule } from '@nestjs/jwt'
       useClass: PgTrgmSimilarityService,
     },
     ScoringConfigService,
+    RankingTrendConfigService,
     RankingDbService,
     RankingCacheService,
     TrustScoreService,
@@ -49,6 +52,7 @@ import { JwtModule } from '@nestjs/jwt'
     GetTopBusinessesUseCase,
     GetRankingMetadataUseCase,
     GetBusinessRankingUseCase,
+    GetMarketCompetitorsUseCase,
     TriggerRecalculationUseCase,
     RankingRecalculationJob,
     TrustScoreJob,

@@ -122,48 +122,63 @@ export class PrismaReviewRepository extends ReviewRepository {
       where.overallRating = options.rating
     }
 
-    const reviews = await this.prisma.review.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (options.page - 1) * options.limit,
-      take: options.limit,
-      include: {
-        writer: true,
-        reviewCriteria: { include: { criterion: true } },
-        replies: { take: 1, orderBy: { createdAt: 'desc' } },
-      },
-    })
+    const [reviews, total] = await Promise.all([
+      this.prisma.review.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (options.page - 1) * options.limit,
+        take: options.limit,
+        include: {
+          writer: true,
+          reviewCriteria: { include: { criterion: true } },
+          replies: { take: 1, orderBy: { createdAt: 'desc' } },
+          images: { where: { imageType: 'REVIEW_PHOTO' } },
+        },
+      }),
+      this.prisma.review.count({ where }),
+    ])
 
-    return reviews.map((review) => ({
-      reviewId: Number(review.reviewId),
-      overallRating: review.overallRating,
-      content: review.content,
-      status: review.status,
-      sentiment: review.sentiment,
-      author: { userId: Number(review.writer.userId), name: review.writer.name },
-      criteriaRatings: review.reviewCriteria.map((item) => ({ criterionId: item.criterion.criterionId, criterionName: item.criterion.name, ratingValue: item.ratingValue })),
-      reply: review.replies[0]
-        ? { replyId: Number(review.replies[0].replyId), content: review.replies[0].content, createdAt: review.replies[0].createdAt.toISOString() }
-        : null,
-      createdAt: review.createdAt.toISOString(),
-    }))
+    return {
+      items: reviews.map((review) => ({
+        reviewId: Number(review.reviewId),
+        overallRating: review.overallRating,
+        content: review.content,
+        status: review.status,
+        sentiment: review.sentiment,
+        author: { userId: Number(review.writer.userId), name: review.writer.name },
+        criteriaRatings: review.reviewCriteria.map((item) => ({ criterionId: item.criterion.criterionId, criterionName: item.criterion.name, ratingValue: item.ratingValue })),
+        photos: review.images.map((image) => ({ imageId: Number(image.imageId), url: image.secureUrl })),
+        reply: review.replies[0]
+          ? { replyId: Number(review.replies[0].replyId), content: review.replies[0].content, createdAt: review.replies[0].createdAt.toISOString() }
+          : null,
+        createdAt: review.createdAt.toISOString(),
+      })),
+      total,
+    }
   }
 
   async listByUser(userId: number, page: number, limit: number) {
-    const reviews = await this.prisma.review.findMany({
-      where: { writerUserId: BigInt(userId), deletedAt: null },
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: { business: true },
-    })
-    return reviews.map((review) => ({
-      reviewId: Number(review.reviewId),
-      overallRating: review.overallRating,
-      status: review.status,
-      business: { businessId: Number(review.business.businessId), name: review.business.name },
-      createdAt: review.createdAt.toISOString(),
-    }))
+    const where = { writerUserId: BigInt(userId), deletedAt: null }
+    const [reviews, total] = await Promise.all([
+      this.prisma.review.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { business: true },
+      }),
+      this.prisma.review.count({ where }),
+    ])
+    return {
+      items: reviews.map((review) => ({
+        reviewId: Number(review.reviewId),
+        overallRating: review.overallRating,
+        status: review.status,
+        business: { businessId: Number(review.business.businessId), name: review.business.name },
+        createdAt: review.createdAt.toISOString(),
+      })),
+      total,
+    }
   }
 
   async getReviewDetail(reviewId: number, options?: { admin?: boolean }) {
@@ -174,6 +189,7 @@ export class PrismaReviewRepository extends ReviewRepository {
         business: true,
         reviewCriteria: { include: { criterion: true } },
         replies: { take: 1, orderBy: { createdAt: 'desc' } },
+        images: { where: { imageType: 'REVIEW_PHOTO' } },
       },
     })
     if (!review) {
@@ -188,6 +204,7 @@ export class PrismaReviewRepository extends ReviewRepository {
       author: { userId: Number(review.writer.userId), name: review.writer.name },
       business: { businessId: Number(review.business.businessId), name: review.business.name },
       criteriaRatings: review.reviewCriteria.map((item) => ({ criterionId: item.criterion.criterionId, criterionName: item.criterion.name, ratingValue: item.ratingValue })),
+      photos: review.images.map((image) => ({ imageId: Number(image.imageId), url: image.secureUrl })),
       reply: review.replies[0]
         ? { replyId: Number(review.replies[0].replyId), content: review.replies[0].content, createdAt: review.replies[0].createdAt.toISOString() }
         : null,
@@ -212,9 +229,86 @@ export class PrismaReviewRepository extends ReviewRepository {
     return { reviewCount, avgRating: Number(avg._avg.overallRating ?? 0), ratingDistribution }
   }
 
+  async getSentimentSummary(businessId: number) {
+    const grouped = await this.prisma.review.groupBy({
+      by: ['sentiment'],
+      where: { businessId: BigInt(businessId), status: 'approved', deletedAt: null, sentiment: { not: null } },
+      _count: { sentiment: true },
+    })
+
+    const counts = { positive: 0, neutral: 0, negative: 0 }
+    grouped.forEach((item) => {
+      if (item.sentiment) {
+        counts[item.sentiment] = item._count.sentiment
+      }
+    })
+
+    const totalReviews = counts.positive + counts.neutral + counts.negative
+    if (totalReviews === 0) {
+      return { positive: 0, neutral: 0, negative: 0, totalReviews: 0 }
+    }
+
+    return {
+      positive: Math.round((counts.positive / totalReviews) * 100),
+      neutral: Math.round((counts.neutral / totalReviews) * 100),
+      negative: Math.round((counts.negative / totalReviews) * 100),
+      totalReviews,
+    }
+  }
+
+  async getCriteriaScores(businessId: number) {
+    const [categoryCriteria, grouped] = await Promise.all([
+      this.prisma.categoryCriterion.findMany({
+        where: { category: { businessCategories: { some: { businessId: BigInt(businessId) } } } },
+        include: { criterion: true },
+      }),
+      this.prisma.reviewCriterion.groupBy({
+        by: ['criterionId'],
+        where: { review: { businessId: BigInt(businessId), status: 'approved', deletedAt: null } },
+        _avg: { ratingValue: true },
+        _count: { ratingValue: true },
+      }),
+    ])
+
+    const statsByCriterion = new Map(grouped.map((row) => [row.criterionId, row]))
+    const seen = new Set<number>()
+    const items: { criterionId: number; criterionName: string; avgRating: number; reviewCount: number }[] = []
+
+    for (const row of categoryCriteria) {
+      if (seen.has(row.criterionId)) continue
+      seen.add(row.criterionId)
+      const stats = statsByCriterion.get(row.criterionId)
+      items.push({
+        criterionId: row.criterionId,
+        criterionName: row.criterion.name,
+        avgRating: stats?._avg.ratingValue ? Number(stats._avg.ratingValue.toFixed(2)) : 0,
+        reviewCount: stats?._count.ratingValue ?? 0,
+      })
+    }
+
+    return items
+  }
+
   async getApprovedReviews() {
     const reviews = await this.prisma.review.findMany({ where: { status: 'approved', deletedAt: null }, select: { reviewId: true, businessId: true, overallRating: true, content: true } })
     return reviews.map((review) => ({ reviewId: Number(review.reviewId), businessId: Number(review.businessId), overallRating: review.overallRating, content: review.content }))
+  }
+
+  async getRecentReviews(limit: number) {
+    const reviews = await this.prisma.review.findMany({
+      where: { status: 'approved', deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { writer: true, business: true },
+    })
+    return reviews.map((review) => ({
+      reviewId: Number(review.reviewId),
+      overallRating: review.overallRating,
+      content: review.content,
+      author: { name: review.writer.name },
+      business: { businessId: Number(review.business.businessId), name: review.business.name },
+      createdAt: review.createdAt.toISOString(),
+    }))
   }
 
   private mapToEntity(review: any) {

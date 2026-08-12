@@ -7,12 +7,12 @@ interface PrismaUserWithRole {
   email: string
   password: string
   status: string
-  avatarUrl: string | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
   roleId: number
   role: { roleName: string; roleId: number }
+  images?: Array<{ secureUrl: string }>
 }
 
 export class UserMapper {
@@ -23,7 +23,7 @@ export class UserMapper {
       email: user.email,
       password: user.password,
       status: user.status,
-      avatarUrl: user.avatarUrl,
+      avatarUrl: user.images?.[0]?.secureUrl ?? null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       deletedAt: user.deletedAt,

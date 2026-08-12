@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,6 +11,9 @@ import { useBusinessReviewsQuery } from '@/features/review/queries/use-business-
 import { useCreateReplyMutation } from '@/features/review/mutations/use-create-reply.mutation';
 import { ReviewList } from '@/features/review/components/review-list';
 import { ReplyInput } from '@/features/review/schemas/reply.schema';
+import { useCreateReportMutation } from '@/features/report/mutations/use-create-report.mutation';
+import { ReportReviewModal } from '@/features/report/components/report-review-modal';
+import { CreateReportInput } from '@/features/report/schemas/create-report.schema';
 
 interface ReviewSummaryProps {
   businessId: number;
@@ -23,6 +27,8 @@ export function ReviewSummary({ businessId, isOwner }: ReviewSummaryProps) {
   const { data: stats } = useReviewStatisticsQuery(businessId);
   const { data, isLoading } = useBusinessReviewsQuery(businessId, { limit: 3 });
   const createReplyMutation = useCreateReplyMutation(businessId);
+  const createReportMutation = useCreateReportMutation();
+  const [reportingReviewId, setReportingReviewId] = useState<number | null>(null);
 
   const onReply = async (reviewId: number, input: ReplyInput) => {
     try {
@@ -30,6 +36,17 @@ export function ReviewSummary({ businessId, isOwner }: ReviewSummaryProps) {
       toast.success('Reply posted.');
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Unable to post reply. Please try again.'));
+    }
+  };
+
+  const onReportSubmit = async (data: CreateReportInput) => {
+    if (reportingReviewId === null) return;
+    try {
+      await createReportMutation.mutateAsync({ reviewId: reportingReviewId, ...data });
+      toast.success('Report submitted. Our team will look into it.');
+      setReportingReviewId(null);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Unable to submit report. Please try again.'));
     }
   };
 
@@ -60,9 +77,11 @@ export function ReviewSummary({ businessId, isOwner }: ReviewSummaryProps) {
       <ReviewList
         reviews={data?.items ?? []}
         isLoading={isLoading}
+        businessId={businessId}
         currentUserId={user?.userId}
         isBusinessOwner={isOwner}
         onReply={onReply}
+        onReport={setReportingReviewId}
       />
 
       {stats && stats.reviewCount > 3 ? (
@@ -73,6 +92,13 @@ export function ReviewSummary({ businessId, isOwner }: ReviewSummaryProps) {
           View all reviews
         </Link>
       ) : null}
+
+      <ReportReviewModal
+        isOpen={reportingReviewId !== null}
+        onClose={() => setReportingReviewId(null)}
+        onSubmit={onReportSubmit}
+        isLoading={createReportMutation.isPending}
+      />
     </div>
   );
 }

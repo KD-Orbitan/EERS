@@ -75,6 +75,14 @@ enum SentimentType {
   neutral
   negative
 }
+
+enum ImageType {
+  AVATAR
+  BUSINESS_COVER
+  BUSINESS_LOGO
+  BUSINESS_GALLERY
+  REVIEW_PHOTO
+}
 ```
 
 ---
@@ -158,6 +166,7 @@ model User {
   notifications     Notification[]
   refreshTokens     RefreshToken[]
   logs              Log[]
+  bookmarks         Bookmark[]
 
   @@index([email])
   @@map("users")
@@ -205,6 +214,8 @@ model Business {
   businessCategories  BusinessCategory[]
   reviews             Review[]
   rankingSnapshots    RankingSnapshot[]
+  rankingSnapshotHistory RankingSnapshotHistory[]
+  bookmarks           Bookmark[]
 
   @@index([status])
   @@index([ownerUserId])
@@ -232,6 +243,8 @@ model Location {
   addressLine String   @map("address_line") @db.Text
   ward        String   @db.VarChar(100)
   province    String   @db.VarChar(100)
+  latitude    Decimal? @db.Decimal(9, 6)
+  longitude   Decimal? @db.Decimal(9, 6)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -241,6 +254,10 @@ model Location {
   @@map("locations")
 }
 ```
+
+`latitude`/`longitude` are nullable and never accepted as request input — see D-032
+(auto-geocoded server-side from `addressLine`/`ward`/`province` via OpenStreetMap Nominatim,
+best-effort, `null` on any geocoding failure).
 
 ---
 
@@ -389,12 +406,22 @@ model Review {
   replies         Reply[]
   reports         Report[]
 
-  @@unique([writerUserId, businessId])
+  // One active review per (writerUserId, businessId): enforced via a partial
+  // unique index (WHERE deleted_at IS NULL) added in migration SQL, not here —
+  // a plain @@unique would block re-reviewing after a soft-deleted review.
   @@index([businessId])
   @@index([writerUserId])
   @@index([status])
   @@map("reviews")
 }
+```
+
+Partial unique index (add in migration file, Prisma does not support this natively):
+
+```sql
+CREATE UNIQUE INDEX uq_review_writer_business_active
+ON reviews (writer_user_id, business_id)
+WHERE deleted_at IS NULL;
 ```
 
 Notes:
@@ -403,7 +430,8 @@ Notes:
 - overallRating: enforce 1-5 in application layer (not DB constraint)
 - sentiment: nullable, populated by sentiment analysis service (optional feature)
   Set to NULL if sentiment analysis is not run
-- UNIQUE(writerUserId, businessId): one user, one review, one business
+- One user may have at most one ACTIVE review per business (see partial unique
+  index above). After a review is soft-deleted, the user may write a new one.
 - deletedAt: soft delete
 - managedByUserId: admin who last moderated this review
 - Full text search index added separately (see Indexes section)
@@ -533,6 +561,40 @@ Notes:
 ```
 - UNIQUE(userId, reviewId): one user can report one review only once
 - description: optional additional context from reporter
+```
+
+---
+
+## Module: Bookmark
+
+Owner: `bookmark` module
+
+### Table: bookmarks
+
+```prisma
+model Bookmark {
+  bookmarkId BigInt   @id @default(autoincrement()) @map("bookmark_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId BigInt @map("user_id")
+  user   User   @relation(fields: [userId], references: [userId])
+
+  businessId BigInt   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [businessId])
+
+  @@unique([userId, businessId])
+  @@index([userId])
+  @@index([businessId])
+  @@map("bookmarks")
+}
+```
+
+Notes:
+
+```
+- UNIQUE(userId, businessId): a user can bookmark a business only once
+- Hard delete on unbookmark — bookmarks are not in the D-007 soft-delete list
+- No status/moderation workflow — a bookmark is a simple user preference record
 ```
 
 ---
@@ -701,6 +763,55 @@ model ReviewFraudScore {
   @@map("review_fraud_scores")
 }
 ```
+
+### Table: ranking_snapshot_history
+
+```prisma
+model RankingSnapshotHistory {
+  historyId    BigInt   @id @default(autoincrement()) @map("history_id")
+  rank         Int
+  rankingScore Decimal  @map("ranking_score") @db.Decimal(10, 4)
+  calculatedAt DateTime @default(now()) @map("calculated_at") @db.Timestamptz
+
+  businessId BigInt   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [businessId])
+
+  @@index([businessId, calculatedAt])
+  @@map("ranking_snapshot_history")
+}
+```
+
+Notes:
+
+```
+- GLOBAL scope only (no scope/scopeId columns — see DECISIONS.md D-031)
+- Append-only: one row per business per hourly cron run
+- Rows older than 40 days are purged each cron run (retention, see D-031)
+- Used exclusively to compute the `trend` field on
+  GET /rankings/businesses/:businessId — never read/written outside RankingModule
+```
+
+### Table: ranking_trend_config
+
+```prisma
+model RankingTrendConfig {
+  configId  Int      @id @default(autoincrement()) @map("config_id") @db.SmallInt
+  period    String   @default("WEEK") @db.VarChar(10) // DAY | WEEK | MONTH
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("ranking_trend_config")
+}
+```
+
+Notes:
+
+```
+- Singleton row, same read/write pattern as scoring_config (findFirst / updateMany({where:{}}))
+- period: DAY=1 day lookback, WEEK=7 days, MONTH=30 days (see REFERENCE.md)
+- Editable via GET/PATCH /admin/rankings/trend-config (Admin only)
+```
+
 ---
 
 ## Module: Shared / Infrastructure
@@ -711,15 +822,17 @@ Owner: managed across modules via image upload service
 
 ```prisma
 model Image {
-  imageId            BigInt   @id @default(autoincrement()) @map("image_id")
-  cloudinaryPublicId String   @map("cloudinary_public_id") @db.Text
-  secureUrl          String   @map("secure_url") @db.Text
+  imageId            BigInt    @id @default(autoincrement()) @map("image_id")
+  cloudinaryPublicId String    @map("cloudinary_public_id") @db.Text
+  secureUrl          String    @map("secure_url") @db.Text
   width              Int?
   height             Int?
-  format             String?  @db.VarChar(10)
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  format             String?   @db.VarChar(10)
+  imageType          ImageType @map("image_type")
+  displayOrder       Int?      @map("display_order") @db.SmallInt  // for gallery ordering
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  // Exactly one of these must be non-null (enforced via CHECK constraint in migration)
+  // Owner column must match imageType (enforced via CHECK constraint in migration)
   userId     BigInt?   @map("user_id")
   reviewId   BigInt?   @map("review_id")
   businessId BigInt?   @map("business_id")
@@ -738,22 +851,44 @@ model Image {
 CHECK constraint (add in migration file, Prisma does not support this natively):
 
 ```sql
-ALTER TABLE images
-ADD CONSTRAINT images_single_owner_check CHECK (
-  (
-    (user_id IS NOT NULL)::int +
-    (review_id IS NOT NULL)::int +
-    (business_id IS NOT NULL)::int
-  ) = 1
+ALTER TABLE images ADD CONSTRAINT images_type_owner_consistency CHECK (
+  CASE
+    WHEN image_type = 'AVATAR'           THEN user_id IS NOT NULL AND business_id IS NULL AND review_id IS NULL
+    WHEN image_type = 'BUSINESS_COVER'   THEN business_id IS NOT NULL AND user_id IS NULL AND review_id IS NULL
+    WHEN image_type = 'BUSINESS_LOGO'    THEN business_id IS NOT NULL AND user_id IS NULL AND review_id IS NULL
+    WHEN image_type = 'BUSINESS_GALLERY' THEN business_id IS NOT NULL AND user_id IS NULL AND review_id IS NULL
+    WHEN image_type = 'REVIEW_PHOTO'     THEN review_id IS NOT NULL AND user_id IS NULL AND business_id IS NULL
+    ELSE false
+  END
 );
+```
+
+Partial unique indexes and gallery ordering index:
+
+```sql
+-- Each user can have only 1 avatar
+CREATE UNIQUE INDEX uq_user_avatar ON images (user_id) WHERE image_type = 'AVATAR';
+
+-- Each business can have only 1 cover photo
+CREATE UNIQUE INDEX uq_business_cover ON images (business_id) WHERE image_type = 'BUSINESS_COVER';
+
+-- Each business can have only 1 logo
+CREATE UNIQUE INDEX uq_business_logo ON images (business_id) WHERE image_type = 'BUSINESS_LOGO';
+
+-- Composite index for gallery ordering
+CREATE INDEX idx_business_gallery_order ON images (business_id, display_order) WHERE image_type = 'BUSINESS_GALLERY';
 ```
 
 Notes:
 
 ```
-- Avatar  : userId IS NOT NULL, reviewId IS NULL, businessId IS NULL
-- Business: businessId IS NOT NULL, userId IS NULL, reviewId IS NULL
-- Review  : reviewId IS NOT NULL, userId IS NULL, businessId IS NULL
+- imageType: AVATAR | BUSINESS_COVER | BUSINESS_LOGO | BUSINESS_GALLERY | REVIEW_PHOTO
+- Avatar          : userId IS NOT NULL, reviewId IS NULL, businessId IS NULL — 1 per user (partial unique index)
+- Business cover  : businessId IS NOT NULL, userId IS NULL, reviewId IS NULL — 1 per business (partial unique index); wide hero/banner image
+- Business logo   : businessId IS NOT NULL, userId IS NULL, reviewId IS NULL — 1 per business (partial unique index); small square brand mark shown in cards/listings, distinct from the cover banner
+- Business gallery: businessId IS NOT NULL, userId IS NULL, reviewId IS NULL — many per business, ordered by displayOrder
+- Review photo    : reviewId IS NOT NULL, userId IS NULL, businessId IS NULL — many per review
+- displayOrder: only meaningful for BUSINESS_GALLERY, NULL otherwise
 - secureUrl: Cloudinary HTTPS URL, store as-is
 - cloudinaryPublicId: required for deletion from Cloudinary
 - MUST NOT store binary data here
@@ -877,8 +1012,11 @@ Admin          → all statuses including rejected and hidden
 | replies              | review        | No          |
 | reasons              | report        | No          |
 | reports              | report        | No          |
+| bookmarks            | bookmark      | No          |
 | notifications        | notification  | No          |
 | ranking_snapshots    | ranking       | No          |
+| ranking_snapshot_history | ranking   | No          |
+| ranking_trend_config | ranking       | No          |
 | logs                 | audit-log     | No          |
 
 ---

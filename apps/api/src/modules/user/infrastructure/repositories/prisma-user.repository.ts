@@ -13,7 +13,7 @@ export class PrismaUserRepository extends UserRepository {
   async findByEmail(email: string): Promise<UserEntity | null> {
     const user = await this.prisma.user.findFirst({
       where: { email, deletedAt: null },
-      include: { role: true },
+      include: { role: true, images: { where: { imageType: 'AVATAR' }, take: 1 } },
     })
 
     return user ? UserMapper.toEntity(user as any) : null
@@ -22,7 +22,7 @@ export class PrismaUserRepository extends UserRepository {
   async findById(userId: number): Promise<UserEntity | null> {
     const user = await this.prisma.user.findFirst({
       where: { userId: Number(userId), deletedAt: null },
-      include: { role: true },
+      include: { role: true, images: { where: { imageType: 'AVATAR' }, take: 1 } },
     })
 
     return user ? UserMapper.toEntity(user as any) : null
@@ -59,5 +59,14 @@ export class PrismaUserRepository extends UserRepository {
     })
 
     return { userId: Number(updated.userId) }
+  }
+
+  async findUserIdsByRole(roleName: string): Promise<number[]> {
+    const users = await this.prisma.user.findMany({
+      where: { deletedAt: null, role: { roleName } },
+      select: { userId: true },
+    })
+
+    return users.map((user) => Number(user.userId))
   }
 }

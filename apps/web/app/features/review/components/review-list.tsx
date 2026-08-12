@@ -10,12 +10,14 @@ interface ReviewListProps {
   isLoading: boolean;
   pagination?: PaginationMeta;
   onPageChange?: (page: number) => void;
+  businessId?: number;
   currentUserId?: number;
   isBusinessOwner?: boolean;
   onEdit?: (reviewId: number) => void;
   onDelete?: (reviewId: number) => void;
   onReply?: (reviewId: number, input: ReplyInput) => void | Promise<void>;
   replyingReviewId?: number | null;
+  onReport?: (reviewId: number) => void;
 }
 
 export function ReviewList({
@@ -23,12 +25,14 @@ export function ReviewList({
   isLoading,
   pagination,
   onPageChange,
+  businessId,
   currentUserId,
   isBusinessOwner,
   onEdit,
   onDelete,
   onReply,
   replyingReviewId,
+  onReport,
 }: ReviewListProps) {
   if (isLoading) {
     return (
@@ -55,12 +59,14 @@ export function ReviewList({
           <ReviewCard
             key={review.reviewId}
             review={review}
+            businessId={businessId}
             isAuthor={currentUserId === review.author.userId}
             canReply={isBusinessOwner}
             onEdit={() => onEdit?.(review.reviewId)}
             onDelete={() => onDelete?.(review.reviewId)}
             onReplySubmit={(input) => onReply?.(review.reviewId, input)}
             isReplying={replyingReviewId === review.reviewId}
+            onReport={currentUserId && onReport ? () => onReport(review.reviewId) : undefined}
           />
         ))}
       </div>

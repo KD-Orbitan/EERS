@@ -1,5 +1,21 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common'
+import { FilesInterceptor } from '@nestjs/platform-express'
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard'
 import { CreateReviewDto } from '../../application/dto/create-review.dto'
@@ -10,7 +26,10 @@ import { UpdateReviewUseCase } from '../../application/use-cases/update-review.u
 import { DeleteReviewUseCase } from '../../application/use-cases/delete-review.use-case'
 import { GetReviewByIdUseCase } from '../../application/use-cases/get-review-by-id.use-case'
 import { GetMyReviewsUseCase } from '../../application/use-cases/get-my-reviews.use-case'
+import { GetRecentReviewsUseCase } from '../../application/use-cases/get-recent-reviews.use-case'
 import { CreateReplyUseCase } from '../../application/use-cases/create-reply.use-case'
+import { UploadReviewPhotosUseCase } from '../../application/use-cases/upload-review-photos.use-case'
+import { DeleteReviewPhotoUseCase } from '../../application/use-cases/delete-review-photo.use-case'
 import { ReplyRepository } from '../../domain/repositories/reply.repository'
 import { ReplyNotFoundException } from '../../domain/exceptions/review.exceptions'
 
@@ -23,7 +42,10 @@ export class ReviewController {
     private readonly deleteReviewUseCase: DeleteReviewUseCase,
     private readonly getReviewByIdUseCase: GetReviewByIdUseCase,
     private readonly getMyReviewsUseCase: GetMyReviewsUseCase,
+    private readonly getRecentReviewsUseCase: GetRecentReviewsUseCase,
     private readonly createReplyUseCase: CreateReplyUseCase,
+    private readonly uploadReviewPhotosUseCase: UploadReviewPhotosUseCase,
+    private readonly deleteReviewPhotoUseCase: DeleteReviewPhotoUseCase,
     private readonly replyRepository: ReplyRepository,
   ) {}
 
@@ -38,7 +60,16 @@ export class ReviewController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   async getMyReviews(@CurrentUser() user: { userId: number }, @Query() query: { page?: number; limit?: number }) {
-    return this.getMyReviewsUseCase.execute({ userId: user.userId, page: query.page, limit: query.limit })
+    const { items, total } = await this.getMyReviewsUseCase.execute({ userId: user.userId, page: query.page, limit: query.limit })
+    const page = Number(query.page) || 1
+    const limit = Number(query.limit) || 20
+    return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  }
+
+  @Get('recent')
+  async getRecentReviews(@Query('limit') limit = '6') {
+    const clampedLimit = Math.min(Number(limit) || 6, 20)
+    return this.getRecentReviewsUseCase.execute({ limit: clampedLimit })
   }
 
   @Get(':reviewId')
@@ -58,6 +89,31 @@ export class ReviewController {
   @UseGuards(JwtAuthGuard)
   async deleteReview(@CurrentUser() user: { userId: number; role: string }, @Param('reviewId', ParseIntPipe) reviewId: number) {
     await this.deleteReviewUseCase.execute({ reviewId, currentUserId: user.userId, currentUserRole: user.role })
+  }
+
+  @Post(':reviewId/photos')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FilesInterceptor('photos', 5))
+  async uploadPhotos(
+    @CurrentUser() user: { userId: number; role: string },
+    @Param('reviewId', ParseIntPipe) reviewId: number,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.uploadReviewPhotosUseCase.execute({ reviewId, user, files })
+  }
+
+  @Delete(':reviewId/photos/:imageId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePhoto(
+    @CurrentUser() user: { userId: number; role: string },
+    @Param('reviewId', ParseIntPipe) reviewId: number,
+    @Param('imageId', ParseIntPipe) imageId: number,
+  ) {
+    await this.deleteReviewPhotoUseCase.execute({ reviewId, imageId, user })
   }
 
   @Post(':reviewId/reply')

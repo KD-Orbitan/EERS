@@ -13,6 +13,11 @@ export interface ReviewReply {
   createdAt: string;
 }
 
+export interface ReviewPhoto {
+  imageId: number;
+  url: string;
+}
+
 export interface ReviewListItem {
   reviewId: number;
   overallRating: number;
@@ -24,6 +29,7 @@ export interface ReviewListItem {
     name: string;
   };
   criteriaRatings: ReviewCriteriaRating[];
+  photos: ReviewPhoto[];
   reply: ReviewReply | null;
   createdAt: string;
 }
@@ -32,6 +38,20 @@ export interface MyReviewListItem {
   reviewId: number;
   overallRating: number;
   status: ReviewStatus;
+  business: {
+    businessId: number;
+    name: string;
+  };
+  createdAt: string;
+}
+
+export interface RecentReviewItem {
+  reviewId: number;
+  overallRating: number;
+  content: string;
+  author: {
+    name: string;
+  };
   business: {
     businessId: number;
     name: string;
@@ -54,6 +74,7 @@ export interface ReviewDetail {
     name: string;
   };
   criteriaRatings: ReviewCriteriaRating[];
+  photos: ReviewPhoto[];
   reply: ReviewReply | null;
   createdAt: string;
   updatedAt: string;

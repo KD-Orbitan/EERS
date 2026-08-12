@@ -4,16 +4,20 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { QUERY_KEYS } from '@/lib/query-keys';
 
-export function useApproveReviewMutation(businessId: number) {
+// businessId is passed per-call (not fixed at construction) since this is
+// used from the global admin review queue, where each row belongs to a
+// different business.
+export function useApproveReviewMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (reviewId: number) => {
+    mutationFn: async ({ reviewId }: { reviewId: number; businessId: number }) => {
       const response = await apiClient.post(`/admin/reviews/${reviewId}/approve`);
       return response.data.data as { reviewId: number; status: 'approved' };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BUSINESS_REVIEWS(businessId) });
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ADMIN_REVIEWS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BUSINESS_REVIEWS(variables.businessId) });
     },
   });
 }

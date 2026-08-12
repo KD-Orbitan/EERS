@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Flag, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/features/review/components/star-rating';
 import { ReplyForm } from '@/features/review/components/reply-form';
+import { ReviewPhotoUpload } from '@/features/review/components/review-photo-upload';
 import { ReplyInput } from '@/features/review/schemas/reply.schema';
 import { ReviewListItem, ReviewStatus } from '@/features/review/types/review.type';
 
@@ -19,15 +20,17 @@ const CONTENT_PREVIEW_LENGTH = 240;
 
 interface ReviewCardProps {
   review: ReviewListItem;
+  businessId?: number;
   isAuthor?: boolean;
   canReply?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
   onReplySubmit?: (input: ReplyInput) => void | Promise<void>;
   isReplying?: boolean;
+  onReport?: () => void;
 }
 
-export function ReviewCard({ review, isAuthor, canReply, onEdit, onDelete, onReplySubmit, isReplying }: ReviewCardProps) {
+export function ReviewCard({ review, businessId, isAuthor, canReply, onEdit, onDelete, onReplySubmit, isReplying, onReport }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
 
@@ -70,7 +73,9 @@ export function ReviewCard({ review, isAuthor, canReply, onEdit, onDelete, onRep
         </div>
       ) : null}
 
-      {isAuthor || canReply ? (
+      <ReviewPhotoUpload reviewId={review.reviewId} businessId={businessId} photos={review.photos} isAuthor={Boolean(isAuthor)} />
+
+      {isAuthor || canReply || (!isAuthor && onReport) ? (
         <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
           {isAuthor ? (
             <>
@@ -99,6 +104,16 @@ export function ReviewCard({ review, isAuthor, canReply, onEdit, onDelete, onRep
               className="text-xs font-medium text-primary-600 hover:text-primary-700"
             >
               Reply
+            </button>
+          ) : null}
+          {!isAuthor && onReport ? (
+            <button
+              type="button"
+              onClick={onReport}
+              className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-ink-500 hover:text-red-600"
+            >
+              <Flag className="h-3.5 w-3.5" />
+              Report
             </button>
           ) : null}
         </div>

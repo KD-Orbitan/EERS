@@ -8,6 +8,7 @@ import { useBusinessDetailQuery } from '@/features/business/queries/use-business
 import { useReviewDetailQuery } from '@/features/review/queries/use-review-detail.query';
 import { useCreateReviewMutation } from '@/features/review/mutations/use-create-review.mutation';
 import { useUpdateReviewMutation } from '@/features/review/mutations/use-update-review.mutation';
+import { uploadReviewPhotos } from '@/features/review/mutations/use-upload-review-photos.mutation';
 import { WriteReviewForm } from '@/features/review/components/write-review-form';
 import { CreateReviewInput } from '@/features/review/schemas/create-review.schema';
 import { UpdateReviewInput } from '@/features/review/schemas/update-review.schema';
@@ -26,14 +27,21 @@ export default function WriteReviewPage({ params }: { params: Promise<{ id: stri
 
   const isEditMode = typeof editReviewId === 'number';
 
-  const onSubmit = async (data: CreateReviewInput | UpdateReviewInput) => {
+  const onSubmit = async (data: CreateReviewInput | UpdateReviewInput, photos?: File[]) => {
     try {
       if (isEditMode) {
         const { overallRating, content, criteriaRatings } = data as CreateReviewInput;
         await updateReviewMutation.mutateAsync({ overallRating, content, criteriaRatings });
         toast.success('Review updated and resubmitted for review.');
       } else {
-        await createReviewMutation.mutateAsync(data as CreateReviewInput);
+        const created = await createReviewMutation.mutateAsync(data as CreateReviewInput);
+        if (photos && photos.length > 0) {
+          try {
+            await uploadReviewPhotos(created.reviewId, photos);
+          } catch (photoError: unknown) {
+            toast.error(getErrorMessage(photoError, 'Review posted, but photos failed to upload.'));
+          }
+        }
         toast.success('Review submitted for review.');
       }
       router.push(`/businesses/${businessId}/reviews`);

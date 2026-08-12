@@ -13,7 +13,10 @@ export interface BusinessListItem {
   reviewCount: number;
   status: 'approved';
   province: string | null;
+  latitude: number | null;
+  longitude: number | null;
   categories: BusinessCategory[];
+  logoUrl: string | null;
 }
 
 export interface MyBusinessListItem {
@@ -29,6 +32,14 @@ export interface BusinessLocation {
   addressLine: string;
   ward: string;
   province: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface BusinessGalleryImage {
+  imageId: number;
+  url: string;
+  displayOrder: number | null;
 }
 
 export interface BusinessDetail {
@@ -46,6 +57,9 @@ export interface BusinessDetail {
   };
   categories: BusinessCategory[];
   locations: BusinessLocation[];
+  coverUrl: string | null;
+  logoUrl: string | null;
+  gallery: BusinessGalleryImage[];
   createdAt: string;
 }
 

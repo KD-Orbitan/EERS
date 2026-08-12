@@ -5,6 +5,8 @@ export interface CreateBusinessLocation {
   addressLine: string
   ward: string
   province: string
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export interface BusinessListQuery {
@@ -25,6 +27,8 @@ export interface BusinessListItem {
   reviewCount: number
   status: string
   province: string | null
+  latitude: number | null
+  longitude: number | null
   categories: Array<{ categoryId: number; categoryName: string }>
 }
 
@@ -52,7 +56,11 @@ export interface BusinessDetail {
     addressLine: string
     ward: string
     province: string
+    latitude: number | null
+    longitude: number | null
   }>
+  coverUrl: string | null
+  gallery: Array<{ imageId: number; url: string; displayOrder: number | null }>
   createdAt: string
 }
 
@@ -79,8 +87,8 @@ export abstract class BusinessRepository {
   }): Promise<{ businessId: number; status: string }>
   abstract updateBusiness(businessId: number, data: { name?: string; description?: string; phone?: string; email?: string }): Promise<{ businessId: number }>
   abstract softDeleteBusiness(businessId: number, actionUserId: number): Promise<void>
-  abstract getApprovedBusinessList(query: BusinessListQuery): Promise<BusinessListItem[]>
-  abstract getMyBusinesses(userId: number, page: number, limit: number): Promise<MyBusinessListItem[]>
+  abstract getApprovedBusinessList(query: BusinessListQuery): Promise<{ items: BusinessListItem[]; total: number }>
+  abstract getMyBusinesses(userId: number, page: number, limit: number): Promise<{ items: MyBusinessListItem[]; total: number }>
   abstract getBusinessDetail(businessId: number): Promise<BusinessDetail | null>
   abstract getBusinessStatistics(businessId: number): Promise<BusinessStatistics>
   abstract countLocations(businessId: number): Promise<number>

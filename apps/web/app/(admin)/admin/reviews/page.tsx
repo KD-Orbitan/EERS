@@ -1,13 +1,13 @@
-import { ReviewModerationTable } from '@/features/admin/components/review-moderation-table';
+import { ReviewModerationQueue } from '@/features/admin/components/review-moderation-queue';
 
 export default function AdminReviewsPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="font-serif text-3xl font-bold text-ink-900">Review Moderation</h1>
-        <p className="mt-1 text-sm text-ink-700">Select a business to review its pending reviews.</p>
+        <p className="mt-1 text-sm text-ink-700">Active moderation queue across every business.</p>
       </div>
-      <ReviewModerationTable />
+      <ReviewModerationQueue />
     </div>
   );
 }

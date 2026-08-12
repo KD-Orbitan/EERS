@@ -2,12 +2,14 @@ import { Injectable, ForbiddenException } from '@nestjs/common'
 import { BusinessRepository } from '../../domain/repositories/business.repository'
 import { LocationRepository } from '../../domain/repositories/location.repository'
 import { BusinessNotFoundException, LocationNotFoundException } from '../../domain/exceptions/business.exceptions'
+import { GeocodingService } from '../../infrastructure/services/geocoding.service'
 
 @Injectable()
 export class UpdateLocationUseCase {
   constructor(
     private readonly businessRepository: BusinessRepository,
     private readonly locationRepository: LocationRepository,
+    private readonly geocodingService: GeocodingService,
   ) {}
 
   async execute({ businessId, user, locationId, dto }: { businessId: number; user: { userId: number; role: string }; locationId: number; dto: any }) {
@@ -25,6 +27,17 @@ export class UpdateLocationUseCase {
       throw new LocationNotFoundException()
     }
 
-    return this.locationRepository.update(locationId, dto)
+    const addressChanged = dto.addressLine !== undefined || dto.ward !== undefined || dto.province !== undefined
+    if (!addressChanged) {
+      return this.locationRepository.update(locationId, dto)
+    }
+
+    const current = await this.locationRepository.findById(locationId)
+    const addressLine = dto.addressLine ?? current?.addressLine ?? ''
+    const ward = dto.ward ?? current?.ward ?? ''
+    const province = dto.province ?? current?.province ?? ''
+    const coords = await this.geocodingService.geocode(`${addressLine}, ${ward}, ${province}`)
+
+    return this.locationRepository.update(locationId, { ...dto, latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null })
   }
 }

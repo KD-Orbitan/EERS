@@ -11,8 +11,11 @@ import { CategoryModule } from './modules/category/category.module'
 import { CriteriaModule } from './modules/criteria/criteria.module'
 import { BusinessModule } from './modules/business/business.module'
 import { ReviewModule } from './modules/review/review.module'
+import { ReportModule } from './modules/report/report.module'
 import { AdminModule } from './modules/admin/admin.module'
 import { RankingModule } from './modules/ranking/ranking.module'
+import { NotificationModule } from './modules/notification/notification.module'
+import { BookmarkModule } from './modules/bookmark/bookmark.module'
 // import { RankingRecalculationJob } from './jobs/ranking-recalculation.job'
 // import { TrustScoreJob } from './jobs/trust-score.job'
 import appConfig from './config/app.config'
@@ -37,8 +40,11 @@ import cloudinaryConfig from './config/cloudinary.config'
     CriteriaModule,
     BusinessModule,
     ReviewModule,
+    ReportModule,
     AdminModule,
     RankingModule,
+    NotificationModule,
+    BookmarkModule,
   ],
   controllers: [AppController],
   // providers: [AppService, RankingRecalculationJob, TrustScoreJob],

@@ -1,15 +1,20 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 import { BusinessNotFoundException, BusinessNotPendingException } from '../../../business/domain/exceptions/business.exceptions'
+import { CreateNotificationUseCase } from '../../../notification/application/use-cases/create-notification.use-case'
+import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 
 @Injectable()
 export class ApproveBusinessUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly createNotificationUseCase: CreateNotificationUseCase,
+  ) {}
 
   async execute({ businessId, currentUserId }: { businessId: number; currentUserId: number }) {
     const business = await this.prisma.business.findFirst({
       where: { businessId, deletedAt: null },
-      select: { businessId: true, ownerUserId: true, status: true },
+      select: { businessId: true, name: true, ownerUserId: true, status: true },
     })
 
     if (!business) {
@@ -20,7 +25,7 @@ export class ApproveBusinessUseCase {
       throw new BusinessNotPendingException()
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.business.update({
         where: { businessId },
         data: { status: 'approved', approvedByUserId: currentUserId },
@@ -36,5 +41,14 @@ export class ApproveBusinessUseCase {
 
       return { businessId, status: 'approved' as const }
     })
+
+    await this.createNotificationUseCase.execute({
+      userId: Number(business.ownerUserId),
+      type: NOTIFICATION_TYPE.BUSINESS_APPROVED,
+      title: 'Business Approved',
+      content: `Your business "${business.name}" has been approved.`,
+    })
+
+    return result
   }
 }

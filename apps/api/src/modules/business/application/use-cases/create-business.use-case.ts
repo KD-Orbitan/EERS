@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { BusinessRepository } from '../../domain/repositories/business.repository'
 import { CategoryNotFoundException, EmailAlreadyExistsException, PhoneAlreadyExistsException } from '../../domain/exceptions/business.exceptions'
+import { GeocodingService } from '../../infrastructure/services/geocoding.service'
 
 @Injectable()
 export class CreateBusinessUseCase {
-  constructor(private readonly businessRepository: BusinessRepository) {}
+  constructor(
+    private readonly businessRepository: BusinessRepository,
+    private readonly geocodingService: GeocodingService,
+  ) {}
 
   async execute({ userId, dto }: { userId: number; dto: any }) {
     const categoryExists = await this.businessRepository.findCategoriesExist(dto.categoryIds)
@@ -24,6 +28,13 @@ export class CreateBusinessUseCase {
       }
     }
 
+    const geocodedLocations = await Promise.all(
+      dto.locations.map(async (location: { addressLine: string; ward: string; province: string }) => {
+        const coords = await this.geocodingService.geocode(`${location.addressLine}, ${location.ward}, ${location.province}`)
+        return { ...location, latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null }
+      }),
+    )
+
     return this.businessRepository.createBusinessWithLocationsAndCategories({
       name: dto.name,
       description: dto.description ?? null,
@@ -31,7 +42,7 @@ export class CreateBusinessUseCase {
       email: dto.email ?? null,
       ownerUserId: userId,
       categoryIds: dto.categoryIds,
-      locations: dto.locations,
+      locations: geocodedLocations,
     })
   }
 }

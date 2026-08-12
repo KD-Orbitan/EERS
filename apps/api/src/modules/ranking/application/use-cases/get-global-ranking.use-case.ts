@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 import { RankingCacheService, RankingSnapshotCacheItem } from '../../infrastructure/services/ranking-cache.service'
+import { RankingTrendConfigService } from '../../infrastructure/services/ranking-trend-config.service'
 
 export type RankingListQuery = {
   page?: number
@@ -12,7 +13,11 @@ export type RankingListQuery = {
 
 @Injectable()
 export class GetGlobalRankingUseCase {
-  constructor(private readonly prisma: PrismaService, private readonly rankingCacheService: RankingCacheService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rankingCacheService: RankingCacheService,
+    private readonly rankingTrendConfigService: RankingTrendConfigService,
+  ) {}
 
   private buildCacheItem(row: any): RankingSnapshotCacheItem {
     return {
@@ -88,13 +93,34 @@ export class GetGlobalRankingUseCase {
     }
 
     const start = (page - 1) * limit
+    const pageItems = items.slice(start, start + limit)
+
+    // Trend baselines come from ranking_snapshot_history, which is GLOBAL-scope
+    // only (see DECISIONS.md D-031) — CATEGORY/PROVINCE-filtered lists have no
+    // baseline to compare against, so trend is always null for them.
+    const isGlobalScope = !query.categoryId && !query.province
+    const trendByBusinessId = new Map<number, { period: string; rankChange: number; scoreChange: number }>()
+    if (isGlobalScope && pageItems.length > 0) {
+      const period = await this.rankingTrendConfigService.getPeriod()
+      const baselines = await this.rankingTrendConfigService.getBaselines(
+        pageItems.map((item) => item.businessId),
+        period,
+      )
+      for (const item of pageItems) {
+        const baseline = baselines.get(item.businessId)
+        if (baseline) {
+          trendByBusinessId.set(item.businessId, {
+            period,
+            rankChange: baseline.rank - item.rank,
+            scoreChange: Number((item.rankingScore - baseline.rankingScore).toFixed(4)),
+          })
+        }
+      }
+    }
+
     return {
-      data: items.slice(start, start + limit),
-      meta: {
-        page,
-        limit,
-        total: items.length,
-      },
+      items: pageItems.map((item) => ({ ...item, trend: trendByBusinessId.get(item.businessId) ?? null })),
+      total: items.length,
     }
   }
 }

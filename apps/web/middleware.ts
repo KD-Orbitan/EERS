@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const protectedRoutes = ['/profile', '/reviews', '/notifications', '/admin'];
+const protectedRoutes = ['/profile', '/reviews', '/reports', '/notifications', '/admin', '/bookmarks'];
 const authRoutes = ['/login', '/register'];
 
 function isProtectedBusinessRoute(pathname: string) {
@@ -8,6 +8,8 @@ function isProtectedBusinessRoute(pathname: string) {
     pathname === '/businesses/create' ||
     pathname === '/businesses/my' ||
     /^\/businesses\/[^/]+\/edit$/.test(pathname) ||
+    /^\/businesses\/[^/]+\/dashboard$/.test(pathname) ||
+    /^\/businesses\/[^/]+\/dashboard\/reviews$/.test(pathname) ||
     /^\/businesses\/[^/]+\/reviews\/write$/.test(pathname)
   );
 }

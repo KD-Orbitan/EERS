@@ -8,9 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { getErrorMessage } from '@/lib/get-error-message';
 import { BusinessDetail } from '@/features/business/components/business-detail';
 import { useBusinessDetailQuery } from '@/features/business/queries/use-business-detail.query';
-import { useBusinessStatisticsQuery } from '@/features/business/queries/use-business-statistics.query';
 import { useDeleteBusinessMutation } from '@/features/business/mutations/use-delete-business.mutation';
-import { ReviewSummary } from '@/features/review/components/review-summary';
 import { useBusinessRankingQuery } from '@/features/ranking/queries/use-business-ranking.query';
 
 export default function BusinessDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,7 +20,6 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
   const { data: business, isLoading, isError } = useBusinessDetailQuery(businessId);
   const isOwner = Boolean(business && user && (user.userId === business.owner.userId || user.role === 'ADMIN'));
 
-  const { data: stats } = useBusinessStatisticsQuery(businessId, isOwner);
   const { data: ranking } = useBusinessRankingQuery(businessId);
   const deleteBusinessMutation = useDeleteBusinessMutation();
 
@@ -61,19 +58,14 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-7xl">
         <BusinessDetail
           business={business}
-          stats={stats}
           ranking={ranking}
           isOwner={isOwner}
           onDelete={onDelete}
           isDeleting={deleteBusinessMutation.isPending}
         />
-
-        <div className="mt-6">
-          <ReviewSummary businessId={businessId} isOwner={isOwner} />
-        </div>
       </div>
     </main>
   );

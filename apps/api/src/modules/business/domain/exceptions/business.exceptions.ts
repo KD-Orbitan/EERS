@@ -47,3 +47,9 @@ export class CategoryNotFoundException extends AppException {
     super('CATEGORY_NOT_FOUND', 404, message)
   }
 }
+
+export class GalleryLimitExceededException extends AppException {
+  constructor(message = 'Maximum gallery images (20) reached') {
+    super('GALLERY_LIMIT_EXCEEDED', 400, message)
+  }
+}

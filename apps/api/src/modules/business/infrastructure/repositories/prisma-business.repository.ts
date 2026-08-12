@@ -43,7 +43,7 @@ export class PrismaBusinessRepository extends BusinessRepository {
     email?: string | null
     ownerUserId: number
     categoryIds: number[]
-    locations: Array<{ addressLine: string; ward: string; province: string }>
+    locations: Array<{ addressLine: string; ward: string; province: string; latitude?: number | null; longitude?: number | null }>
   }) {
     const business = await this.prisma.$transaction(async (tx) => {
       const createdBusiness = await tx.business.create({
@@ -65,6 +65,8 @@ export class PrismaBusinessRepository extends BusinessRepository {
               addressLine: location.addressLine,
               ward: location.ward,
               province: location.province,
+              latitude: location.latitude ?? null,
+              longitude: location.longitude ?? null,
             },
           }),
         ),
@@ -170,8 +172,9 @@ export class PrismaBusinessRepository extends BusinessRepository {
         ? 'review_count'
         : 'b.avg_rating'
 
-    const raw = await this.prisma.$queryRawUnsafe(
-      `SELECT
+    const [raw, countRows] = await Promise.all([
+      this.prisma.$queryRawUnsafe(
+        `SELECT
         b.business_id as "businessId",
         b.name,
         b.description,
@@ -184,6 +187,26 @@ export class PrismaBusinessRepository extends BusinessRepository {
           WHERE bl.business_id = b.business_id
           LIMIT 1
         ) AS province,
+        (
+          SELECT l.latitude
+          FROM business_locations bl
+          JOIN locations l ON l.location_id = bl.location_id
+          WHERE bl.business_id = b.business_id AND l.latitude IS NOT NULL
+          LIMIT 1
+        ) AS latitude,
+        (
+          SELECT l.longitude
+          FROM business_locations bl
+          JOIN locations l ON l.location_id = bl.location_id
+          WHERE bl.business_id = b.business_id AND l.longitude IS NOT NULL
+          LIMIT 1
+        ) AS longitude,
+        (
+          SELECT i.secure_url
+          FROM images i
+          WHERE i.business_id = b.business_id AND i.image_type = 'BUSINESS_LOGO'
+          LIMIT 1
+        ) AS "logoUrl",
         COALESCE(JSON_AGG(DISTINCT JSONB_BUILD_OBJECT('categoryId', c.category_id, 'categoryName', c.category_name)) FILTER (WHERE c.category_id IS NOT NULL), '[]') AS categories
       FROM businesses b
       LEFT JOIN reviews r ON r.business_id = b.business_id AND r.status = 'approved' AND r.deleted_at IS NULL
@@ -193,38 +216,56 @@ export class PrismaBusinessRepository extends BusinessRepository {
       GROUP BY b.business_id
       ORDER BY ${sortColumn} ${sortOrder}
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      ...params,
-      limit,
-      offset,
-    )
+        ...params,
+        limit,
+        offset,
+      ),
+      this.prisma.$queryRawUnsafe(
+        `SELECT COUNT(*) as total FROM businesses b WHERE ${whereClauses.join(' AND ')}`,
+        ...params,
+      ),
+    ])
 
-    return (raw as any[]).map((row) => ({
-      businessId: Number(row.businessId),
-      name: row.name,
-      description: row.description,
-      avgRating: Number(row.avgRating),
-      reviewCount: Number(row.reviewCount),
-      status: 'approved',
-      province: row.province,
-      categories: row.categories || [],
-    }))
+    return {
+      items: (raw as any[]).map((row) => ({
+        businessId: Number(row.businessId),
+        name: row.name,
+        description: row.description,
+        avgRating: Number(row.avgRating),
+        reviewCount: Number(row.reviewCount),
+        status: 'approved',
+        province: row.province,
+        latitude: row.latitude !== null && row.latitude !== undefined ? Number(row.latitude) : null,
+        longitude: row.longitude !== null && row.longitude !== undefined ? Number(row.longitude) : null,
+        categories: row.categories || [],
+        logoUrl: row.logoUrl ?? null,
+      })),
+      total: Number((countRows as any[])[0]?.total ?? 0),
+    }
   }
 
   async getMyBusinesses(userId: number, page: number, limit: number) {
     const offset = (page - 1) * limit
-    const businesses = await this.prisma.business.findMany({
-      where: { ownerUserId: BigInt(userId), deletedAt: null },
-      orderBy: { createdAt: 'desc' },
-      skip: offset,
-      take: limit,
-    })
-    return businesses.map((business) => ({
-      businessId: Number(business.businessId),
-      name: business.name,
-      status: business.status,
-      avgRating: Number(business.avgRating),
-      createdAt: business.createdAt.toISOString(),
-    }))
+    const where = { ownerUserId: BigInt(userId), deletedAt: null }
+    const [businesses, total] = await Promise.all([
+      this.prisma.business.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      this.prisma.business.count({ where }),
+    ])
+    return {
+      items: businesses.map((business) => ({
+        businessId: Number(business.businessId),
+        name: business.name,
+        status: business.status,
+        avgRating: Number(business.avgRating),
+        createdAt: business.createdAt.toISOString(),
+      })),
+      total,
+    }
   }
 
   async getBusinessDetail(businessId: number) {
@@ -234,6 +275,10 @@ export class PrismaBusinessRepository extends BusinessRepository {
         owner: true,
         businessCategories: { include: { category: true } },
         locations: { include: { location: true } },
+        images: {
+          where: { imageType: { in: ['BUSINESS_COVER', 'BUSINESS_LOGO', 'BUSINESS_GALLERY'] } },
+          orderBy: { displayOrder: 'asc' },
+        },
       },
     })
     if (!business) {
@@ -243,6 +288,10 @@ export class PrismaBusinessRepository extends BusinessRepository {
     const reviewCount = await this.prisma.review.count({
       where: { businessId: business.businessId, status: 'approved', deletedAt: null },
     })
+
+    const cover = business.images.find((image) => image.imageType === 'BUSINESS_COVER')
+    const logo = business.images.find((image) => image.imageType === 'BUSINESS_LOGO')
+    const gallery = business.images.filter((image) => image.imageType === 'BUSINESS_GALLERY')
 
     return {
       businessId: Number(business.businessId),
@@ -266,6 +315,15 @@ export class PrismaBusinessRepository extends BusinessRepository {
         addressLine: bl.location.addressLine,
         ward: bl.location.ward,
         province: bl.location.province,
+        latitude: bl.location.latitude ? Number(bl.location.latitude) : null,
+        longitude: bl.location.longitude ? Number(bl.location.longitude) : null,
+      })),
+      coverUrl: cover?.secureUrl ?? null,
+      logoUrl: logo?.secureUrl ?? null,
+      gallery: gallery.map((image) => ({
+        imageId: Number(image.imageId),
+        url: image.secureUrl,
+        displayOrder: image.displayOrder,
       })),
       createdAt: business.createdAt.toISOString(),
     }

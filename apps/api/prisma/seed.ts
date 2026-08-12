@@ -76,6 +76,13 @@ async function main() {
   })
   console.log('Scoring config seeded')
 
+  console.log('Seeding ranking trend config...')
+  await prisma.rankingTrendConfig.createMany({
+    data: [{ configId: 1, period: 'WEEK' }],
+    skipDuplicates: true,
+  })
+  console.log('Ranking trend config seeded')
+
   console.log('Database seeded successfully!')
 }
 

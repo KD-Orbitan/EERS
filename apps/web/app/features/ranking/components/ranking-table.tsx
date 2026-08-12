@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight, Building2, Minus, Star } from 'lucide-react';
 import { RankingListItem } from '@/features/ranking/types/ranking.type';
+import { RankingTrendBadge } from '@/features/ranking/components/ranking-trend-badge';
 import { PaginationMeta } from '@/features/business/types/business.type';
 
 interface RankingTableProps {
@@ -14,8 +15,9 @@ interface RankingTableProps {
 
 // Column layout from Figma's "Main Ranking Table" (node 1:710): Rank,
 // Business (icon + name + subtitle), Score (pill), Reviews, Trend, Action.
-// There's no historical snapshot comparison in the API, so Trend is a
-// disabled placeholder rather than a fabricated up/down percentage.
+// Trend is GLOBAL-scope only (DECISIONS.md D-031) — the API returns
+// trend: null for category/province-filtered lists or when there's no
+// history baseline yet, and RankingTrendBadge already renders nothing for null.
 export function RankingTable({ rankings, isLoading, pagination, onPageChange }: RankingTableProps) {
   if (isLoading) {
     return (
@@ -72,10 +74,14 @@ export function RankingTable({ rankings, isLoading, pagination, onPageChange }: 
                 </td>
                 <td className="px-6 py-4 text-ink-700">{item.reviewCount}</td>
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1 text-ink-400" title="Historical trends are not available yet">
-                    <Minus className="h-3.5 w-3.5" />
-                    <span className="text-xs">N/A</span>
-                  </span>
+                  {item.trend ? (
+                    <RankingTrendBadge trend={item.trend} variant="light" />
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-ink-400" title="No trend available for this view">
+                      <Minus className="h-3.5 w-3.5" />
+                      <span className="text-xs">N/A</span>
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-right">
                   <Link

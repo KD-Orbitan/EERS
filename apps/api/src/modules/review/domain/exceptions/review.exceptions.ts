@@ -41,3 +41,9 @@ export class ReplyAlreadyExistsException extends AppException {
     super('REPLY_ALREADY_EXISTS', 409, message)
   }
 }
+
+export class PhotoLimitExceededException extends AppException {
+  constructor(message = 'Maximum review photos (5) reached') {
+    super('PHOTO_LIMIT_EXCEEDED', 400, message)
+  }
+}

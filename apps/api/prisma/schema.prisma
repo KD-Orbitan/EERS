@@ -45,6 +45,14 @@ enum SentimentType {
   negative
 }
 
+enum ImageType {
+  AVATAR
+  BUSINESS_COVER
+  BUSINESS_LOGO
+  BUSINESS_GALLERY
+  REVIEW_PHOTO
+}
+
 // ============================================================================
 // Module: Auth
 // ============================================================================
@@ -102,6 +110,7 @@ model User {
   refreshTokens     RefreshToken[]
   logs              Log[]
   trustScore        UserTrustScore?
+  bookmarks         Bookmark[]
 
   @@index([email])
   @@map("users")
@@ -134,6 +143,8 @@ model Business {
   businessCategories  BusinessCategory[]
   reviews             Review[]
   rankingSnapshots    RankingSnapshot[]
+  rankingSnapshotHistory RankingSnapshotHistory[]
+  bookmarks           Bookmark[]
 
   @@index([status])
   @@index([ownerUserId])
@@ -146,6 +157,8 @@ model Location {
   addressLine String   @map("address_line") @db.Text
   ward        String   @db.VarChar(100)
   province    String   @db.VarChar(100)
+  latitude    Decimal? @db.Decimal(9, 6)
+  longitude   Decimal? @db.Decimal(9, 6)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -305,7 +318,9 @@ model Review {
   reports         Report[]
   fraudScore      ReviewFraudScore?
 
-  @@unique([writerUserId, businessId])
+  // One active review per (writerUserId, businessId): enforced via a partial
+  // unique index (WHERE deleted_at IS NULL) added in migration SQL, not here —
+  // a plain @@unique would block re-reviewing after a soft-deleted review.
   @@index([businessId])
   @@index([writerUserId])
   @@index([status])
@@ -412,6 +427,26 @@ model Report {
 }
 
 // ============================================================================
+// Module: Bookmark
+// ============================================================================
+
+model Bookmark {
+  bookmarkId BigInt   @id @default(autoincrement()) @map("bookmark_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId BigInt @map("user_id")
+  user   User   @relation(fields: [userId], references: [userId])
+
+  businessId BigInt   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [businessId])
+
+  @@unique([userId, businessId])
+  @@index([userId])
+  @@index([businessId])
+  @@map("bookmarks")
+}
+
+// ============================================================================
 // Module: Notification
 // ============================================================================
 
@@ -454,20 +489,44 @@ model RankingSnapshot {
   @@map("ranking_snapshots")
 }
 
+model RankingSnapshotHistory {
+  historyId    BigInt   @id @default(autoincrement()) @map("history_id")
+  rank         Int
+  rankingScore Decimal  @map("ranking_score") @db.Decimal(10, 4)
+  calculatedAt DateTime @default(now()) @map("calculated_at") @db.Timestamptz
+
+  businessId BigInt   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [businessId])
+
+  @@index([businessId, calculatedAt])
+  @@map("ranking_snapshot_history")
+}
+
+model RankingTrendConfig {
+  configId  Int      @id @default(autoincrement()) @map("config_id") @db.SmallInt
+  period    String   @default("WEEK") @db.VarChar(10) // DAY | WEEK | MONTH
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("ranking_trend_config")
+}
+
 // ============================================================================
 // Module: Images
 // ============================================================================
 
 model Image {
-  imageId            BigInt   @id @default(autoincrement()) @map("image_id")
-  cloudinaryPublicId String   @map("cloudinary_public_id") @db.Text
-  secureUrl          String   @map("secure_url") @db.Text
+  imageId            BigInt    @id @default(autoincrement()) @map("image_id")
+  cloudinaryPublicId String    @map("cloudinary_public_id") @db.Text
+  secureUrl          String    @map("secure_url") @db.Text
   width              Int?
   height             Int?
-  format             String?  @db.VarChar(10)
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  format             String?   @db.VarChar(10)
+  imageType          ImageType @map("image_type")
+  displayOrder       Int?      @map("display_order") @db.SmallInt
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  // Exactly one of these must be non-null (enforced via CHECK constraint in migration)
+  // Owner column consistency (matching imageType) is enforced via CHECK constraint in migration
   userId     BigInt?   @map("user_id")
   reviewId   BigInt?   @map("review_id")
   businessId BigInt?   @map("business_id")

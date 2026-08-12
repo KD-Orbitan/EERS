@@ -242,11 +242,12 @@ Steps:
 
 ```
 1. Validate file type (jpg/jpeg/png/webp) and size (max 10MB)
-2. If existing avatar → delete old image from Cloudinary using publicId
-   AND delete old images record WHERE userId=currentUserId
+2. If existing avatar (imageType='AVATAR') → delete old image from Cloudinary using publicId
+   AND delete old images record WHERE userId=currentUserId AND imageType='AVATAR'
 3. Upload new file to Cloudinary
 4. Create images record:
      userId=currentUserId, reviewId=NULL, businessId=NULL,
+     imageType='AVATAR',
      cloudinaryPublicId, secureUrl, width, height, format
 5. Return { avatarUrl: secureUrl }
 ```
@@ -414,6 +415,96 @@ Steps:
 
 ---
 
+## WF-BUS-006 — Upload Business Cover
+
+**UseCase:** `UploadCoverUseCase`
+**Trigger:** `POST /businesses/:businessId/cover`
+
+Steps:
+
+```
+1. Validate file type (jpg/jpeg/png/webp) and size (max 10MB)
+2. Verify business exists (deletedAt IS NULL) and user is owner or admin
+   → throw BUSINESS_NOT_FOUND / FORBIDDEN
+3. If existing cover (imageType='BUSINESS_COVER') → delete old image from Cloudinary
+   using publicId AND delete old images record
+4. Upload new file to Cloudinary
+5. Create images record:
+     businessId=currentBusinessId, userId=NULL, reviewId=NULL,
+     imageType='BUSINESS_COVER',
+     cloudinaryPublicId, secureUrl, width, height, format
+6. Return { coverUrl: secureUrl }
+```
+
+Transaction: wraps step 5 only (Cloudinary upload is outside transaction).
+
+---
+
+## WF-BUS-007 — Upload Business Gallery Images
+
+**UseCase:** `UploadGalleryUseCase`
+**Trigger:** `POST /businesses/:businessId/gallery`
+
+Steps:
+
+```
+1. Validate each file (type + size), max 5 files per request
+2. Verify business exists (deletedAt IS NULL) and user is owner or admin
+   → throw BUSINESS_NOT_FOUND / FORBIDDEN
+3. Count existing gallery images (imageType='BUSINESS_GALLERY') for this business
+4. If existing + new > 20 → throw GALLERY_LIMIT_EXCEEDED
+5. Upload each file to Cloudinary
+6. Create images records with:
+     businessId=currentBusinessId, imageType='BUSINESS_GALLERY',
+     displayOrder = max(existing displayOrder) + 1, +2, +3...
+7. Return array of created images
+```
+
+---
+
+## WF-BUS-008 — Reorder Business Gallery
+
+**UseCase:** `ReorderGalleryUseCase`
+**Trigger:** `PATCH /businesses/:businessId/gallery/reorder`
+
+Steps:
+
+```
+1. Verify business exists (deletedAt IS NULL) and user is owner or admin
+   → throw BUSINESS_NOT_FOUND / FORBIDDEN
+2. Verify all imageIds belong to this business with imageType='BUSINESS_GALLERY'
+   → throw IMAGE_NOT_FOUND if any do not
+3. Update displayOrder for each image based on array index (1-based)
+4. Return { message: 'Gallery reordered successfully' }
+```
+
+---
+
+## WF-BUS-009 — Upload Business Logo
+
+**UseCase:** `UploadLogoUseCase`
+**Trigger:** `POST /businesses/:businessId/logo`
+
+Steps:
+
+```
+1. Validate file type (jpg/jpeg/png/webp) and size (max 10MB)
+2. Verify business exists (deletedAt IS NULL) and user is owner or admin
+   → throw BUSINESS_NOT_FOUND / FORBIDDEN
+3. If existing logo (imageType='BUSINESS_LOGO') → delete old image from Cloudinary
+   using publicId AND delete old images record
+4. Upload new file to Cloudinary
+5. Create images record:
+     businessId=currentBusinessId, userId=NULL, reviewId=NULL,
+     imageType='BUSINESS_LOGO',
+     cloudinaryPublicId, secureUrl, width, height, format
+6. Return { logoUrl: secureUrl }
+```
+
+Transaction: wraps step 5 only (Cloudinary upload is outside transaction).
+
+---
+
 # Section 4. Review Workflows
 
 ---
@@ -457,7 +548,9 @@ Steps:
 
 Transaction: wraps step 9a-9b.
 
-Side effects: none at creation (notification triggered after admin approval).
+Side effects: create `NEW_REVIEW` notification for `business.ownerUserId` (see
+WF-NOTI-001), sent after the transaction commits. Notifications for the review's
+own approval/rejection are still triggered later, at admin decision time.
 
 ---
 
@@ -528,6 +621,58 @@ Side effects:
 
 ---
 
+## WF-REV-004 — Upload Review Photos
+
+**UseCase:** `UploadReviewPhotosUseCase`
+**Trigger:** `POST /reviews/:reviewId/photos`
+
+Preconditions:
+
+```
+- Review exists (deletedAt IS NULL)
+- Current user is review author OR admin
+```
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL → throw REVIEW_NOT_FOUND
+2. Check ownership → throw FORBIDDEN
+3. Validate each file (type + size), max 5 files per request
+4. Count existing photos (imageType='REVIEW_PHOTO') for this review
+5. If existing + new > 5 → throw PHOTO_LIMIT_EXCEEDED
+6. Upload each file to Cloudinary
+7. Create images records: reviewId=currentReviewId, imageType='REVIEW_PHOTO'
+8. Return array of created photos
+```
+
+---
+
+## WF-REV-005 — Delete Review Photo
+
+**UseCase:** `DeleteReviewPhotoUseCase`
+**Trigger:** `DELETE /reviews/:reviewId/photos/:imageId`
+
+Preconditions:
+
+```
+- Review exists (deletedAt IS NULL)
+- Current user is review author OR admin
+```
+
+Steps:
+
+```
+1. Load review WHERE deletedAt IS NULL → throw REVIEW_NOT_FOUND
+2. Check ownership → throw FORBIDDEN
+3. Find image record WHERE imageId AND reviewId AND imageType='REVIEW_PHOTO'
+   → throw IMAGE_NOT_FOUND if missing
+4. Delete from Cloudinary
+5. Delete record from DB
+```
+
+---
+
 # Section 5. Reply Workflows
 
 ---
@@ -561,6 +706,9 @@ Steps:
 ```
 
 Transaction: wraps step 6 only.
+
+Side effects: create `NEW_REPLY` notification for `review.writerUserId` (see
+WF-NOTI-001), sent after the transaction commits.
 
 ---
 
@@ -630,6 +778,9 @@ Steps:
 ```
 
 Transaction: wraps step 5 only.
+
+Side effects: create `REPORT_CREATED` notification for every user with the ADMIN
+role (see WF-NOTI-001), sent after the transaction commits.
 
 ---
 
@@ -850,6 +1001,31 @@ Transaction: wraps step 3a-3c.
 
 ---
 
+## WF-ADMIN-007 — Unban User
+
+**UseCase:** `UnbanUserUseCase`
+**Trigger:** `PATCH /admin/users/:userId/unban`
+
+Preconditions:
+
+```
+- User exists (deletedAt IS NULL)
+- User is currently banned (status = 'banned')
+```
+
+Steps:
+
+```
+1. Load user WHERE deletedAt IS NULL → throw USER_NOT_FOUND
+2. If user.status != 'banned' → throw USER_NOT_BANNED
+3. Update user.status = 'active'
+4. Return { userId, status: 'active' }
+```
+
+Transaction: single table write, no explicit transaction needed.
+
+---
+
 # Section 8. Ranking Workflow
 
 ---
@@ -888,6 +1064,11 @@ Steps:
         - For each unique province (from locations), re-rank businesses
         - scope='PROVINCE', scopeId=NULL (filter by province name via join)
    e. Update businesses.avgRating for each business
+   f. Insert ranking_snapshot_history rows from the GLOBAL snapshots computed in
+      step 4b (one row per business: rank, rankingScore, businessId) — see
+      DECISIONS.md D-031. This is append-only, unlike step 4a/4b.
+   g. Delete ranking_snapshot_history rows WHERE calculatedAt < now() - 40 days
+      (retention purge, see D-031)
 
 5. Invalidate Redis ranking cache:
      DELETE ranking:global
@@ -899,7 +1080,7 @@ Steps:
      newData={ totalBusinesses, calculatedAt }
 ```
 
-Transaction: wraps step 4a-4e.
+Transaction: wraps step 4a-4g.
 Cache invalidation (step 5): OUTSIDE transaction, after commit.
 
 Performance note:
@@ -912,6 +1093,34 @@ Performance note:
     WHERE status='approved' AND deletedAt IS NULL
     GROUP BY businessId
 ```
+
+---
+
+## WF-RANK-002 — Update Ranking Trend Config
+
+**UseCase:** `RankingTrendConfigUseCase` (updateConfig)
+**Trigger:** `PATCH /admin/rankings/trend-config`
+
+Preconditions:
+
+```
+- Current user role = ADMIN
+- period is one of 'DAY' | 'WEEK' | 'MONTH'
+```
+
+Steps:
+
+```
+1. Validate period is one of DAY|WEEK|MONTH → throw VALIDATION_ERROR if not
+2. Update ranking_trend_config singleton row: period=dto.period
+3. Return { period, updatedAt }
+```
+
+Transaction: single table write, no explicit transaction needed.
+
+Side effects: none. Takes effect immediately on the next
+`GET /rankings/businesses/:businessId` call (no cache to invalidate — trend is
+computed on read, not cached).
 
 ---
 
@@ -980,7 +1189,55 @@ Steps:
 
 ---
 
-# Section 11. State Transition Reference
+# Section 11. Bookmark Workflows
+
+---
+
+## WF-BOOKMARK-001 — Add Bookmark
+
+**UseCase:** `AddBookmarkUseCase`
+**Trigger:** `POST /businesses/:businessId/bookmark`
+
+Preconditions:
+
+```
+- Business exists (deletedAt IS NULL)
+- Current user has NOT bookmarked this business before
+```
+
+Steps:
+
+```
+1. Load business by businessId WHERE deletedAt IS NULL
+2. If not found → throw BUSINESS_NOT_FOUND
+3. Check UNIQUE(userId, businessId) in bookmarks
+   → throw BOOKMARK_ALREADY_EXISTS if exists
+4. Create bookmark record: userId=currentUserId, businessId
+5. Return { bookmarkId, businessId }
+```
+
+Transaction: wraps step 4 only.
+
+Side effects: none.
+
+---
+
+## WF-BOOKMARK-002 — Remove Bookmark
+
+**UseCase:** `RemoveBookmarkUseCase`
+**Trigger:** `DELETE /businesses/:businessId/bookmark`
+
+Steps:
+
+```
+1. Find bookmark WHERE userId=currentUserId AND businessId
+2. If not found → throw BOOKMARK_NOT_FOUND
+3. Delete bookmark record (hard delete — bookmarks have no soft delete)
+```
+
+---
+
+# Section 12. State Transition Reference
 
 ## Business Status
 
@@ -1028,7 +1285,7 @@ FORBIDDEN transitions:
 
 ---
 
-# Section 12. Domain Exceptions Reference
+# Section 13. Domain Exceptions Reference
 
 Every exception below maps to an HTTP status code in REFERENCE.md.
 Throw the domain exception by name — the global filter handles HTTP mapping.
@@ -1070,6 +1327,10 @@ Report:
   REPORT_ALREADY_EXISTS
   REPORT_NOT_WITHDRAWABLE
   REASON_NOT_FOUND
+
+Bookmark:
+  BOOKMARK_NOT_FOUND
+  BOOKMARK_ALREADY_EXISTS
 
 Category / Criteria:
   CATEGORY_NOT_FOUND

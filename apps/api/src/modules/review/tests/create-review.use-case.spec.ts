@@ -4,10 +4,13 @@ import { ReviewAlreadyExistsException, InvalidRatingException, InvalidCriterionE
 import { BusinessNotApprovedException } from '../../business/domain/exceptions/business.exceptions'
 import { BusinessRepository } from '../../business/domain/repositories/business.repository'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { CreateNotificationUseCase } from '../../notification/application/use-cases/create-notification.use-case'
+import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 
 describe('CreateReviewUseCase', () => {
   let reviewRepository: jest.Mocked<Pick<ReviewRepository, 'findByWriterAndBusiness' | 'createReviewWithCriteria' | 'findBusinessCriteria' | 'findBusinessById'>>
   let businessRepository: jest.Mocked<Pick<BusinessRepository, 'findById'>>
+  let createNotificationUseCase: jest.Mocked<Pick<CreateNotificationUseCase, 'execute'>>
   let prisma: { $transaction: jest.Mock }
   let useCase: CreateReviewUseCase
 
@@ -19,12 +22,18 @@ describe('CreateReviewUseCase', () => {
       findBusinessById: jest.fn(),
     }
     businessRepository = { findById: jest.fn() }
+    createNotificationUseCase = { execute: jest.fn().mockResolvedValue(undefined) }
     prisma = { $transaction: jest.fn((callback: any) => callback()) }
-    useCase = new CreateReviewUseCase(reviewRepository as unknown as ReviewRepository, businessRepository as unknown as BusinessRepository, prisma as unknown as PrismaService)
+    useCase = new CreateReviewUseCase(
+      reviewRepository as unknown as ReviewRepository,
+      businessRepository as unknown as BusinessRepository,
+      prisma as unknown as PrismaService,
+      createNotificationUseCase as unknown as CreateNotificationUseCase,
+    )
   })
 
-  it('creates review with pending status and null sentiment', async () => {
-    businessRepository.findById.mockResolvedValue({ businessId: 1, status: 'approved', ownerUserId: 2, deletedAt: null } as any)
+  it('creates review with pending status and null sentiment, and notifies the business owner', async () => {
+    businessRepository.findById.mockResolvedValue({ businessId: 1, name: 'Acme', status: 'approved', ownerUserId: 2, deletedAt: null } as any)
     reviewRepository.findByWriterAndBusiness.mockResolvedValue(null)
     reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }, { criterionId: 2 }])
     reviewRepository.createReviewWithCriteria.mockResolvedValue({ reviewId: 10, status: 'pending' })
@@ -33,6 +42,7 @@ describe('CreateReviewUseCase', () => {
 
     expect(result).toEqual({ reviewId: 10, status: 'pending' })
     expect(reviewRepository.createReviewWithCriteria).toHaveBeenCalled()
+    expect(createNotificationUseCase.execute).toHaveBeenCalledWith(expect.objectContaining({ userId: 2, type: NOTIFICATION_TYPE.NEW_REVIEW }))
   })
 
   it('throws REVIEW_ALREADY_EXISTS on duplicate review', async () => {

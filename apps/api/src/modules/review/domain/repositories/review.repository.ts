@@ -13,6 +13,7 @@ export interface ReviewListItem {
   sentiment: string | null
   author: { userId: number; name: string }
   criteriaRatings: Array<{ criterionId: number; criterionName: string; ratingValue: number }>
+  photos: Array<{ imageId: number; url: string }>
   reply: { replyId: number; content: string; createdAt: string } | null
   createdAt: string
 }
@@ -26,6 +27,7 @@ export interface ReviewDetail {
   author: { userId: number; name: string }
   business: { businessId: number; name: string }
   criteriaRatings: Array<{ criterionId: number; criterionName: string; ratingValue: number }>
+  photos: Array<{ imageId: number; url: string }>
   reply: { replyId: number; content: string; createdAt: string } | null
   createdAt: string
   updatedAt: string
@@ -35,6 +37,37 @@ export interface ReviewStatistics {
   reviewCount: number
   avgRating: number
   ratingDistribution: Record<number, number>
+}
+
+export interface SentimentSummary {
+  positive: number
+  neutral: number
+  negative: number
+  totalReviews: number
+}
+
+export interface CriteriaScoreItem {
+  criterionId: number
+  criterionName: string
+  avgRating: number
+  reviewCount: number
+}
+
+export interface MyReviewListItem {
+  reviewId: number
+  overallRating: number
+  status: string
+  business: { businessId: number; name: string }
+  createdAt: string
+}
+
+export interface RecentReviewItem {
+  reviewId: number
+  overallRating: number
+  content: string
+  author: { name: string }
+  business: { businessId: number; name: string }
+  createdAt: string
 }
 
 export abstract class ReviewRepository {
@@ -55,9 +88,12 @@ export abstract class ReviewRepository {
     criteriaRatings?: ReviewCriteriaInput[]
   }): Promise<{ reviewId: number; status: string }>
   abstract softDeleteReview(reviewId: number): Promise<void>
-  abstract listByBusiness(businessId: number, options: { rating?: number; status?: string; page: number; limit: number; admin?: boolean }): Promise<ReviewListItem[]>
-  abstract listByUser(userId: number, page: number, limit: number): Promise<Array<{ reviewId: number; overallRating: number; status: string; business: { businessId: number; name: string }; createdAt: string }>>
+  abstract listByBusiness(businessId: number, options: { rating?: number; status?: string; page: number; limit: number; admin?: boolean }): Promise<{ items: ReviewListItem[]; total: number }>
+  abstract listByUser(userId: number, page: number, limit: number): Promise<{ items: MyReviewListItem[]; total: number }>
   abstract getReviewDetail(reviewId: number, options?: { admin?: boolean }): Promise<ReviewDetail | null>
   abstract getReviewStatistics(businessId: number): Promise<ReviewStatistics>
+  abstract getSentimentSummary(businessId: number): Promise<SentimentSummary>
+  abstract getCriteriaScores(businessId: number): Promise<CriteriaScoreItem[]>
   abstract getApprovedReviews(): Promise<Array<{ reviewId: number; businessId: number; overallRating: number; content: string }>>
+  abstract getRecentReviews(limit: number): Promise<RecentReviewItem[]>
 }

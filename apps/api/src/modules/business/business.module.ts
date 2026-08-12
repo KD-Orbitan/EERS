@@ -5,8 +5,11 @@ import { InfrastructureModule } from '../../infrastructure/infrastructure.module
 import { BusinessController } from './presentation/controllers/business.controller'
 import { BusinessRepository } from './domain/repositories/business.repository'
 import { LocationRepository } from './domain/repositories/location.repository'
+import { BusinessImageRepository } from './domain/repositories/business-image.repository'
 import { PrismaBusinessRepository } from './infrastructure/repositories/prisma-business.repository'
 import { PrismaLocationRepository } from './infrastructure/repositories/prisma-location.repository'
+import { PrismaBusinessImageRepository } from './infrastructure/repositories/prisma-business-image.repository'
+import { GeocodingService } from './infrastructure/services/geocoding.service'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CreateBusinessUseCase } from './application/use-cases/create-business.use-case'
@@ -20,6 +23,13 @@ import { AddLocationUseCase } from './application/use-cases/add-location.use-cas
 import { UpdateLocationUseCase } from './application/use-cases/update-location.use-case'
 import { RemoveLocationUseCase } from './application/use-cases/remove-location.use-case'
 import { ValidateBusinessOwnershipUseCase } from './application/use-cases/validate-business-ownership.use-case'
+import { UploadCoverUseCase } from './application/use-cases/upload-cover.use-case'
+import { DeleteCoverUseCase } from './application/use-cases/delete-cover.use-case'
+import { UploadLogoUseCase } from './application/use-cases/upload-logo.use-case'
+import { DeleteLogoUseCase } from './application/use-cases/delete-logo.use-case'
+import { UploadGalleryUseCase } from './application/use-cases/upload-gallery.use-case'
+import { DeleteGalleryImageUseCase } from './application/use-cases/delete-gallery-image.use-case'
+import { ReorderGalleryUseCase } from './application/use-cases/reorder-gallery.use-case'
 
 @Module({
   imports: [
@@ -45,6 +55,11 @@ import { ValidateBusinessOwnershipUseCase } from './application/use-cases/valida
       provide: LocationRepository,
       useClass: PrismaLocationRepository,
     },
+    {
+      provide: BusinessImageRepository,
+      useClass: PrismaBusinessImageRepository,
+    },
+    GeocodingService,
     CreateBusinessUseCase,
     UpdateBusinessUseCase,
     DeleteBusinessUseCase,
@@ -56,6 +71,13 @@ import { ValidateBusinessOwnershipUseCase } from './application/use-cases/valida
     UpdateLocationUseCase,
     RemoveLocationUseCase,
     ValidateBusinessOwnershipUseCase,
+    UploadCoverUseCase,
+    DeleteCoverUseCase,
+    UploadLogoUseCase,
+    DeleteLogoUseCase,
+    UploadGalleryUseCase,
+    DeleteGalleryImageUseCase,
+    ReorderGalleryUseCase,
   ],
   exports: [GetBusinessByIdUseCase, ValidateBusinessOwnershipUseCase, BusinessRepository],
 })

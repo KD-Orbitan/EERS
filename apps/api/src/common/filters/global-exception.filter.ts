@@ -44,6 +44,7 @@ export const ERROR_CODE_MAP: Record<string, number> = {
   PHONE_ALREADY_EXISTS: HttpStatus.CONFLICT,
   LAST_LOCATION_ERROR: HttpStatus.BAD_REQUEST,
   LOCATION_NOT_FOUND: HttpStatus.NOT_FOUND,
+  GALLERY_LIMIT_EXCEEDED: HttpStatus.BAD_REQUEST,
 
   // Review errors
   REVIEW_NOT_FOUND: HttpStatus.NOT_FOUND,
@@ -55,6 +56,7 @@ export const ERROR_CODE_MAP: Record<string, number> = {
   // Reply errors
   REPLY_NOT_FOUND: HttpStatus.NOT_FOUND,
   REPLY_ALREADY_EXISTS: HttpStatus.CONFLICT,
+  PHOTO_LIMIT_EXCEEDED: HttpStatus.BAD_REQUEST,
 
   // Report errors
   REPORT_NOT_FOUND: HttpStatus.NOT_FOUND,
@@ -76,6 +78,7 @@ export const ERROR_CODE_MAP: Record<string, number> = {
   // File errors
   INVALID_FILE_TYPE: HttpStatus.BAD_REQUEST,
   FILE_TOO_LARGE: HttpStatus.BAD_REQUEST,
+  IMAGE_NOT_FOUND: HttpStatus.NOT_FOUND,
 
   // General errors
   VALIDATION_ERROR: HttpStatus.BAD_REQUEST,

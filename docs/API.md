@@ -499,7 +499,10 @@ interface BusinessListItem {
   reviewCount: number
   status:      'approved'
   province:    string | null  // from first location
+  latitude:    number | null  // from first location with coordinates — see D-032
+  longitude:   number | null  // from first location with coordinates — see D-032
   categories:  Array<{ categoryId: number; categoryName: string }>
+  logoUrl:     string | null  // from imageType = 'BUSINESS_LOGO'
 }
 ```
 
@@ -581,6 +584,15 @@ interface BusinessDetailResponse {
     addressLine: string
     ward:        string
     province:    string
+    latitude:    number | null  // auto-geocoded — see D-032
+    longitude:   number | null  // auto-geocoded — see D-032
+  }>
+  coverUrl: string | null       // from imageType = 'BUSINESS_COVER'
+  logoUrl:  string | null       // from imageType = 'BUSINESS_LOGO'
+  gallery: Array<{              // from imageType = 'BUSINESS_GALLERY', ordered by displayOrder
+    imageId:      number
+    url:          string
+    displayOrder: number | null
   }>
   createdAt: string
 }
@@ -709,6 +721,14 @@ interface CreateLocationResponse {
 }
 ```
 
+Notes:
+
+```
+`latitude`/`longitude` are auto-geocoded server-side from the address (D-032) —
+never accepted as request input, not returned in this response (fetch the
+business detail to see them once geocoded).
+```
+
 Errors:
 
 ```
@@ -743,6 +763,13 @@ interface UpdateLocationResponse {
 }
 ```
 
+Notes:
+
+```
+Changing addressLine/ward/province re-geocodes latitude/longitude server-side
+(D-032) — never accepted as request input.
+```
+
 Errors:
 
 ```
@@ -769,6 +796,212 @@ BUSINESS_NOT_FOUND        404
 LOCATION_NOT_FOUND        404
 FORBIDDEN                 403
 LAST_LOCATION_ERROR       400  // cannot remove last location
+```
+
+---
+
+## POST /businesses/:businessId/cover
+
+```
+Auth        : BusinessOwner+ (must own business), Admin
+Purpose     : Upload or replace the business cover photo
+Content-Type: multipart/form-data
+```
+
+Request:
+
+```
+Field: cover (file)
+Allowed types: jpg, jpeg, png, webp
+Max size: 10MB
+```
+
+Workflow: if a cover already exists, the old image is deleted from Cloudinary and its record removed before the new one is created (see WF-BUS-006).
+
+Response `200`:
+
+```typescript
+interface UploadCoverResponse {
+  coverUrl: string
+}
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND   404
+FORBIDDEN             403
+INVALID_FILE_TYPE     400
+FILE_TOO_LARGE        400
+```
+
+---
+
+## DELETE /businesses/:businessId/cover
+
+```
+Auth   : BusinessOwner+ (must own business), Admin
+Purpose: Remove the business cover photo
+```
+
+Response `204`: No content
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND   404
+FORBIDDEN             403
+IMAGE_NOT_FOUND       404  // no cover currently set
+```
+
+---
+
+## POST /businesses/:businessId/logo
+
+```
+Auth        : BusinessOwner+ (must own business), Admin
+Purpose     : Upload or replace the business logo (small square brand mark shown in cards/listings — distinct from the cover banner)
+Content-Type: multipart/form-data
+```
+
+Request:
+
+```
+Field: logo (file)
+Allowed types: jpg, jpeg, png, webp
+Max size: 10MB
+```
+
+Workflow: if a logo already exists, the old image is deleted from Cloudinary and its record removed before the new one is created (see WF-BUS-009).
+
+Response `200`:
+
+```typescript
+interface UploadLogoResponse {
+  logoUrl: string
+}
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND   404
+FORBIDDEN             403
+INVALID_FILE_TYPE     400
+FILE_TOO_LARGE        400
+```
+
+---
+
+## DELETE /businesses/:businessId/logo
+
+```
+Auth   : BusinessOwner+ (must own business), Admin
+Purpose: Remove the business logo
+```
+
+Response `204`: No content
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND   404
+FORBIDDEN             403
+IMAGE_NOT_FOUND       404  // no logo currently set
+```
+
+---
+
+## POST /businesses/:businessId/gallery
+
+```
+Auth        : BusinessOwner+ (must own business), Admin
+Purpose     : Upload one or more business gallery images
+Content-Type: multipart/form-data
+```
+
+Request:
+
+```
+Field: images (file[], max 5 files per request)
+Allowed types: jpg, jpeg, png, webp
+Max size: 10MB per file
+```
+
+New images are appended after the current max displayOrder for the business (see WF-BUS-007). Total gallery images per business is capped at 20.
+
+Response `201`:
+
+```typescript
+interface UploadGalleryResponse {
+  images: Array<{
+    imageId:      number
+    url:          string
+    displayOrder: number
+  }>
+}
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND        404
+FORBIDDEN                  403
+INVALID_FILE_TYPE          400
+FILE_TOO_LARGE             400
+GALLERY_LIMIT_EXCEEDED     400
+```
+
+---
+
+## DELETE /businesses/:businessId/gallery/:imageId
+
+```
+Auth   : BusinessOwner+ (must own business), Admin
+Purpose: Remove a single image from the business gallery
+```
+
+Response `204`: No content
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND   404
+FORBIDDEN             403
+IMAGE_NOT_FOUND       404  // imageId does not belong to this business's gallery
+```
+
+---
+
+## PATCH /businesses/:businessId/gallery/reorder
+
+```
+Auth   : BusinessOwner+ (must own business), Admin
+Purpose: Reorder the business gallery
+```
+
+Request:
+
+```typescript
+interface ReorderGalleryDto {
+  imageIds: number[]  // ordered array of imageIds — new display order (1-based)
+}
+```
+
+Response `200`:
+
+```typescript
+interface ReorderGalleryResponse {
+  message: string  // "Gallery reordered successfully"
+}
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND   404
+FORBIDDEN             403
+IMAGE_NOT_FOUND       404  // one or more imageIds do not belong to this business's gallery
 ```
 
 ---
@@ -969,6 +1202,10 @@ interface ReviewListItem {
     criterionName: string
     ratingValue:   number
   }>
+  photos: Array<{           // from imageType = 'REVIEW_PHOTO'
+    imageId: number
+    url:     string
+  }>
   reply: {
     replyId:   number
     content:   string
@@ -1016,6 +1253,48 @@ interface MyReviewListItem {
 
 ---
 
+## GET /reviews/recent
+
+```
+Auth   : Public
+Purpose: Get the most recent approved reviews across all businesses (shortcut endpoint for homepage widgets)
+```
+
+Notes:
+
+```
+IMPORTANT: Register this route BEFORE /reviews/:reviewId in NestJS
+Only status = 'approved' reviews are eligible. Ordered newest first.
+```
+
+Query params:
+
+```typescript
+interface RecentReviewsQuery {
+  limit?: number  // default 6, max 20
+}
+```
+
+Response `200`:
+
+```typescript
+interface RecentReviewItem {
+  reviewId:      number
+  overallRating: number
+  content:       string
+  author: {
+    name: string
+  }
+  business: {
+    businessId: number
+    name:       string
+  }
+  createdAt: string
+}
+```
+
+---
+
 ## GET /reviews/:reviewId
 
 ```
@@ -1051,6 +1330,10 @@ interface ReviewDetailResponse {
     criterionId:   number
     criterionName: string
     ratingValue:   number
+  }>
+  photos: Array<{           // from imageType = 'REVIEW_PHOTO'
+    imageId: number
+    url:     string
   }>
   reply: {
     replyId:   number
@@ -1138,6 +1421,66 @@ FORBIDDEN         403
 
 ---
 
+## POST /reviews/:reviewId/photos
+
+```
+Auth        : User+ (must own review), Admin
+Purpose     : Attach photos to a review
+Content-Type: multipart/form-data
+```
+
+Request:
+
+```
+Field: photos (file[], max 5 files per request)
+Allowed types: jpg, jpeg, png, webp
+Max size: 10MB per file
+```
+
+Behavior: total photos per review is capped at 5 (existing + new).
+
+Response `201`:
+
+```typescript
+interface UploadReviewPhotosResponse {
+  photos: Array<{
+    imageId: number
+    url:     string
+  }>
+}
+```
+
+Errors:
+
+```
+REVIEW_NOT_FOUND      404
+FORBIDDEN              403
+INVALID_FILE_TYPE      400
+FILE_TOO_LARGE         400
+PHOTO_LIMIT_EXCEEDED   400
+```
+
+---
+
+## DELETE /reviews/:reviewId/photos/:imageId
+
+```
+Auth   : User+ (must own review), Admin
+Purpose: Remove a single photo from a review
+```
+
+Response `204`: No content
+
+Errors:
+
+```
+REVIEW_NOT_FOUND   404
+FORBIDDEN          403
+IMAGE_NOT_FOUND    404  // imageId does not belong to this review
+```
+
+---
+
 ## GET /businesses/:businessId/review-statistics
 
 ```
@@ -1165,6 +1508,76 @@ Errors:
 
 ```
 BUSINESS_NOT_FOUND  404
+```
+
+---
+
+## GET /businesses/:businessId/sentiment-summary
+
+```
+Auth   : Public
+Purpose: Get aggregated sentiment percentages for a business's reviews
+```
+
+Response `200`:
+
+```typescript
+interface SentimentSummaryResponse {
+  positive:     number  // percentage 0-100, rounded
+  neutral:      number
+  negative:     number
+  totalReviews: number  // approved reviews with sentiment computed (sentiment IS NOT NULL)
+}
+```
+
+Notes:
+
+```
+- Computed over reviews WHERE status='approved' AND deletedAt IS NULL
+  AND sentiment IS NOT NULL
+- If totalReviews = 0, all percentages return 0 (no divide-by-zero error)
+- Percentages are independently rounded and may not sum to exactly 100
+- No BUSINESS_NOT_FOUND check — mirrors GET /businesses/:businessId/review-statistics
+  (returns zeros when there is no matching data)
+```
+
+---
+
+## GET /businesses/:businessId/criteria-scores
+
+```
+Auth   : Public
+Purpose: Get average per-criterion rating for a business ("Performance Benchmarks")
+```
+
+Response `200`:
+
+```typescript
+interface CriteriaScoreItem {
+  criterionId:   number
+  criterionName: string
+  avgRating:     number  // average ratingValue (1-5 scale, same scale as reviews), 0 if unrated
+  reviewCount:   number  // number of criteriaRatings contributing to this average
+}
+
+interface CriteriaScoresResponse {
+  criteria: CriteriaScoreItem[]
+}
+```
+
+Notes:
+
+```
+- criteria = every criterion belonging to the business's categories (via
+  category_criteria), one row per criterion — matches the same criteria set
+  used when creating a review for this business (see WF-REV-001)
+- avgRating/reviewCount computed over review_criteria WHERE the parent review
+  has status='approved' AND deletedAt IS NULL
+- Criteria with no ratings yet are still included, with avgRating=0,
+  reviewCount=0 (mirrors ratingDistribution always showing all 5 buckets)
+- Presented on the existing 1-5 rating scale — NOT a fabricated 0-10
+  "benchmark" score
+- No BUSINESS_NOT_FOUND check, same precedent as review-statistics/sentiment-summary
 ```
 
 ---
@@ -1480,6 +1893,12 @@ interface RankingListItem {
   avgRating:    number
   reviewCount:  number
   rankingScore: number
+  trend: {
+    period:      'DAY' | 'WEEK' | 'MONTH'  // current admin-configured lookback (see D-031)
+    rankChange:  number  // positive = moved up (better), negative = moved down
+    scoreChange: number  // current.rankingScore - baseline.rankingScore
+  } | null  // always null when categoryId/province filters are applied, or when
+            // no ranking_snapshot_history baseline exists yet (see D-031 amendment)
 }
 ```
 
@@ -1488,6 +1907,9 @@ Notes:
 ```
 - Data comes from ranking_snapshots table via Redis cache
 - MUST NOT calculate rankings at request time
+- trend is looked up fresh per request (one batched query for the returned page,
+  see D-031 amendment) — this is a read against ranking_snapshot_history, not a
+  ranking recalculation, so it does not violate the rule above
 ```
 
 ---
@@ -1570,6 +1992,66 @@ interface BusinessRankingResponse {
   reviewCount:  number
   avgRating:    number
   lastCalculatedAt: string
+  trend: {
+    period:      'DAY' | 'WEEK' | 'MONTH'  // current admin-configured lookback (see D-031)
+    rankChange:  number  // positive = moved up (better), negative = moved down
+    scoreChange: number  // current.rankingScore - baseline.rankingScore
+  } | null  // null if not enough ranking_snapshot_history yet to compute a baseline
+}
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND  404
+```
+
+---
+
+## GET /rankings/businesses/:businessId/competitors
+
+```
+Auth   : Public
+Purpose: Suggest competing businesses in the same category, ranked close to this business
+```
+
+Notes:
+
+```
+- Category is auto-selected as the CATEGORY-scope ranking the business has its best
+  (lowest/numerically smallest) rank in, unless overridden by ?categoryId=
+- Competitors are other businesses in that category-scope sorted by
+  abs(rank - businessRank) ascending
+```
+
+Query params:
+
+```typescript
+interface MarketCompetitorsQuery {
+  categoryId?: number  // override auto-selected category
+  limit?:      number  // default 5, max 20
+}
+```
+
+Response `200`:
+
+```typescript
+interface CompetitorItem {
+  businessId:   number
+  businessName: string
+  rank:         number
+  rankingScore: number
+  avgRating:    number
+}
+
+interface MarketCompetitorsResponse {
+  categoryId:   number | null
+  categoryName: string | null
+  businessRank: number | null
+  competitors:  CompetitorItem[]
+  // categoryId/categoryName/businessRank are null and competitors=[] when the
+  // business has no CATEGORY-scope ranking yet (e.g. newly approved, not yet
+  // included in a ranking cron run)
 }
 ```
 
@@ -1786,6 +2268,45 @@ All endpoints in this chapter require: Admin role
 
 ## Business Moderation
 
+### GET /admin/businesses
+
+```
+Purpose: List businesses of any status (moderation queue)
+```
+
+Query params:
+
+```typescript
+interface AdminBusinessListQuery extends PaginationQuery {
+  status?: 'pending' | 'approved' | 'rejected' | 'hidden'  // default 'pending'
+  search?: string  // name contains, case-insensitive
+}
+```
+
+Response `200` (paginated):
+
+```typescript
+interface AdminBusinessListItem {
+  businessId: number
+  name:       string
+  status:     'pending' | 'approved' | 'rejected' | 'hidden'
+  ownerName:  string
+  phone:      string
+  createdAt:  string
+  categories: Array<{ categoryId: number; categoryName: string }>
+}
+```
+
+Notes:
+
+```
+- Unlike public GET /businesses, this returns businesses of ANY status
+  (deletedAt IS NULL still applies — soft-deleted businesses never appear)
+- Sorted by createdAt ascending (oldest pending request first)
+```
+
+---
+
 ### POST /admin/businesses/:businessId/approve
 
 ```
@@ -1899,6 +2420,46 @@ BUSINESS_NOT_FOUND  404
 ---
 
 ## Review Moderation
+
+### GET /admin/reviews
+
+```
+Purpose: List reviews of any status across ALL businesses (moderation queue)
+```
+
+Query params:
+
+```typescript
+interface AdminReviewListQuery extends PaginationQuery {
+  status?: 'pending' | 'approved' | 'rejected' | 'hidden'  // default 'pending'
+}
+```
+
+Response `200` (paginated):
+
+```typescript
+interface AdminReviewListItem {
+  reviewId:      number
+  overallRating: number
+  content:       string
+  status:        'pending' | 'approved' | 'rejected' | 'hidden'
+  businessId:    number
+  businessName:  string
+  authorName:    string
+  createdAt:     string
+}
+```
+
+Notes:
+
+```
+- Unlike GET /businesses/:businessId/reviews (single-business, requires a
+  businessId), this spans every business — the cross-business moderation queue
+- deletedAt IS NULL applies — soft-deleted reviews never appear
+- Sorted by createdAt ascending (oldest pending review first)
+```
+
+---
 
 ### POST /admin/reviews/:reviewId/approve
 
@@ -2323,6 +2884,56 @@ interface RecalculateResponse {
 
 ---
 
+## Ranking Trend Config
+
+### GET /admin/rankings/trend-config
+
+```
+Purpose: Get the current ranking trend lookback period
+```
+
+Response `200`:
+
+```typescript
+interface RankingTrendConfigResponse {
+  period:    'DAY' | 'WEEK' | 'MONTH'
+  updatedAt: string
+}
+```
+
+---
+
+### PATCH /admin/rankings/trend-config
+
+```
+Purpose: Change the ranking trend lookback period used by GET /rankings/businesses/:businessId
+```
+
+Request:
+
+```typescript
+interface UpdateRankingTrendConfigDto {
+  period: 'DAY' | 'WEEK' | 'MONTH'
+}
+```
+
+Response `200`:
+
+```typescript
+interface RankingTrendConfigResponse {
+  period:    'DAY' | 'WEEK' | 'MONTH'
+  updatedAt: string
+}
+```
+
+Errors:
+
+```
+VALIDATION_ERROR  400  // period not one of DAY|WEEK|MONTH
+```
+
+---
+
 ## Audit Log
 
 ### GET /admin/logs
@@ -2353,6 +2964,95 @@ interface AdminLogListItem {
     userId: number
     name:   string
   } | null
+  createdAt: string
+}
+```
+
+---
+
+# Chapter 12. Bookmark APIs
+
+Base: `/businesses/:businessId/bookmark` and `/bookmarks`
+
+---
+
+## POST /businesses/:businessId/bookmark
+
+```
+Auth   : User+
+Purpose: Bookmark a business
+```
+
+Response `201`:
+
+```typescript
+interface CreateBookmarkResponse {
+  bookmarkId: number
+  businessId: number
+}
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND        404
+BOOKMARK_ALREADY_EXISTS   409
+```
+
+---
+
+## DELETE /businesses/:businessId/bookmark
+
+```
+Auth   : User+
+Purpose: Remove a bookmark
+```
+
+Response `204`: No content
+
+Errors:
+
+```
+BOOKMARK_NOT_FOUND  404
+```
+
+---
+
+## GET /businesses/:businessId/bookmark
+
+```
+Auth   : User+
+Purpose: Check whether the current user has bookmarked this business
+```
+
+Response `200`:
+
+```typescript
+interface BookmarkStatusResponse {
+  isBookmarked: boolean
+}
+```
+
+---
+
+## GET /bookmarks/my
+
+```
+Auth   : User+
+Purpose: List businesses the current user has bookmarked
+```
+
+Response `200` (paginated):
+
+```typescript
+interface BookmarkListItem {
+  bookmarkId: number
+  business: {
+    businessId: number
+    name:       string
+    avgRating:  number
+    status:     'pending' | 'approved' | 'rejected' | 'hidden'
+  }
   createdAt: string
 }
 ```
@@ -2391,6 +3091,11 @@ Businesses:
   DELETE /businesses/:businessId/locations/:locationId
   GET    /businesses/:businessId/reviews
   GET    /businesses/:businessId/review-statistics
+  GET    /businesses/:businessId/sentiment-summary
+  GET    /businesses/:businessId/criteria-scores
+  POST   /businesses/:businessId/bookmark
+  DELETE /businesses/:businessId/bookmark
+  GET    /businesses/:businessId/bookmark
 
 Reviews:
   POST   /reviews
@@ -2417,6 +3122,10 @@ Rankings:
   GET    /rankings/top           ← BEFORE /businesses/:businessId
   GET    /rankings/metadata      ← BEFORE /businesses/:businessId
   GET    /rankings/businesses/:businessId
+  GET    /rankings/businesses/:businessId/competitors
+
+Bookmarks:
+  GET    /bookmarks/my
 
 Notifications:
   GET    /notifications/unread-count  ← BEFORE /:notificationId

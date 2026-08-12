@@ -7,8 +7,10 @@ import { ReplyController } from './presentation/controllers/reply.controller'
 import { BusinessReviewController } from './presentation/controllers/business-review.controller'
 import { ReviewRepository } from './domain/repositories/review.repository'
 import { ReplyRepository } from './domain/repositories/reply.repository'
+import { ReviewImageRepository } from './domain/repositories/review-image.repository'
 import { PrismaReviewRepository } from './infrastructure/repositories/prisma-review.repository'
 import { PrismaReplyRepository } from './infrastructure/repositories/prisma-reply.repository'
+import { PrismaReviewImageRepository } from './infrastructure/repositories/prisma-review-image.repository'
 import { CreateReviewUseCase } from './application/use-cases/create-review.use-case'
 import { UpdateReviewUseCase } from './application/use-cases/update-review.use-case'
 import { DeleteReviewUseCase } from './application/use-cases/delete-review.use-case'
@@ -16,17 +18,24 @@ import { GetReviewByIdUseCase } from './application/use-cases/get-review-by-id.u
 import { GetBusinessReviewsUseCase } from './application/use-cases/get-business-reviews.use-case'
 import { GetMyReviewsUseCase } from './application/use-cases/get-my-reviews.use-case'
 import { GetReviewStatisticsUseCase } from './application/use-cases/get-review-statistics.use-case'
+import { GetSentimentSummaryUseCase } from './application/use-cases/get-sentiment-summary.use-case'
+import { GetCriteriaScoresUseCase } from './application/use-cases/get-criteria-scores.use-case'
 import { CreateReplyUseCase } from './application/use-cases/create-reply.use-case'
 import { UpdateReplyUseCase } from './application/use-cases/update-reply.use-case'
 import { DeleteReplyUseCase } from './application/use-cases/delete-reply.use-case'
 import { GetApprovedReviewsUseCase } from './application/use-cases/get-approved-reviews.use-case'
+import { GetRecentReviewsUseCase } from './application/use-cases/get-recent-reviews.use-case'
+import { UploadReviewPhotosUseCase } from './application/use-cases/upload-review-photos.use-case'
+import { DeleteReviewPhotoUseCase } from './application/use-cases/delete-review-photo.use-case'
 import { BusinessModule } from '../business/business.module'
+import { NotificationModule } from '../notification/notification.module'
 
 @Module({
   imports: [
     ConfigModule,
     InfrastructureModule,
     BusinessModule,
+    NotificationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -45,6 +54,10 @@ import { BusinessModule } from '../business/business.module'
       provide: ReplyRepository,
       useClass: PrismaReplyRepository,
     },
+    {
+      provide: ReviewImageRepository,
+      useClass: PrismaReviewImageRepository,
+    },
     CreateReviewUseCase,
     UpdateReviewUseCase,
     DeleteReviewUseCase,
@@ -52,10 +65,15 @@ import { BusinessModule } from '../business/business.module'
     GetBusinessReviewsUseCase,
     GetMyReviewsUseCase,
     GetReviewStatisticsUseCase,
+    GetSentimentSummaryUseCase,
+    GetCriteriaScoresUseCase,
     GetApprovedReviewsUseCase,
+    GetRecentReviewsUseCase,
     CreateReplyUseCase,
     UpdateReplyUseCase,
     DeleteReplyUseCase,
+    UploadReviewPhotosUseCase,
+    DeleteReviewPhotoUseCase,
   ],
   exports: [GetReviewStatisticsUseCase, ReviewRepository],
 })

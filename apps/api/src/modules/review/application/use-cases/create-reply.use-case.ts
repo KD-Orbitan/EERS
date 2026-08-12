@@ -4,6 +4,8 @@ import { ReplyRepository } from '../../domain/repositories/reply.repository'
 import { ReviewNotFoundException, ReplyAlreadyExistsException } from '../../domain/exceptions/review.exceptions'
 import { BusinessRepository } from '../../../business/domain/repositories/business.repository'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { CreateNotificationUseCase } from '../../../notification/application/use-cases/create-notification.use-case'
+import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 
 @Injectable()
 export class CreateReplyUseCase {
@@ -12,6 +14,7 @@ export class CreateReplyUseCase {
     private readonly replyRepository: ReplyRepository,
     private readonly businessRepository: BusinessRepository,
     private readonly prisma: PrismaService,
+    private readonly createNotificationUseCase: CreateNotificationUseCase,
   ) {}
 
   async execute({ reviewId, currentUserId, currentUserRole, dto }: { reviewId: number; currentUserId: number; currentUserRole: string; dto: { content: string } }) {
@@ -34,8 +37,17 @@ export class CreateReplyUseCase {
       throw new ReplyAlreadyExistsException()
     }
 
-    return this.prisma.$transaction(async () => {
+    const reply = await this.prisma.$transaction(async () => {
       return this.replyRepository.createReply({ reviewId, userId: currentUserId, content: dto.content })
     })
+
+    await this.createNotificationUseCase.execute({
+      userId: review.writerUserId,
+      type: NOTIFICATION_TYPE.NEW_REPLY,
+      title: 'New Reply',
+      content: 'The business owner replied to your review.',
+    })
+
+    return reply
   }
 }

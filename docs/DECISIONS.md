@@ -570,6 +570,73 @@ Current implementation:
 
 The similarity implementation is abstracted behind `SimilarityService`, allowing the underlying algorithm to be replaced without changing the ranking pipeline.
 
+---
+
+## D-031 — Ranking Trend Tracking
+
+**Decision:** Track rank/score trend via a separate append-only history table, GLOBAL scope only.
+
+```
+Table    : ranking_snapshot_history
+Scope    : GLOBAL only (does NOT track CATEGORY/PROVINCE trend)
+Written  : Once per hourly ranking cron run (same transaction as ranking_snapshots replace)
+Retention: 40 days — rows older than this are purged each cron run
+```
+
+Rationale:
+
+```
+- ranking_snapshots is wipe-and-recreate every run (see D-011/WF-RANK-001) — it has
+  no history, so trend computation needs a dedicated append-only table
+- GLOBAL-only keeps the table small and matches the only scope GetBusinessRankingUseCase
+  reads today
+- 40-day retention comfortably covers the longest admin-selectable period (MONTH = 30d)
+  with buffer, while bounding table growth
+```
+
+Trend lookback period is admin-configurable:
+
+```
+Table   : ranking_trend_config (singleton row, same pattern as scoring_config)
+Values  : period = 'DAY' | 'WEEK' | 'MONTH'  (mapped to 1 / 7 / 30 days)
+Editable: via Admin API — GET/PATCH /admin/rankings/trend-config
+Default : 'WEEK'
+```
+
+Trend computation (`GET /rankings/businesses/:businessId`):
+
+```
+current  = live row in ranking_snapshots (scope='GLOBAL', businessId)
+baseline = closest ranking_snapshot_history row at/before (now - period)
+trend    = null if no baseline exists yet (insufficient history)
+           otherwise { period, rankChange: baseline.rank - current.rank,
+                       scoreChange: current.rankingScore - baseline.rankingScore }
+```
+
+**Amendment (2026-08-12):** `GET /rankings` (the paginated list) also returns `trend`
+per item, subject to the same GLOBAL-only rule:
+
+```
+Applies : only when the request is unfiltered by categoryId/province (i.e. the
+          list is reading scope='GLOBAL' snapshots) — CATEGORY/PROVINCE-filtered
+          results always return trend: null, since ranking_snapshot_history has
+          no CATEGORY/PROVINCE rows to compare against
+Fetch   : ONE batched query per page — WHERE businessId IN (<ids on the returned
+          page>) AND calculatedAt <= cutoff, ORDER BY calculatedAt DESC,
+          DISTINCT ON businessId — never one query per row/business
+Formula : identical to the single-business case above, keyed per businessId
+Caching : NOT part of the Redis ranking_snapshots cache payload — trend is looked
+          up fresh per request against ranking_snapshot_history (a read of an
+          append-only table, not a recalculation, so this does not conflict with
+          D-011's "no ranking calculation in controller/repository" or the
+          list endpoint's "MUST NOT calculate rankings at request time" rule)
+```
+
+Both `ranking_snapshot_history` and `ranking_trend_config` are owned by the Ranking
+Module (see D-021 ownership table).
+
+---
+
 # Section 7. File Storage
 
 ## D-016 — File Storage Provider
@@ -682,7 +749,10 @@ criteria               → Criteria Module (criteria)
 reviews, replies       → Review Module (review)
 review_criteria        → Review Module (review)
 reports, reasons       → Report Module (report)
+bookmarks              → Bookmark Module (bookmark)
 ranking_snapshots      → Ranking Module (ranking)
+ranking_snapshot_history → Ranking Module (ranking)
+ranking_trend_config   → Ranking Module (ranking)
 notifications          → Notification Module (notification)
 logs                   → Audit Log Module (audit-log)
 ```
@@ -890,6 +960,36 @@ Agent MUST NOT:
 - Calculate ranking scores inside controllers or repositories
 - Access Redis outside Infrastructure Layer
 - Access Prisma outside Infrastructure Layer
+```
+
+---
+
+# Section 16. Geocoding
+
+## D-032 — Location Geocoding
+
+**Decision:** Business location coordinates are auto-geocoded server-side, never user-supplied.
+
+```
+Provider : OpenStreetMap Nominatim (https://nominatim.openstreetmap.org) — free, no API key
+Trigger  : On location create (POST /businesses/:businessId/locations, and initial
+           locations at business creation), and on update when addressLine/ward/province
+           changes (PATCH /businesses/:businessId/locations/:locationId)
+Input    : "{addressLine}, {ward}, {province}" as a single geocoding query string
+Storage  : locations.latitude / locations.longitude — both nullable Decimal(9,6)
+Failure  : Best-effort only — any error, timeout, or empty result leaves both columns
+           null and MUST NOT block or fail the location create/update request
+```
+
+Rationale:
+
+```
+- Nominatim requires no API key/billing, unlike Google Maps Geocoding — appropriate for
+  this project's scope
+- Coordinates are a display/map convenience, not business-critical data, so a failed
+  geocode must never be a hard error
+- Never accepting lat/lng as request input prevents a client from spoofing a business's
+  mapped location independent of its stated address
 ```
 
 ---

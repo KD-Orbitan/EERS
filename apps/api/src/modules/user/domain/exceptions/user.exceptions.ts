@@ -11,3 +11,15 @@ export class InvalidPasswordException extends AppException {
     super('INVALID_PASSWORD', 400, message)
   }
 }
+
+export class CannotBanAdminException extends AppException {
+  constructor(message = 'Cannot ban an admin account') {
+    super('CANNOT_BAN_ADMIN', 400, message)
+  }
+}
+
+export class UserNotBannedException extends AppException {
+  constructor(message = 'User is not banned') {
+    super('USER_NOT_BANNED', 400, message)
+  }
+}

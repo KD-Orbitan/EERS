@@ -7,6 +7,7 @@ import { TrustScoreService } from './trust-score.service'
 import { FraudDetectionService } from './fraud-detection.service'
 import { MultiCriteriaScoringService } from './multi-criteria-scoring.service'
 import { ReviewWeightingService } from './review-weighting.service'
+import { RANKING_HISTORY_RETENTION_DAYS } from '../../infrastructure/services/ranking-trend-config.service'
 
 @Injectable()
 export class RankingCalculationService {
@@ -165,6 +166,17 @@ export class RankingCalculationService {
         reviewCount: item.reviewCount,
         businessId: BigInt(item.businessId),
       })) })
+
+      // Append-only GLOBAL-scope trend history (see DECISIONS.md D-031)
+      await tx.rankingSnapshotHistory.createMany({
+        data: globalSnap.map((item) => ({
+          rank: item.rank,
+          rankingScore: item.rankingScore,
+          businessId: BigInt(item.businessId),
+        })),
+      })
+      const retentionCutoff = new Date(Date.now() - RANKING_HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+      await tx.rankingSnapshotHistory.deleteMany({ where: { calculatedAt: { lt: retentionCutoff } } })
     })
 
     await this.rankingCacheService.invalidateRankingCache()
