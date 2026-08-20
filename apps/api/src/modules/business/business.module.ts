@@ -19,6 +19,7 @@ import { GetBusinessListUseCase } from './application/use-cases/get-business-lis
 import { GetBusinessByIdUseCase } from './application/use-cases/get-business-by-id.use-case'
 import { GetMyBusinessesUseCase } from './application/use-cases/get-my-businesses.use-case'
 import { GetBusinessStatisticsUseCase } from './application/use-cases/get-business-statistics.use-case'
+import { GetBusinessReviewTrendUseCase } from './application/use-cases/get-business-review-trend.use-case'
 import { AddLocationUseCase } from './application/use-cases/add-location.use-case'
 import { UpdateLocationUseCase } from './application/use-cases/update-location.use-case'
 import { RemoveLocationUseCase } from './application/use-cases/remove-location.use-case'
@@ -67,6 +68,7 @@ import { ReorderGalleryUseCase } from './application/use-cases/reorder-gallery.u
     GetBusinessByIdUseCase,
     GetMyBusinessesUseCase,
     GetBusinessStatisticsUseCase,
+    GetBusinessReviewTrendUseCase,
     AddLocationUseCase,
     UpdateLocationUseCase,
     RemoveLocationUseCase,

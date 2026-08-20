@@ -10,10 +10,13 @@ import { SiteFooter } from '@/components/site-footer';
 // Nav links mirror the Figma "Landing Page" TopNavBar (node 1:590) — minus
 // "Analytics", which has no backing page/feature in this app, per explicit
 // product decision. "Directory" is active on both `/` (the landing/search
-// page itself, per the Figma screenshot) and `/businesses`.
+// page itself, per the Figma screenshot) and `/businesses`. "For Business" is
+// an addition beyond the Figma mockup, pointing at the new business-owner
+// marketing page (app/(main)/for-business).
 const NAV_LINKS = [
   { href: '/businesses', label: 'Directory', isActive: (pathname: string) => pathname === '/' || pathname.startsWith('/businesses') },
   { href: '/rankings', label: 'Leaderboards', isActive: (pathname: string) => pathname.startsWith('/rankings') },
+  { href: '/for-business', label: 'For Business', isActive: (pathname: string) => pathname.startsWith('/for-business') },
 ];
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard'
@@ -13,6 +13,8 @@ import { AdminBusinessListQueryDto } from '../../application/dto/admin-business-
 import { AdminReviewListQueryDto } from '../../application/dto/admin-review-list-query.dto'
 import { AdminUserListQueryDto } from '../../application/dto/admin-user-list-query.dto'
 import { BanUserDto } from '../../application/dto/ban-user.dto'
+import { CreateCategoryDto } from '../../application/dto/create-category.dto'
+import { CreateCriterionDto } from '../../application/dto/create-criterion.dto'
 import { ApproveBusinessUseCase } from '../../application/use-cases/approve-business.use-case'
 import { RejectBusinessUseCase } from '../../application/use-cases/reject-business.use-case'
 import { ListAdminBusinessesUseCase } from '../../application/use-cases/list-admin-businesses.use-case'
@@ -25,6 +27,10 @@ import { RankingTrendConfigUseCase } from '../../application/use-cases/ranking-t
 import { ListAdminUsersUseCase } from '../../application/use-cases/list-admin-users.use-case'
 import { BanUserUseCase } from '../../application/use-cases/ban-user.use-case'
 import { UnbanUserUseCase } from '../../application/use-cases/unban-user.use-case'
+import { CreateCategoryUseCase } from '../../application/use-cases/create-category.use-case'
+import { CreateCriterionUseCase } from '../../application/use-cases/create-criterion.use-case'
+import { AssignCriterionUseCase } from '../../application/use-cases/assign-criterion.use-case'
+import { RemoveCriterionUseCase } from '../../application/use-cases/remove-criterion.use-case'
 import { TriggerRecalculationUseCase } from '../../../ranking/application/use-cases/trigger-recalculation.use-case'
 import { AdminReportQueryDto } from '../../../report/application/dto/admin-report-query.dto'
 import { ResolveReportDto } from '../../../report/application/dto/resolve-report.dto'
@@ -48,6 +54,10 @@ export class AdminController {
     private readonly listAdminUsersUseCase: ListAdminUsersUseCase,
     private readonly banUserUseCase: BanUserUseCase,
     private readonly unbanUserUseCase: UnbanUserUseCase,
+    private readonly createCategoryUseCase: CreateCategoryUseCase,
+    private readonly createCriterionUseCase: CreateCriterionUseCase,
+    private readonly assignCriterionUseCase: AssignCriterionUseCase,
+    private readonly removeCriterionUseCase: RemoveCriterionUseCase,
     private readonly triggerRecalculationUseCase: TriggerRecalculationUseCase,
     private readonly listAdminReportsUseCase: ListAdminReportsUseCase,
     private readonly resolveReportUseCase: ResolveReportUseCase,
@@ -245,5 +255,44 @@ export class AdminController {
   @Roles('ADMIN')
   async unbanUser(@Param('userId', ParseIntPipe) userId: number) {
     return this.unbanUserUseCase.execute({ userId })
+  }
+
+  @Post('categories')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async createCategory(@Body() dto: CreateCategoryDto) {
+    return this.createCategoryUseCase.execute(dto.categoryName)
+  }
+
+  @Post('criteria')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async createCriterion(@Body() dto: CreateCriterionDto) {
+    return this.createCriterionUseCase.execute(dto.name, dto.description)
+  }
+
+  @Post('categories/:categoryId/criteria/:criterionId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async assignCriterion(
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+    @Param('criterionId', ParseIntPipe) criterionId: number,
+  ) {
+    return this.assignCriterionUseCase.execute(categoryId, criterionId)
+  }
+
+  @Delete('categories/:categoryId/criteria/:criterionId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeCriterion(
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+    @Param('criterionId', ParseIntPipe) criterionId: number,
+  ) {
+    await this.removeCriterionUseCase.execute(categoryId, criterionId)
   }
 }

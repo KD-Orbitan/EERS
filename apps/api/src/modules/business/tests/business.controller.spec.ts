@@ -23,6 +23,7 @@ describe('BusinessController', () => {
       {} as any,
       {} as any,
       {} as any,
+      {} as any,
     )
 
     const req = { headers: { authorization: 'Bearer token' } }
@@ -40,6 +41,7 @@ describe('BusinessController', () => {
       {} as any,
       {} as any,
       getBusinessListUseCase,
+      {} as any,
       {} as any,
       {} as any,
       {} as any,
@@ -75,6 +77,7 @@ describe('BusinessController', () => {
       {} as any,
       {} as any,
       getMyBusinessesUseCase,
+      {} as any,
       {} as any,
       {} as any,
       {} as any,

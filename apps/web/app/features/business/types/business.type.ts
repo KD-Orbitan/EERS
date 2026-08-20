@@ -76,6 +76,11 @@ export interface BusinessStatistics {
   };
 }
 
+export interface ReviewTrendPoint {
+  month: string;
+  reviewCount: number;
+}
+
 export interface PaginationMeta {
   page: number;
   limit: number;

@@ -34,6 +34,7 @@ import { GetBusinessListUseCase } from '../../application/use-cases/get-business
 import { GetBusinessByIdUseCase } from '../../application/use-cases/get-business-by-id.use-case'
 import { GetMyBusinessesUseCase } from '../../application/use-cases/get-my-businesses.use-case'
 import { GetBusinessStatisticsUseCase } from '../../application/use-cases/get-business-statistics.use-case'
+import { GetBusinessReviewTrendUseCase } from '../../application/use-cases/get-business-review-trend.use-case'
 import { AddLocationUseCase } from '../../application/use-cases/add-location.use-case'
 import { UpdateLocationUseCase } from '../../application/use-cases/update-location.use-case'
 import { RemoveLocationUseCase } from '../../application/use-cases/remove-location.use-case'
@@ -58,6 +59,7 @@ export class BusinessController {
     private readonly getBusinessByIdUseCase: GetBusinessByIdUseCase,
     private readonly getMyBusinessesUseCase: GetMyBusinessesUseCase,
     private readonly getBusinessStatisticsUseCase: GetBusinessStatisticsUseCase,
+    private readonly getBusinessReviewTrendUseCase: GetBusinessReviewTrendUseCase,
     private readonly addLocationUseCase: AddLocationUseCase,
     private readonly updateLocationUseCase: UpdateLocationUseCase,
     private readonly removeLocationUseCase: RemoveLocationUseCase,
@@ -124,6 +126,13 @@ export class BusinessController {
   @UseGuards(JwtAuthGuard)
   async getStatistics(@CurrentUser() user: { userId: number; role: string }, @Param('businessId', ParseIntPipe) businessId: number) {
     return this.getBusinessStatisticsUseCase.execute({ businessId, user })
+  }
+
+  @Get(':businessId/review-trend')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async getReviewTrend(@CurrentUser() user: { userId: number; role: string }, @Param('businessId', ParseIntPipe) businessId: number) {
+    return this.getBusinessReviewTrendUseCase.execute({ businessId, user })
   }
 
   @Post(':businessId/locations')

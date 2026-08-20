@@ -16,6 +16,7 @@ const FOOTER_COLUMNS: Array<{ heading: string; links: Array<{ label: string; hre
   {
     heading: 'For Businesses',
     links: [
+      { label: 'For Business Owners', href: '/for-business' },
       { label: 'List Your Business', href: '/businesses/create' },
       { label: 'My Businesses', href: '/businesses/my' },
     ],

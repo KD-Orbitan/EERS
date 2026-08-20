@@ -14,6 +14,7 @@ import { CriteriaScoresCard } from '@/features/review/components/criteria-scores
 import { ReviewDistributionCard } from '@/features/review/components/review-distribution-card';
 import { SentimentSummaryCard } from '@/features/review/components/sentiment-summary-card';
 import { ReviewSummary } from '@/features/review/components/review-summary';
+import { ReviewTrendChart } from '@/features/business/components/review-trend-chart';
 
 export default function BusinessOwnerDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -83,6 +84,8 @@ export default function BusinessOwnerDashboardPage({ params }: { params: Promise
             <ReviewDistributionCard businessId={businessId} />
             <SentimentSummaryCard businessId={businessId} />
           </div>
+
+          <ReviewTrendChart businessId={businessId} />
 
           <CriteriaScoresCard businessId={businessId} />
 

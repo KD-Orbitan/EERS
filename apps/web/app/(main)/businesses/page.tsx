@@ -1,18 +1,15 @@
 'use client';
 
 import { Suspense, useMemo, useState } from 'react';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { Plus } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
 import { BusinessSearchBar } from '@/features/business/components/business-search-bar';
 import { BusinessSortTabs } from '@/features/business/components/business-sort-tabs';
 import { BusinessList } from '@/features/business/components/business-list';
 import { BusinessSpotlightCard } from '@/features/business/components/business-spotlight-card';
 import { useBusinessesQuery, BusinessListParams } from '@/features/business/queries/use-businesses.query';
 import { MapPin } from '@/features/business/components/business-directory-map';
+import { GrowBusinessCtaSection } from '@/components/grow-business-cta-section';
 
 // Leaflet needs `window` — loaded client-only, never during SSR/prerender.
 const BusinessDirectoryMap = dynamic(
@@ -31,7 +28,6 @@ const SORT_BY_VALUES: NonNullable<BusinessListParams['sortBy']>[] = ['avgRating'
 // boundary (see default export below), otherwise Next.js bails the whole
 // route out of static prerendering.
 function BusinessesPageContent() {
-  const { isAuthenticated } = useAuth();
   const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
@@ -88,34 +84,24 @@ function BusinessesPageContent() {
           <BusinessSortTabs sortBy={sortBy} onSortByChange={setSortBy} />
         </div>
 
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start">
-          <div className="flex-1">
-            <BusinessSearchBar
-              search={search}
-              categoryId={categoryId}
-              province={province}
-              onSearchChange={(value) => {
-                setSearch(value);
-                setPage(1);
-              }}
-              onCategoryChange={(value) => {
-                setCategoryId(value);
-                setPage(1);
-              }}
-              onProvinceChange={(value) => {
-                setProvince(value);
-                setPage(1);
-              }}
-            />
-          </div>
-          {isAuthenticated ? (
-            <Link href="/businesses/create" className="shrink-0">
-              <Button>
-                <Plus className="mr-1.5 h-4 w-4" />
-                List your business
-              </Button>
-            </Link>
-          ) : null}
+        <div className="mb-6">
+          <BusinessSearchBar
+            search={search}
+            categoryId={categoryId}
+            province={province}
+            onSearchChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
+            onCategoryChange={(value) => {
+              setCategoryId(value);
+              setPage(1);
+            }}
+            onProvinceChange={(value) => {
+              setProvince(value);
+              setPage(1);
+            }}
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">
@@ -134,6 +120,8 @@ function BusinessesPageContent() {
           </div>
         </div>
       </div>
+
+      <GrowBusinessCtaSection />
     </main>
   );
 }

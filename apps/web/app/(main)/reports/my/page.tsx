@@ -2,36 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { toast } from 'sonner';
-import { X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { getErrorMessage } from '@/lib/get-error-message';
 import { useMyReportsQuery } from '@/features/report/queries/use-my-reports.query';
-import { useWithdrawReportMutation } from '@/features/report/mutations/use-withdraw-report.mutation';
-import { ReportStatus } from '@/features/report/types/report.type';
-
-const statusVariant: Record<ReportStatus, 'neutral' | 'success' | 'warning' | 'danger'> = {
-  pending: 'warning',
-  reviewing: 'neutral',
-  resolved: 'success',
-  rejected: 'danger',
-};
+import { MyReportRow } from '@/features/report/components/my-report-row';
 
 export default function MyReportsPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useMyReportsQuery({ page });
-  const withdrawReportMutation = useWithdrawReportMutation();
-
-  const onWithdraw = async (reportId: number) => {
-    if (!window.confirm('Withdraw this report? This cannot be undone.')) return;
-
-    try {
-      await withdrawReportMutation.mutateAsync(reportId);
-      toast.success('Report withdrawn.');
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error, 'Unable to withdraw report. Please try again.'));
-    }
-  };
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
@@ -51,31 +27,7 @@ export default function MyReportsPage() {
         ) : (
           <div className="space-y-3">
             {data.items.map((report) => (
-              <div
-                key={report.reportId}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-xs ring-1 ring-slate-200"
-              >
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-serif text-sm font-bold text-ink-900">{report.reason.name}</p>
-                    <Badge variant={statusVariant[report.status]}>{report.status}</Badge>
-                  </div>
-                  <p className="mt-1 max-w-xl truncate text-sm text-ink-700">{report.review.content}</p>
-                  <p className="mt-1 text-xs text-ink-500">{new Date(report.createdAt).toLocaleDateString()}</p>
-                </div>
-
-                {report.status === 'pending' ? (
-                  <button
-                    type="button"
-                    onClick={() => onWithdraw(report.reportId)}
-                    disabled={withdrawReportMutation.isPending}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                    Withdraw
-                  </button>
-                ) : null}
-              </div>
+              <MyReportRow key={report.reportId} report={report} />
             ))}
           </div>
         )}
@@ -104,7 +56,7 @@ export default function MyReportsPage() {
           </div>
         ) : null}
 
-        <Link href="/profile" className="mt-6 inline-block text-sm font-medium text-ink-700 hover:text-primary-600">
+        <Link href="/profile?tab=reports" className="mt-6 inline-block text-sm font-medium text-ink-700 hover:text-primary-600">
           &larr; Back to profile
         </Link>
       </div>

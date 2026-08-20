@@ -696,6 +696,44 @@ FORBIDDEN           403
 
 ---
 
+## GET /businesses/:businessId/review-trend
+
+```
+Auth   : BusinessOwner+ (must own business), Admin
+Purpose: Get monthly approved-review counts for the owner dashboard chart
+```
+
+Response `200`:
+
+```typescript
+interface ReviewTrendPoint {
+  month:       string  // "YYYY-MM"
+  reviewCount: number
+}
+
+type ReviewTrendResponse = ReviewTrendPoint[]
+```
+
+Notes:
+
+```
+- Always exactly 12 points, one per calendar month, oldest first, ending
+  with the current month — months with no reviews return reviewCount: 0
+  (no gaps)
+- Computed over reviews WHERE business_id = :businessId AND status =
+  'approved' AND deleted_at IS NULL, same filter as
+  GET /businesses/:businessId/statistics.reviewCount
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND  404
+FORBIDDEN           403
+```
+
+---
+
 ## POST /businesses/:businessId/locations
 
 ```
@@ -3086,6 +3124,7 @@ Businesses:
   PATCH  /businesses/:businessId
   DELETE /businesses/:businessId
   GET    /businesses/:businessId/statistics
+  GET    /businesses/:businessId/review-trend
   POST   /businesses/:businessId/locations
   PATCH  /businesses/:businessId/locations/:locationId
   DELETE /businesses/:businessId/locations/:locationId

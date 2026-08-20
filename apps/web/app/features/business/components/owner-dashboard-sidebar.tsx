@@ -11,6 +11,10 @@ interface OwnerDashboardSidebarProps {
 // Mirrors the AdminSidebar template (features/admin/components/admin-sidebar.tsx):
 // only links to pages that actually exist — no Industry Insights/Location Mapping/
 // Audit Logs/Export Report items, same "don't link to nothing" precedent used there.
+// Sticky on large screens only (same lg:sticky/lg:top-20 offset — clearing the
+// site header's own sticky height — used by the directory map sidebar), so it
+// stays in view while the dashboard content scrolls; on smaller screens it
+// stays in normal flow since there's no room to pin it beside the content.
 export function OwnerDashboardSidebar({ businessId, currentPath }: OwnerDashboardSidebarProps) {
   const navItems = [
     { href: `/businesses/${businessId}/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
@@ -20,7 +24,7 @@ export function OwnerDashboardSidebar({ businessId, currentPath }: OwnerDashboar
   ];
 
   return (
-    <nav className="flex w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white p-4">
+    <nav className="flex w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white p-4 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:overflow-y-auto">
       <div className="mb-4 px-2">
         <p className="font-serif text-lg font-bold text-ink-900">Owner Dashboard</p>
         <p className="text-xs text-ink-500">Manage your business</p>

@@ -71,6 +71,11 @@ export interface BusinessStatistics {
   ratingDistribution: Record<number, number>
 }
 
+export interface ReviewTrendPoint {
+  month: string
+  reviewCount: number
+}
+
 export abstract class BusinessRepository {
   abstract findByPhone(phone: string): Promise<BusinessEntity | null>
   abstract findByEmail(email: string): Promise<BusinessEntity | null>
@@ -91,6 +96,7 @@ export abstract class BusinessRepository {
   abstract getMyBusinesses(userId: number, page: number, limit: number): Promise<{ items: MyBusinessListItem[]; total: number }>
   abstract getBusinessDetail(businessId: number): Promise<BusinessDetail | null>
   abstract getBusinessStatistics(businessId: number): Promise<BusinessStatistics>
+  abstract getReviewTrend(businessId: number): Promise<ReviewTrendPoint[]>
   abstract countLocations(businessId: number): Promise<number>
   abstract findBusinessLocation(businessId: number, locationId: number): Promise<{ businessId: number; locationId: number } | null>
 }

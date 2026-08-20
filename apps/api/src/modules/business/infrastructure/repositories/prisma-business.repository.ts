@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-import { BusinessRepository, BusinessListQuery } from '../../domain/repositories/business.repository'
+import { BusinessRepository, BusinessListQuery, ReviewTrendPoint } from '../../domain/repositories/business.repository'
 
 @Injectable()
 export class PrismaBusinessRepository extends BusinessRepository {
@@ -363,6 +363,32 @@ export class PrismaBusinessRepository extends BusinessRepository {
       rankingPosition: ranking ? ranking.rank : null,
       ratingDistribution,
     }
+  }
+
+  async getReviewTrend(businessId: number): Promise<ReviewTrendPoint[]> {
+    const now = new Date()
+    const startMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 11, 1))
+
+    const rows = await this.prisma.$queryRaw<Array<{ month: string; reviewCount: bigint }>>`
+      SELECT to_char(date_trunc('month', created_at), 'YYYY-MM') as month,
+             COUNT(*)::bigint as "reviewCount"
+      FROM reviews
+      WHERE business_id = ${businessId}
+        AND status = 'approved'
+        AND deleted_at IS NULL
+        AND created_at >= ${startMonth}
+      GROUP BY 1
+      ORDER BY 1
+    `
+    const countByMonth = new Map(rows.map((row) => [row.month, Number(row.reviewCount)]))
+
+    const trend: ReviewTrendPoint[] = []
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(Date.UTC(startMonth.getUTCFullYear(), startMonth.getUTCMonth() + i, 1))
+      const month = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
+      trend.push({ month, reviewCount: countByMonth.get(month) ?? 0 })
+    }
+    return trend
   }
 
   async countLocations(businessId: number) {

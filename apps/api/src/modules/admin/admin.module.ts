@@ -15,6 +15,10 @@ import { RankingTrendConfigUseCase } from './application/use-cases/ranking-trend
 import { ListAdminUsersUseCase } from './application/use-cases/list-admin-users.use-case'
 import { BanUserUseCase } from './application/use-cases/ban-user.use-case'
 import { UnbanUserUseCase } from './application/use-cases/unban-user.use-case'
+import { CreateCategoryUseCase } from './application/use-cases/create-category.use-case'
+import { CreateCriterionUseCase } from './application/use-cases/create-criterion.use-case'
+import { AssignCriterionUseCase } from './application/use-cases/assign-criterion.use-case'
+import { RemoveCriterionUseCase } from './application/use-cases/remove-criterion.use-case'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { RankingModule } from '../ranking/ranking.module'
@@ -52,6 +56,10 @@ import { NotificationModule } from '../notification/notification.module'
     ListAdminUsersUseCase,
     BanUserUseCase,
     UnbanUserUseCase,
+    CreateCategoryUseCase,
+    CreateCriterionUseCase,
+    AssignCriterionUseCase,
+    RemoveCriterionUseCase,
   ],
 })
 export class AdminModule {}

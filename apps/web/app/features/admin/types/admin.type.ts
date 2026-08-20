@@ -70,3 +70,8 @@ export interface CriterionWeightItem {
   criterionId: number;
   weight: number;
 }
+
+export interface CategoryItem {
+  categoryId: number;
+  categoryName: string;
+}

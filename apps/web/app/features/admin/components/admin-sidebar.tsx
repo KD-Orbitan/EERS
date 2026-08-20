@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LayoutDashboard, Building2, MessageSquareText, Flag, Users, Sliders, Scale, Bell, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Building2, MessageSquareText, Flag, Users, Sliders, Scale, Bell, TrendingUp, Tags } from 'lucide-react';
 import { useUnreadCountQuery } from '@/features/notification/queries/use-unread-count.query';
 
 const NAV_ITEMS = [
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/admin/reviews', label: 'Review Moderation', icon: MessageSquareText },
   { href: '/admin/reports', label: 'Report Management', icon: Flag },
   { href: '/admin/users', label: 'User Management', icon: Users },
+  { href: '/admin/settings/categories', label: 'Categories & Criteria', icon: Tags },
   { href: '/admin/settings/scoring', label: 'Scoring Config', icon: Sliders },
   { href: '/admin/settings/weights', label: 'Criterion Weights', icon: Scale },
   { href: '/admin/settings/ranking-trend', label: 'Ranking Trend', icon: TrendingUp },

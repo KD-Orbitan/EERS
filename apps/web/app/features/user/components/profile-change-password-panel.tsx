@@ -8,17 +8,15 @@ import { useChangePasswordMutation } from '@/features/user/mutations/use-change-
 import { ChangePasswordForm } from '@/features/user/components/change-password-form';
 import { ChangePasswordInput } from '@/features/user/schemas/change-password.schema';
 
-export default function ChangePasswordPage() {
+// "Change Password" profile tab. Backend revokes all refresh tokens on a
+// successful change (see ChangePasswordUseCase), so the current session is
+// dead too — logout() + redirect to /login is unavoidable here, unlike the
+// other tabs which just stay in place after submitting.
+export function ProfileChangePasswordPanel() {
   const router = useRouter();
   const { logout } = useAuth();
   const changePasswordMutation = useChangePasswordMutation();
 
-  // Backend revokes all refresh tokens on a successful password change (see
-  // ChangePasswordUseCase), so the current session is dead too. Calling
-  // logout() (not just clearing client state) matters here: it hits
-  // POST /auth/logout, which clears the refreshToken cookie server-side —
-  // without that, the stale cookie is still present and middleware bounces
-  // /login back to / because it only checks cookie presence, not validity.
   const onSubmit = async (data: ChangePasswordInput) => {
     try {
       await changePasswordMutation.mutateAsync(data);
@@ -31,11 +29,9 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
-      <div className="mx-auto max-w-lg">
-        <h1 className="mb-6 font-serif text-3xl font-bold text-ink-900">Change Password</h1>
-        <ChangePasswordForm onSubmit={onSubmit} isLoading={changePasswordMutation.isPending} />
-      </div>
-    </main>
+    <>
+      <h2 className="mb-6 font-serif text-lg font-bold text-ink-900">Change Password</h2>
+      <ChangePasswordForm onSubmit={onSubmit} isLoading={changePasswordMutation.isPending} />
+    </>
   );
 }
