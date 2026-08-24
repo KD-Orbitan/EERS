@@ -25,7 +25,7 @@ export function BusinessSpotlightCard({ business }: BusinessSpotlightCardProps) 
             <Trophy className="h-3.5 w-3.5" />
             Top Pick
           </span>
-          <h2 className="mt-2 font-serif text-2xl font-bold text-ink-900">{business.name}</h2>
+          <h2 className="mt-2 font-sans text-2xl font-bold text-ink-900">{business.name}</h2>
           {business.description ? <p className="mt-1 max-w-xl text-sm text-ink-700">{business.description}</p> : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-ink-700">
@@ -54,7 +54,7 @@ export function BusinessSpotlightCard({ business }: BusinessSpotlightCardProps) 
         </div>
       </div>
 
-      <span className="inline-flex shrink-0 items-center gap-1 font-serif text-sm font-bold text-primary-600 transition group-hover:gap-2">
+      <span className="inline-flex shrink-0 items-center gap-1 font-sans text-sm font-bold text-primary-600 transition group-hover:gap-2">
         View Profile
         <ArrowRight className="h-3.5 w-3.5" />
       </span>

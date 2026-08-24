@@ -23,7 +23,7 @@ export default function ScoringConfigPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="font-serif text-3xl font-bold text-ink-900">Scoring Configuration</h1>
+        <h1 className="font-sans text-3xl font-bold text-ink-900">Scoring Configuration</h1>
         <p className="mt-1 text-sm text-ink-700">
           Fraud detection and ranking pipeline parameters (D-012). Changes take effect on the next ranking
           recalculation.

@@ -90,7 +90,7 @@ export function GalleryManager({ businessId, gallery, isOwner }: GalleryManagerP
   return (
     <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-serif text-lg font-bold text-ink-900">Gallery</h2>
+        <h2 className="font-sans text-lg font-bold text-ink-900">Gallery</h2>
         {isOwner ? (
           <>
             <button

@@ -35,7 +35,7 @@ export function RankingTrendConfigForm({ config, onSubmit, isLoading }: RankingT
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-        <h2 className="font-serif text-base font-bold text-ink-900">Trend Lookback Period</h2>
+        <h2 className="font-sans text-base font-bold text-ink-900">Trend Lookback Period</h2>
         <p className="mt-1 text-xs text-ink-500">
           Used by GET /rankings/businesses/:businessId to compute the rank/score trend shown on business profiles
           (D-031). Takes effect immediately — no cache to invalidate.
@@ -50,7 +50,7 @@ export function RankingTrendConfigForm({ config, onSubmit, isLoading }: RankingT
               }`}
             >
               <input type="radio" value={option.value} className="sr-only" {...register('period')} />
-              <p className="font-serif text-sm font-bold text-ink-900">{option.label}</p>
+              <p className="font-sans text-sm font-bold text-ink-900">{option.label}</p>
               <p className="mt-1 text-xs text-ink-500">{option.description}</p>
             </label>
           ))}

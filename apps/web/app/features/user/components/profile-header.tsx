@@ -44,7 +44,7 @@ export function ProfileHeader({ profile, role, reviewCount, businessCount, saved
     <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200 lg:sticky lg:top-20">
       <div className="flex flex-col items-center text-center">
         <AvatarUpload avatarUrl={profile.avatarUrl} size="lg" />
-        <h1 className="mt-4 font-serif text-2xl font-bold text-ink-900">{profile.name}</h1>
+        <h1 className="mt-4 font-sans text-2xl font-bold text-ink-900">{profile.name}</h1>
         <Badge variant={roleVariant[role]} className="mt-2">
           {roleLabel[role]}
         </Badge>
@@ -55,15 +55,15 @@ export function ProfileHeader({ profile, role, reviewCount, businessCount, saved
 
       <div className="mt-6 grid grid-cols-3 divide-x divide-slate-100 border-y border-slate-100 py-4">
         <div className="text-center">
-          <p className="font-serif text-xl font-bold text-ink-900">{reviewCount}</p>
+          <p className="font-sans text-xl font-bold text-ink-900">{reviewCount}</p>
           <p className="text-xs text-ink-500">Reviews</p>
         </div>
         <Link href="/profile?tab=businesses" className="text-center transition hover:text-primary-600">
-          <p className="font-serif text-xl font-bold text-ink-900">{businessCount}</p>
+          <p className="font-sans text-xl font-bold text-ink-900">{businessCount}</p>
           <p className="text-xs text-ink-500">Businesses</p>
         </Link>
         <Link href="/profile?tab=bookmarks" className="text-center transition hover:text-primary-600">
-          <p className="font-serif text-xl font-bold text-ink-900">{savedCount}</p>
+          <p className="font-sans text-xl font-bold text-ink-900">{savedCount}</p>
           <p className="text-xs text-ink-500">Saved</p>
         </Link>
       </div>

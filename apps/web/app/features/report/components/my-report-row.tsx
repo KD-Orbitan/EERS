@@ -32,9 +32,9 @@ export function MyReportRow({ report }: { report: MyReportListItem }) {
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-xs ring-1 ring-slate-200">
-      <div>
+      <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="font-serif text-sm font-bold text-ink-900">{report.reason.name}</p>
+          <p className="font-sans text-sm font-bold text-ink-900">{report.reason.name}</p>
           <Badge variant={statusVariant[report.status]}>{report.status}</Badge>
         </div>
         <p className="mt-1 max-w-xl truncate text-sm text-ink-700">{report.review.content}</p>

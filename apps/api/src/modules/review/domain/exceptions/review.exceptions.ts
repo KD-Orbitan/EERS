@@ -47,3 +47,9 @@ export class PhotoLimitExceededException extends AppException {
     super('PHOTO_LIMIT_EXCEEDED', 400, message)
   }
 }
+
+export class SentimentAnalysisUnavailableException extends AppException {
+  constructor(message = 'Sentiment analysis is temporarily unavailable') {
+    super('SENTIMENT_ANALYSIS_UNAVAILABLE', 503, message)
+  }
+}

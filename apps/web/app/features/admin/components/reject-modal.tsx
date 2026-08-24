@@ -41,7 +41,7 @@ export function RejectModal({ isOpen, onClose, onSubmit, isLoading, title = 'Rej
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-serif text-lg font-bold text-ink-900">{title}</DialogTitle>
+          <DialogTitle className="font-sans text-lg font-bold text-ink-900">{title}</DialogTitle>
         </DialogHeader>
 
         <form

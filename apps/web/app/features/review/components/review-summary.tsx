@@ -54,7 +54,7 @@ export function ReviewSummary({ businessId, isOwner }: ReviewSummaryProps) {
     <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-serif text-lg font-bold text-ink-900">Reviews</h2>
+          <h2 className="font-sans text-lg font-bold text-ink-900">Reviews</h2>
           {stats ? (
             <div className="mt-1 flex items-center gap-1.5 text-sm text-ink-700">
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />

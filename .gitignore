@@ -71,3 +71,7 @@ structure.txt
 # DOCKER (nếu không muốn push runtime artifacts)
 # =========================
 docker-compose.override.yml
+docs/CLAUDE-SENTIMENT-IMPLEMENTATION.md
+docs/frontend-phase-0-1-spec.md
+docs/image-type-agent-prompt.md
+makedir.py

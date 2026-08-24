@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { registerSchema, type RegisterInput } from '@/features/auth/schemas/auth.schema';
 import { useRegisterMutation } from '@/features/auth/mutations/use-register.mutation';
+import { PasswordInput } from '@/components/ui/password-input';
 
 export function RegisterForm() {
   const router = useRouter();
@@ -73,10 +74,9 @@ export function RegisterForm() {
           <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="password">
             Password
           </label>
-          <input
+          <PasswordInput
             id="password"
-            type="password"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            className="focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             {...register('password')}
           />
           {errors.password?.message ? (
@@ -88,10 +88,9 @@ export function RegisterForm() {
           <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="confirmPassword">
             Confirm Password
           </label>
-          <input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            className="focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             {...register('confirmPassword')}
           />
           {errors.confirmPassword?.message ? (

@@ -118,7 +118,7 @@ export function BusinessVerificationPanel() {
                   businessId === item.businessId ? 'border-primary-500 bg-primary-50' : 'border-slate-200 bg-white hover:bg-slate-50'
                 }`}
               >
-                <p className="truncate font-serif text-sm font-bold text-ink-900">{item.name}</p>
+                <p className="truncate font-sans text-sm font-bold text-ink-900">{item.name}</p>
                 <p className="mt-0.5 truncate text-xs text-ink-500">
                   {item.ownerName} · {new Date(item.createdAt).toLocaleDateString()}
                 </p>
@@ -167,7 +167,7 @@ export function BusinessVerificationPanel() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-serif text-xl font-bold text-ink-900">{business.name}</h2>
+                <h2 className="font-sans text-xl font-bold text-ink-900">{business.name}</h2>
                 <Badge variant={statusVariant[business.status]}>{business.status}</Badge>
               </div>
               <p className="mt-1 text-sm text-ink-700">

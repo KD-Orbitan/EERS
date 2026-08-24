@@ -42,7 +42,7 @@ function RecentReviewCard({ review }: { review: RecentReviewItem }) {
         className="group flex items-center gap-3 border-b border-slate-100 pb-4"
       >
         <BusinessLogoBadge logoUrl={business?.logoUrl} name={review.business.name} size="sm" />
-        <span className="truncate font-serif text-sm font-bold text-ink-900 group-hover:text-primary-600">
+        <span className="truncate font-sans text-sm font-bold text-ink-900 group-hover:text-primary-600">
           {review.business.name}
         </span>
       </Link>
@@ -75,12 +75,12 @@ export function RecentReviewsSection() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="font-serif text-3xl font-bold text-ink-900">Recent Reviews</h2>
+            <h2 className="font-sans text-3xl font-bold text-ink-900">Recent Reviews</h2>
             <p className="mt-2 text-base text-ink-700">Real feedback, freshly posted across the directory.</p>
           </div>
           <Link
             href="/rankings"
-            className="inline-flex items-center gap-1 font-serif text-sm font-bold text-primary-600 hover:text-primary-700"
+            className="inline-flex items-center gap-1 font-sans text-sm font-bold text-primary-600 hover:text-primary-700"
           >
             View top-ranked businesses
             <ArrowRight className="h-3.5 w-3.5" />

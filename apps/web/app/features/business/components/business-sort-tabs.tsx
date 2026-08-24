@@ -26,7 +26,7 @@ export function BusinessSortTabs({ sortBy, onSortByChange }: BusinessSortTabsPro
             key={tab.sortBy}
             type="button"
             onClick={() => onSortByChange(tab.sortBy)}
-            className={`rounded-lg px-4 py-1 font-serif text-sm font-bold transition ${
+            className={`rounded-lg px-4 py-1 font-sans text-sm font-bold transition ${
               isActive ? 'bg-primary-500 text-white' : 'text-ink-700 hover:bg-slate-50'
             }`}
           >

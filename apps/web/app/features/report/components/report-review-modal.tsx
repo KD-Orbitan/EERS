@@ -45,7 +45,7 @@ export function ReportReviewModal({ isOpen, onClose, onSubmit, isLoading }: Repo
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-serif text-lg font-bold text-ink-900">Report this review</DialogTitle>
+          <DialogTitle className="font-sans text-lg font-bold text-ink-900">Report this review</DialogTitle>
           <p className="mt-1 text-sm text-ink-700">Let us know what&apos;s wrong. Our team will look into it.</p>
         </DialogHeader>
 

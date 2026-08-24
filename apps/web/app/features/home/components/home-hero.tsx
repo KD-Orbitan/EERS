@@ -31,7 +31,7 @@ export function HomeHero() {
           ISO 27001 CERTIFIED ENTERPRISE DATA
         </span>
 
-        <h1 className="font-serif text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">
+        <h1 className="font-sans text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">
           Find the Best in Enterprise
         </h1>
 

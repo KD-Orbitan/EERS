@@ -101,7 +101,7 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
       <div className="flex-1 px-6 py-8 sm:px-10">
         <div className="mx-auto max-w-7xl space-y-6">
           <div>
-            <h1 className="font-serif text-3xl font-bold text-ink-900">Reviews & Replies</h1>
+            <h1 className="font-sans text-3xl font-bold text-ink-900">Reviews & Replies</h1>
             <p className="mt-1 text-sm text-ink-700">Manage feedback for {business.name}</p>
           </div>
 
@@ -109,14 +109,14 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
             <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
               <p className="text-xs uppercase tracking-wide text-ink-700">Average Rating</p>
               <div className="mt-1 flex items-center gap-2">
-                <span className="font-serif text-4xl font-bold text-primary-600">{(stats?.avgRating ?? 0).toFixed(1)}</span>
+                <span className="font-sans text-4xl font-bold text-primary-600">{(stats?.avgRating ?? 0).toFixed(1)}</span>
                 <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
               </div>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
               <p className="text-xs uppercase tracking-wide text-ink-700">Total Reviews</p>
               <div className="mt-1 flex items-center gap-2">
-                <span className="font-serif text-4xl font-bold text-ink-900">{stats?.reviewCount ?? 0}</span>
+                <span className="font-sans text-4xl font-bold text-ink-900">{stats?.reviewCount ?? 0}</span>
                 <Users className="h-6 w-6 text-ink-500" />
               </div>
             </div>

@@ -28,7 +28,7 @@ export function AdminSidebar({ currentPath }: { currentPath: string }) {
   return (
     <nav className="flex w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white p-4">
       <div className="mb-4 px-2">
-        <p className="font-serif text-lg font-bold text-ink-900">Admin Panel</p>
+        <p className="font-sans text-lg font-bold text-ink-900">Admin Panel</p>
         <p className="text-xs text-ink-500">EERS moderation &amp; config</p>
       </div>
       <Link

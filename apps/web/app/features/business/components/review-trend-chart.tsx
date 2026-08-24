@@ -27,7 +27,7 @@ export function ReviewTrendChart({ businessId }: ReviewTrendChartProps) {
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-      <h2 className="font-serif text-lg font-bold text-ink-900">Reviews Over Time</h2>
+      <h2 className="font-sans text-lg font-bold text-ink-900">Reviews Over Time</h2>
       <p className="mt-1 text-xs text-ink-500">Approved reviews per month, last 12 months</p>
 
       {!hasData ? (

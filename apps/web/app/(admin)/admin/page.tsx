@@ -48,28 +48,28 @@ export default function AdminDashboardPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <h1 className="font-serif text-3xl font-bold text-ink-900">Admin Dashboard</h1>
+        <h1 className="font-sans text-3xl font-bold text-ink-900">Admin Dashboard</h1>
         <p className="mt-1 text-sm text-ink-700">Moderation and ranking configuration for EERS.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200">
           <p className="text-xs uppercase tracking-wide text-ink-500">Total Users</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-ink-900">{users?.meta.total ?? '—'}</p>
+          <p className="mt-1 font-sans text-2xl font-bold text-ink-900">{users?.meta.total ?? '—'}</p>
         </div>
         <Link href="/admin/businesses" className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
           <p className="text-xs uppercase tracking-wide text-ink-500">Pending Businesses</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-ink-900">{pendingBusinesses?.meta.total ?? '—'}</p>
+          <p className="mt-1 font-sans text-2xl font-bold text-ink-900">{pendingBusinesses?.meta.total ?? '—'}</p>
         </Link>
         <Link href="/admin/reviews" className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
           <p className="text-xs uppercase tracking-wide text-ink-500">Pending Reviews</p>
-          <p className="mt-1 font-serif text-2xl font-bold text-ink-900">{pendingReviews?.meta.total ?? '—'}</p>
+          <p className="mt-1 font-sans text-2xl font-bold text-ink-900">{pendingReviews?.meta.total ?? '—'}</p>
         </Link>
         <div className="flex items-center gap-3 rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200">
           <Trophy className="h-6 w-6 shrink-0 text-primary-600" />
           <div>
             <p className="text-xs uppercase tracking-wide text-ink-500">Businesses Ranked</p>
-            <p className="font-serif text-xl font-bold text-ink-900">{metadata?.totalRankedBusinesses ?? '—'}</p>
+            <p className="font-sans text-xl font-bold text-ink-900">{metadata?.totalRankedBusinesses ?? '—'}</p>
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-serif text-lg font-bold text-ink-900">Needs Attention</h2>
+            <h2 className="font-sans text-lg font-bold text-ink-900">Needs Attention</h2>
           </div>
 
           <div className="space-y-4">
@@ -147,7 +147,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="rounded-3xl bg-primary-600 p-6 text-white">
-          <h2 className="font-serif text-lg font-bold">Ranking Recalculation</h2>
+          <h2 className="font-sans text-lg font-bold">Ranking Recalculation</h2>
           <p className="mt-1 text-sm text-primary-100">
             Rankings recalculate automatically every hour (D-011). Trigger an immediate recalculation if scoring
             config or criterion weights just changed.

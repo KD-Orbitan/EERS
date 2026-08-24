@@ -31,7 +31,7 @@ export function CategoryGridSection() {
     <div className="bg-primary-50/40 px-4 py-16">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10 text-center">
-          <h2 className="font-serif text-3xl font-bold text-ink-900">Explore by Sector</h2>
+          <h2 className="font-sans text-3xl font-bold text-ink-900">Explore by Sector</h2>
           <p className="mt-2 text-base text-ink-700">Specialized rankings tailored to vertical-specific metrics.</p>
         </div>
 
@@ -56,7 +56,7 @@ export function CategoryGridSection() {
                     <span className={`flex h-16 w-16 items-center justify-center rounded-2xl ${tint}`}>
                       <Icon className="h-5 w-5" />
                     </span>
-                    <span className="font-serif text-sm font-semibold text-ink-900">{category.categoryName}</span>
+                    <span className="font-sans text-sm font-semibold text-ink-900">{category.categoryName}</span>
                   </Link>
                 );
               })}

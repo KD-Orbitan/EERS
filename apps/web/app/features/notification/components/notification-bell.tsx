@@ -58,7 +58,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
       {open ? (
         <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-slate-200">
           <div className="flex items-center justify-between px-2 py-1.5">
-            <p className="font-serif text-sm font-bold text-ink-900">Notifications</p>
+            <p className="font-sans text-sm font-bold text-ink-900">Notifications</p>
             {unreadCount > 0 ? (
               <button
                 type="button"

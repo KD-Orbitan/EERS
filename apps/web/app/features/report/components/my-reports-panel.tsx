@@ -13,7 +13,7 @@ export function MyReportsPanel() {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-serif text-lg font-bold text-ink-900">
+        <h2 className="font-sans text-lg font-bold text-ink-900">
           {total} {total === 1 ? 'Report' : 'Reports'}
         </h2>
         {total > 0 ? (

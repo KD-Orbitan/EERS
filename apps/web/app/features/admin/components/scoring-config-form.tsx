@@ -122,7 +122,7 @@ export function ScoringConfigForm({ config, onSubmit, isLoading }: ScoringConfig
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {GROUPS.map((group) => (
         <div key={group.title} className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-          <h2 className="font-serif text-base font-bold text-ink-900">{group.title}</h2>
+          <h2 className="font-sans text-base font-bold text-ink-900">{group.title}</h2>
           <p className="mt-1 text-xs text-ink-500">{group.description}</p>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

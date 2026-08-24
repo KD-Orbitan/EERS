@@ -78,7 +78,7 @@ function BusinessesPageContent() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-serif text-3xl font-bold text-ink-900">Business Directory</h1>
+            <h1 className="font-sans text-3xl font-bold text-ink-900">Business Directory</h1>
             <p className="mt-1 text-sm text-ink-700">Browse approved businesses on EERS</p>
           </div>
           <BusinessSortTabs sortBy={sortBy} onSortByChange={setSortBy} />

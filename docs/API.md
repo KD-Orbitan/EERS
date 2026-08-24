@@ -1519,6 +1519,44 @@ IMAGE_NOT_FOUND    404  // imageId does not belong to this review
 
 ---
 
+## POST /reviews/:reviewId/analyze-sentiment
+
+```
+Auth   : Admin only
+Purpose: Run sentiment analysis on a review's content and persist the result
+Behavior: Runs local ML inference (Transformers.js) on review.content, then
+          updates sentiment, sentimentScore, and sentimentAnalyzedAt on the review
+```
+
+Response `200`:
+
+```typescript
+interface AnalyzeReviewSentimentResponse {
+  sentiment:  'positive' | 'neutral' | 'negative'
+  score:      number   // 0.0000-1.0000
+  analyzedAt: string   // ISO 8601
+}
+```
+
+Errors:
+
+```
+REVIEW_NOT_FOUND                404
+SENTIMENT_ANALYSIS_UNAVAILABLE  503  // model failed to load, or inference failed
+```
+
+Notes:
+
+```
+- Also run automatically by a daily cron job over reviews where
+  sentimentAnalyzedAt IS NULL (batches of 10) — this endpoint exists for
+  on-demand/manual re-analysis by an admin
+- Display-only: sentiment/score are not used in the ranking/fraud pipeline
+  (sentimentLambda in scoring_config remains 0 per D-012 MVP)
+```
+
+---
+
 ## GET /businesses/:businessId/review-statistics
 
 ```
@@ -3142,6 +3180,7 @@ Reviews:
   GET    /reviews/:reviewId
   PATCH  /reviews/:reviewId
   DELETE /reviews/:reviewId
+  POST   /reviews/:reviewId/analyze-sentiment
   POST   /reviews/:reviewId/reply
   GET    /reviews/:reviewId/reply
 

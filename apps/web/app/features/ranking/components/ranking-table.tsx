@@ -54,7 +54,7 @@ export function RankingTable({ rankings, isLoading, pagination, onPageChange }: 
           <tbody>
             {rankings.map((item) => (
               <tr key={item.businessId} className="border-b border-slate-100 last:border-0 hover:bg-primary-50">
-                <td className="px-6 py-4 font-serif text-base font-bold text-ink-900">#{item.rank}</td>
+                <td className="px-6 py-4 font-sans text-base font-bold text-ink-900">#{item.rank}</td>
                 <td className="px-6 py-4">
                   <Link href={`/businesses/${item.businessId}`} className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100">

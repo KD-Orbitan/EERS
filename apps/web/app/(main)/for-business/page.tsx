@@ -59,7 +59,7 @@ export default function ForBusinessPage() {
             FOR BUSINESS OWNERS
           </span>
 
-          <h1 className="mt-4 font-serif text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">
+          <h1 className="mt-4 font-sans text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">
             Grow Your Business&apos;s Reputation
           </h1>
           <p className="mt-4 text-lg text-ink-700">
@@ -70,14 +70,14 @@ export default function ForBusinessPage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/businesses/create"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 font-serif text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-lg"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 font-sans text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-lg"
             >
               List Your Business
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href={isAuthenticated ? '/businesses/my' : '/login'}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-serif text-sm font-bold text-ink-900 shadow-xs transition hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-sans text-sm font-bold text-ink-900 shadow-xs transition hover:bg-slate-50"
             >
               {isAuthenticated ? 'Manage Your Businesses' : 'Sign In to Manage'}
             </Link>
@@ -92,21 +92,21 @@ export default function ForBusinessPage() {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-600/10 text-primary-600">
                 <feature.icon className="h-5 w-5" />
               </span>
-              <h2 className="mt-4 font-serif text-lg font-bold text-ink-900">{feature.title}</h2>
+              <h2 className="mt-4 font-sans text-lg font-bold text-ink-900">{feature.title}</h2>
               <p className="mt-1.5 text-sm text-ink-700">{feature.description}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-6 rounded-3xl bg-white p-8 shadow-xs ring-1 ring-slate-200 sm:p-10">
-          <h2 className="text-center font-serif text-2xl font-bold text-ink-900">How It Works</h2>
+          <h2 className="text-center font-sans text-2xl font-bold text-ink-900">How It Works</h2>
           <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-4">
             {STEPS.map((step, index) => (
               <div key={step.title} className="text-center">
-                <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 font-serif text-sm font-bold text-white">
+                <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 font-sans text-sm font-bold text-white">
                   {index + 1}
                 </span>
-                <h3 className="mt-3 font-serif text-sm font-bold text-ink-900">{step.title}</h3>
+                <h3 className="mt-3 font-sans text-sm font-bold text-ink-900">{step.title}</h3>
                 <p className="mt-1 text-xs text-ink-700">{step.description}</p>
               </div>
             ))}
@@ -116,18 +116,18 @@ export default function ForBusinessPage() {
         <div className="mt-6 rounded-3xl bg-ink-900 p-8 text-white sm:p-10">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             <div>
-              <h2 className="font-serif text-2xl font-bold">Join the Ranked Businesses</h2>
+              <h2 className="font-sans text-2xl font-bold">Join the Ranked Businesses</h2>
               <p className="mt-2 text-sm text-white/70">
                 Live figures from our own ranking snapshot &mdash; the same data that powers the leaderboard.
               </p>
             </div>
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:gap-8">
               <div>
-                <p className="font-serif text-3xl font-bold">{metadata?.totalRankedBusinesses ?? '—'}</p>
+                <p className="font-sans text-3xl font-bold">{metadata?.totalRankedBusinesses ?? '—'}</p>
                 <p className="text-sm text-white/60">Businesses ranked</p>
               </div>
               <div>
-                <p className="font-serif text-lg font-bold">
+                <p className="font-sans text-lg font-bold">
                   {metadata ? new Date(metadata.lastCalculatedAt).toLocaleString() : '—'}
                 </p>
                 <p className="text-sm text-white/60">Last recalculated</p>
@@ -137,14 +137,14 @@ export default function ForBusinessPage() {
         </div>
 
         <div className="mt-10 overflow-hidden rounded-3xl bg-primary-600 px-8 py-12 text-center shadow-lg sm:px-16">
-          <h2 className="font-serif text-2xl font-bold text-white sm:text-3xl">Ready to Get Started?</h2>
+          <h2 className="font-sans text-2xl font-bold text-white sm:text-3xl">Ready to Get Started?</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-primary-100">
             Listing your business takes a couple of minutes. Our moderation team reviews every submission before it
             goes live.
           </p>
           <Link
             href="/businesses/create"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-serif text-sm font-bold text-primary-700 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-sans text-sm font-bold text-primary-700 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
           >
             List Your Business
             <ArrowRight className="h-4 w-4" />

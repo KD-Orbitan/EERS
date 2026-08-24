@@ -33,7 +33,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
-            <Link href="/" className="font-serif text-xl font-bold text-white">
+            <Link href="/" className="font-sans text-xl font-bold text-white">
               EERS
             </Link>
             <p className="mt-2 text-sm text-white/60">Enterprise Evaluation &amp; Ranking System</p>

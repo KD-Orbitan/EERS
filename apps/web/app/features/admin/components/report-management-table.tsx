@@ -92,7 +92,7 @@ export function ReportManagementTable() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-serif text-sm font-bold text-ink-900">{report.reason.name}</p>
+                    <p className="font-sans text-sm font-bold text-ink-900">{report.reason.name}</p>
                     <Badge variant={statusVariant[report.status]}>{report.status}</Badge>
                   </div>
                   <p className="mt-1 text-xs text-ink-500">

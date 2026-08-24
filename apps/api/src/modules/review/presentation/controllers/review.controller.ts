@@ -18,6 +18,8 @@ import { FilesInterceptor } from '@nestjs/platform-express'
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard'
+import { RolesGuard } from '../../../../common/guards/roles.guard'
+import { Roles } from '../../../../common/decorators/roles.decorator'
 import { CreateReviewDto } from '../../application/dto/create-review.dto'
 import { UpdateReviewDto } from '../../application/dto/update-review.dto'
 import { CreateReplyDto } from '../../application/dto/create-reply.dto'
@@ -30,6 +32,7 @@ import { GetRecentReviewsUseCase } from '../../application/use-cases/get-recent-
 import { CreateReplyUseCase } from '../../application/use-cases/create-reply.use-case'
 import { UploadReviewPhotosUseCase } from '../../application/use-cases/upload-review-photos.use-case'
 import { DeleteReviewPhotoUseCase } from '../../application/use-cases/delete-review-photo.use-case'
+import { AnalyzeReviewSentimentUseCase } from '../../application/use-cases/analyze-review-sentiment.use-case'
 import { ReplyRepository } from '../../domain/repositories/reply.repository'
 import { ReplyNotFoundException } from '../../domain/exceptions/review.exceptions'
 
@@ -46,6 +49,7 @@ export class ReviewController {
     private readonly createReplyUseCase: CreateReplyUseCase,
     private readonly uploadReviewPhotosUseCase: UploadReviewPhotosUseCase,
     private readonly deleteReviewPhotoUseCase: DeleteReviewPhotoUseCase,
+    private readonly analyzeReviewSentimentUseCase: AnalyzeReviewSentimentUseCase,
     private readonly replyRepository: ReplyRepository,
   ) {}
 
@@ -114,6 +118,14 @@ export class ReviewController {
     @Param('imageId', ParseIntPipe) imageId: number,
   ) {
     await this.deleteReviewPhotoUseCase.execute({ reviewId, imageId, user })
+  }
+
+  @Post(':reviewId/analyze-sentiment')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async analyzeSentiment(@Param('reviewId', ParseIntPipe) reviewId: number) {
+    return this.analyzeReviewSentimentUseCase.execute({ reviewId })
   }
 
   @Post(':reviewId/reply')

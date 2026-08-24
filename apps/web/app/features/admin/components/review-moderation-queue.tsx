@@ -98,7 +98,7 @@ export function ReviewModerationQueue() {
                 <div>
                   <Link
                     href={`/businesses/${review.businessId}`}
-                    className="font-serif text-sm font-bold text-primary-600 hover:text-primary-700"
+                    className="font-sans text-sm font-bold text-primary-600 hover:text-primary-700"
                   >
                     {review.businessName}
                   </Link>

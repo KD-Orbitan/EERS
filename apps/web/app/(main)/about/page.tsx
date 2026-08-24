@@ -45,7 +45,7 @@ export default function AboutPage() {
         <div className="pointer-events-none absolute -bottom-24 -right-32 h-80 w-[32rem] rounded-full bg-info-100/40 blur-3xl" />
 
         <div className="relative mx-auto max-w-2xl">
-          <h1 className="font-serif text-4xl font-bold text-ink-900 sm:text-5xl">About EERS</h1>
+          <h1 className="font-sans text-4xl font-bold text-ink-900 sm:text-5xl">About EERS</h1>
           <p className="mt-4 text-lg text-ink-700">
             EERS &mdash; the Enterprise Evaluation &amp; Ranking System &mdash; helps people find businesses worth
             trusting, and gives businesses a ranking they can point to and explain, not a black box.
@@ -60,7 +60,7 @@ export default function AboutPage() {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-600/10 text-primary-600">
                 <principle.icon className="h-5 w-5" />
               </span>
-              <h2 className="mt-4 font-serif text-lg font-bold text-ink-900">{principle.title}</h2>
+              <h2 className="mt-4 font-sans text-lg font-bold text-ink-900">{principle.title}</h2>
               <p className="mt-1.5 text-sm text-ink-700">{principle.description}</p>
             </div>
           ))}
@@ -69,18 +69,18 @@ export default function AboutPage() {
         <div className="mt-6 rounded-3xl bg-ink-900 p-8 text-white sm:p-10">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             <div>
-              <h2 className="font-serif text-2xl font-bold">By the Numbers</h2>
+              <h2 className="font-sans text-2xl font-bold">By the Numbers</h2>
               <p className="mt-2 text-sm text-white/70">
                 Live figures from our own ranking snapshot &mdash; the same data that powers the leaderboard.
               </p>
             </div>
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:gap-8">
               <div>
-                <p className="font-serif text-3xl font-bold">{metadata?.totalRankedBusinesses ?? '—'}</p>
+                <p className="font-sans text-3xl font-bold">{metadata?.totalRankedBusinesses ?? '—'}</p>
                 <p className="text-sm text-white/60">Businesses ranked</p>
               </div>
               <div>
-                <p className="font-serif text-lg font-bold">
+                <p className="font-sans text-lg font-bold">
                   {metadata ? new Date(metadata.lastCalculatedAt).toLocaleString() : '—'}
                 </p>
                 <p className="text-sm text-white/60">Last recalculated</p>
@@ -92,14 +92,14 @@ export default function AboutPage() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-center">
           <Link
             href="/businesses"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 font-serif text-sm font-bold text-white shadow-md transition hover:bg-primary-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 font-sans text-sm font-bold text-white shadow-md transition hover:bg-primary-700"
           >
             Explore the Directory
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href="/rankings"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-serif text-sm font-bold text-ink-900 shadow-xs transition hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-sans text-sm font-bold text-ink-900 shadow-xs transition hover:bg-slate-50"
           >
             View the Leaderboard
           </Link>

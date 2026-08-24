@@ -14,7 +14,7 @@ export function MyReviewsPanel() {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-serif text-lg font-bold text-ink-900">
+        <h2 className="font-sans text-lg font-bold text-ink-900">
           {reviewCount} {reviewCount === 1 ? 'Review' : 'Reviews'}
         </h2>
         {reviewCount > 0 ? (

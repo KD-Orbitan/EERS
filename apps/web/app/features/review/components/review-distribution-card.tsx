@@ -19,7 +19,7 @@ export function ReviewDistributionCard({ businessId }: ReviewDistributionCardPro
   if (!data || data.reviewCount === 0) {
     return (
       <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-        <h2 className="font-serif text-lg font-bold text-ink-900">Review Distribution</h2>
+        <h2 className="font-sans text-lg font-bold text-ink-900">Review Distribution</h2>
         <p className="mt-8 text-center text-sm text-ink-500">No approved reviews yet.</p>
       </div>
     );
@@ -27,7 +27,7 @@ export function ReviewDistributionCard({ businessId }: ReviewDistributionCardPro
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-      <h2 className="font-serif text-lg font-bold text-ink-900">Review Distribution</h2>
+      <h2 className="font-sans text-lg font-bold text-ink-900">Review Distribution</h2>
 
       <div className="mt-4 space-y-2">
         {([5, 4, 3, 2, 1] as const).map((star) => {

@@ -3,6 +3,8 @@ export class ReviewEntity {
   content!: string
   overallRating!: number
   sentiment?: string | null
+  sentimentScore?: number | null
+  sentimentAnalyzedAt?: Date | null
   status!: string
   createdAt!: Date
   updatedAt!: Date

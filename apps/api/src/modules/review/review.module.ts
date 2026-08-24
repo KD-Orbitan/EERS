@@ -27,6 +27,8 @@ import { GetApprovedReviewsUseCase } from './application/use-cases/get-approved-
 import { GetRecentReviewsUseCase } from './application/use-cases/get-recent-reviews.use-case'
 import { UploadReviewPhotosUseCase } from './application/use-cases/upload-review-photos.use-case'
 import { DeleteReviewPhotoUseCase } from './application/use-cases/delete-review-photo.use-case'
+import { AnalyzeReviewSentimentUseCase } from './application/use-cases/analyze-review-sentiment.use-case'
+import { SentimentAnalysisJob } from '../../jobs/sentiment-analysis.job'
 import { BusinessModule } from '../business/business.module'
 import { NotificationModule } from '../notification/notification.module'
 
@@ -74,6 +76,8 @@ import { NotificationModule } from '../notification/notification.module'
     DeleteReplyUseCase,
     UploadReviewPhotosUseCase,
     DeleteReviewPhotoUseCase,
+    AnalyzeReviewSentimentUseCase,
+    SentimentAnalysisJob,
   ],
   exports: [GetReviewStatisticsUseCase, ReviewRepository],
 })

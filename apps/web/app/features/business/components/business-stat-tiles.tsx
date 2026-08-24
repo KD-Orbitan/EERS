@@ -19,7 +19,7 @@ export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: Busin
       <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
         <p className="text-xs uppercase tracking-wide text-ink-700">Average Rating</p>
         <div className="mt-1 flex items-center gap-2">
-          <span className="font-serif text-4xl font-bold text-primary-600">{avgRating.toFixed(1)}</span>
+          <span className="font-sans text-4xl font-bold text-primary-600">{avgRating.toFixed(1)}</span>
           <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
         </div>
       </div>
@@ -27,7 +27,7 @@ export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: Busin
       <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
         <p className="text-xs uppercase tracking-wide text-ink-700">Total Reviews</p>
         <div className="mt-1 flex items-center gap-2">
-          <span className="font-serif text-4xl font-bold text-ink-900">{reviewCount}</span>
+          <span className="font-sans text-4xl font-bold text-ink-900">{reviewCount}</span>
           <Users className="h-6 w-6 text-ink-500" />
         </div>
       </div>
@@ -35,7 +35,7 @@ export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: Busin
       <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
         <p className="text-xs uppercase tracking-wide text-ink-700">Global Rank</p>
         <div className="mt-1 flex items-center gap-2">
-          <span className="font-serif text-4xl font-bold text-ink-900">{rank ? `#${rank}` : '—'}</span>
+          <span className="font-sans text-4xl font-bold text-ink-900">{rank ? `#${rank}` : '—'}</span>
           <Trophy className="h-6 w-6 text-amber-500" />
         </div>
         <RankingTrendBadge trend={trend} variant="light" />

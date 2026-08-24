@@ -387,6 +387,8 @@ model Review {
   content    String        @db.Text
   overallRating Int        @map("overall_rating") @db.SmallInt
   sentiment  SentimentType?
+  sentimentScore       Decimal?  @map("sentiment_score") @db.Decimal(5, 4)
+  sentimentAnalyzedAt  DateTime? @map("sentiment_analyzed_at") @db.Timestamptz
   status     ReviewStatus  @default(pending)
   createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz

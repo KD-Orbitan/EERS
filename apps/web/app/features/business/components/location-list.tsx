@@ -58,7 +58,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
   return (
     <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-serif text-lg font-bold text-ink-900">Locations</h2>
+        <h2 className="font-sans text-lg font-bold text-ink-900">Locations</h2>
         {isOwner ? (
           <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -72,7 +72,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className="font-serif text-lg font-bold text-ink-900">Add location</DialogTitle>
+                <DialogTitle className="font-sans text-lg font-bold text-ink-900">Add location</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit(onAddLocation)} className="space-y-3">
                 <div>

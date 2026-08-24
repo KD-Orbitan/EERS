@@ -9,28 +9,29 @@ import { TopRankingItem } from '@/features/ranking/types/ranking.type';
 // it in silver/bronze. There's no business photo field, so avatars are an
 // icon placeholder instead of the Figma mockup's image.
 const TIER = {
-  1: { ring: 'border-amber-400', badge: 'bg-amber-400 text-white', label: 'GOLD', card: 'bg-primary-500/10 border-2 border-primary-600/20 shadow-lg sm:-mt-4' },
+  1: { ring: 'border-amber-400', badge: 'bg-amber-400 text-white', label: 'GOLD', card: 'bg-primary-500/10 border-2 border-primary-600/20 shadow-lg -mt-2 sm:-mt-4' },
   2: { ring: 'border-slate-300', badge: 'bg-slate-300 text-ink-900', label: 'SILVER', card: 'bg-primary-200/60 border border-slate-200' },
-  3: { ring: 'border-orange-300', badge: 'bg-orange-300 text-ink-900', label: 'BRONZE', card: 'bg-primary-200/60 border border-slate-200 sm:mt-2' },
+  3: { ring: 'border-orange-300', badge: 'bg-orange-300 text-ink-900', label: 'BRONZE', card: 'bg-primary-200/60 border border-slate-200 mt-1 sm:mt-2' },
 } as const;
 
 function SpotlightCard({ item, tier }: { item: TopRankingItem; tier: 1 | 2 | 3 }) {
   const style = TIER[tier];
-  const avatarSize = tier === 1 ? 'h-32 w-32' : 'h-24 w-24';
+  const avatarSize = tier === 1 ? 'h-14 w-14 sm:h-32 sm:w-32' : 'h-11 w-11 sm:h-24 sm:w-24';
+  const iconSize = tier === 1 ? 'h-5 w-5 sm:h-10 sm:w-10' : 'h-4 w-4 sm:h-8 sm:w-8';
 
   return (
-    <Link href={`/businesses/${item.businessId}`} className={`flex flex-col items-center rounded-3xl px-6 py-8 text-center transition hover:-translate-y-0.5 ${style.card}`}>
-      <div className="relative mb-4">
-        <div className={`flex items-center justify-center rounded-full border-4 bg-white ${style.ring} ${avatarSize}`}>
-          <Building2 className={tier === 1 ? 'h-10 w-10 text-primary-600' : 'h-8 w-8 text-primary-600'} />
+    <Link href={`/businesses/${item.businessId}`} className={`flex flex-col items-center rounded-xl px-2 py-3 text-center transition hover:-translate-y-0.5 sm:rounded-3xl sm:px-6 sm:py-8 ${style.card}`}>
+      <div className="relative mb-2 sm:mb-4">
+        <div className={`flex items-center justify-center rounded-full border-2 bg-white sm:border-4 ${style.ring} ${avatarSize}`}>
+          <Building2 className={`text-primary-600 ${iconSize}`} />
         </div>
-        <span className={`absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-4 py-1 text-xs font-bold tracking-wide shadow-sm ${style.badge}`}>
+        <span className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wide shadow-sm sm:-bottom-2 sm:px-4 sm:py-1 sm:text-xs ${style.badge}`}>
           {style.label}
         </span>
       </div>
-      <h3 className={`font-serif font-bold text-ink-900 ${tier === 1 ? 'text-2xl' : 'text-xl'}`}>{item.businessName}</h3>
-      {item.province ? <p className="mt-1 text-sm text-ink-700">{item.province}</p> : null}
-      <p className={`mt-3 font-serif font-black text-primary-600 ${tier === 1 ? 'text-5xl' : 'text-2xl'}`}>{item.rankingScore.toFixed(1)}</p>
+      <h3 className={`w-full truncate font-sans font-bold text-ink-900 ${tier === 1 ? 'text-sm sm:text-2xl' : 'text-xs sm:text-xl'}`}>{item.businessName}</h3>
+      {item.province ? <p className="mt-0.5 w-full truncate text-[10px] text-ink-700 sm:mt-1 sm:text-sm">{item.province}</p> : null}
+      <p className={`mt-1 font-sans font-black text-primary-600 sm:mt-3 ${tier === 1 ? 'text-xl sm:text-5xl' : 'text-base sm:text-2xl'}`}>{item.rankingScore.toFixed(1)}</p>
     </Link>
   );
 }
@@ -43,9 +44,9 @@ interface RankingSpotlightProps {
 export function RankingSpotlight({ items, isLoading }: RankingSpotlightProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="h-72 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />
+          <div key={index} className="h-40 animate-pulse rounded-xl bg-white shadow-xs ring-1 ring-slate-200 sm:h-72 sm:rounded-3xl" />
         ))}
       </div>
     );
@@ -60,7 +61,7 @@ export function RankingSpotlight({ items, isLoading }: RankingSpotlightProps) {
   const tiers = items.length >= 3 ? ([2, 1, 3] as const) : items.map((_, i) => (i + 1) as 1 | 2 | 3);
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
       {ordered.map((item, index) => (
         <SpotlightCard key={item.businessId} item={item} tier={tiers[index]} />
       ))}

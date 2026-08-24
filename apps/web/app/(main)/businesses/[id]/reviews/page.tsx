@@ -79,7 +79,7 @@ export default function BusinessReviewsPage({ params }: { params: Promise<{ id: 
 
         <div className="mt-3 mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-serif text-3xl font-bold text-ink-900">Reviews</h1>
+            <h1 className="font-sans text-3xl font-bold text-ink-900">Reviews</h1>
             {stats ? (
               <div className="mt-1 flex items-center gap-1.5 text-sm text-ink-700">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />

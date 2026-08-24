@@ -40,7 +40,7 @@ export function TrendingBusinessesSection() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-serif text-2xl font-bold text-ink-900">Trending Businesses</h2>
+        <h2 className="font-sans text-2xl font-bold text-ink-900">Trending Businesses</h2>
         <Link
           href="/businesses?sortBy=reviewCount"
           className="inline-flex shrink-0 items-center rounded-full border border-primary-600 px-4 py-1.5 text-sm font-bold text-primary-600 transition hover:bg-primary-50"

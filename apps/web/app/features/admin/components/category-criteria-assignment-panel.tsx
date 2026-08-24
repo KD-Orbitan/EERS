@@ -41,7 +41,7 @@ export function CategoryCriteriaAssignmentPanel() {
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-      <h2 className="font-serif text-base font-bold text-ink-900">Assign Criteria to Category</h2>
+      <h2 className="font-sans text-base font-bold text-ink-900">Assign Criteria to Category</h2>
       <p className="mt-1 text-xs text-ink-500">
         Businesses inherit criteria from their categories — pick a category, then check the criteria it should use.
       </p>

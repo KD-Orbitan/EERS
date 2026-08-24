@@ -49,7 +49,7 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
             <LogoUpload businessId={business.businessId} logoUrl={business.logoUrl} isOwner={isOwner} />
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-serif text-3xl font-bold text-white sm:text-4xl">{business.name}</h1>
+                <h1 className="font-sans text-3xl font-bold text-white sm:text-4xl">{business.name}</h1>
                 <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary-100 backdrop-blur-sm">
                   {business.status}
                 </span>
@@ -147,7 +147,7 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
         <div className="rounded-3xl bg-primary-500 p-6 text-white">
           <div className="flex items-center gap-2">
             <Tag className="h-5 w-5 text-primary-100" />
-            <p className="font-serif text-lg font-bold">Categories</p>
+            <p className="font-sans text-lg font-bold">Categories</p>
           </div>
           <p className="mt-1 text-sm text-primary-100">
             {business.categories.length > 0

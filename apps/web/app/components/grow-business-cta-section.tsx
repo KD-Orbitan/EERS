@@ -16,7 +16,7 @@ export function GrowBusinessCtaSection() {
             <TrendingUp className="h-6 w-6" />
           </span>
           <div>
-            <h2 className="font-serif text-xl font-bold text-ink-900">Looking to Grow Your Business?</h2>
+            <h2 className="font-sans text-xl font-bold text-ink-900">Looking to Grow Your Business?</h2>
             <p className="mt-1 max-w-md text-sm text-ink-700">
               Claim your profile, reply to reviews, and track your ranking &mdash; free to list.
             </p>
@@ -24,7 +24,7 @@ export function GrowBusinessCtaSection() {
         </div>
         <Link
           href="/for-business"
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 font-serif text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-lg"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 font-sans text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-lg"
         >
           Explore Business Tools
           <ArrowRight className="h-4 w-4" />

@@ -23,7 +23,7 @@ export function CriteriaScoresCard({ businessId }: CriteriaScoresCardProps) {
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-      <h2 className="font-serif text-lg font-bold text-ink-900">Performance Benchmarks</h2>
+      <h2 className="font-sans text-lg font-bold text-ink-900">Performance Benchmarks</h2>
       <p className="mt-1 text-xs text-ink-500">Average rating per criterion, out of 5</p>
 
       <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">

@@ -108,6 +108,26 @@ export class PrismaReviewRepository extends ReviewRepository {
     })
   }
 
+  async updateSentiment(reviewId: number, result: { sentiment: string; sentimentScore: number; sentimentAnalyzedAt: Date }) {
+    await this.prisma.review.update({
+      where: { reviewId: BigInt(reviewId) },
+      data: {
+        sentiment: result.sentiment as any,
+        sentimentScore: result.sentimentScore,
+        sentimentAnalyzedAt: result.sentimentAnalyzedAt,
+      },
+    })
+  }
+
+  async findUnanalyzed(limit: number) {
+    const reviews = await this.prisma.review.findMany({
+      where: { sentimentAnalyzedAt: null, deletedAt: null },
+      select: { reviewId: true, content: true },
+      take: limit,
+    })
+    return reviews.map((review) => ({ reviewId: Number(review.reviewId), content: review.content }))
+  }
+
   async listByBusiness(businessId: number, options) {
     const where: any = {
       businessId: BigInt(businessId),
@@ -317,6 +337,8 @@ export class PrismaReviewRepository extends ReviewRepository {
       content: review.content,
       overallRating: review.overallRating,
       sentiment: review.sentiment,
+      sentimentScore: review.sentimentScore ? Number(review.sentimentScore) : null,
+      sentimentAnalyzedAt: review.sentimentAnalyzedAt,
       status: review.status,
       createdAt: review.createdAt,
       updatedAt: review.updatedAt,

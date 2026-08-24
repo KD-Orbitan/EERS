@@ -30,7 +30,7 @@ export function ProfileChangePasswordPanel() {
 
   return (
     <>
-      <h2 className="mb-6 font-serif text-lg font-bold text-ink-900">Change Password</h2>
+      <h2 className="mb-6 font-sans text-lg font-bold text-ink-900">Change Password</h2>
       <ChangePasswordForm onSubmit={onSubmit} isLoading={changePasswordMutation.isPending} />
     </>
   );

@@ -34,7 +34,7 @@ export default function NotificationsPage() {
     <main className="min-h-screen bg-slate-50 px-4 py-8">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-serif text-3xl font-bold text-ink-900">Notifications</h1>
+          <h1 className="font-sans text-3xl font-bold text-ink-900">Notifications</h1>
           <button
             type="button"
             onClick={onMarkAllRead}

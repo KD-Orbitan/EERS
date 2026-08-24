@@ -37,7 +37,7 @@ export default function MyReviewsPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
       <div className="mx-auto max-w-3xl">
-        <h1 className="mb-6 font-serif text-3xl font-bold text-ink-900">My Reviews</h1>
+        <h1 className="mb-6 font-sans text-3xl font-bold text-ink-900">My Reviews</h1>
 
         {isLoading ? (
           <div className="space-y-3">
@@ -59,7 +59,7 @@ export default function MyReviewsPage() {
                 <div>
                   <Link
                     href={`/businesses/${review.business.businessId}`}
-                    className="font-serif text-sm font-bold text-ink-900 hover:text-primary-600"
+                    className="font-sans text-sm font-bold text-ink-900 hover:text-primary-600"
                   >
                     {review.business.name}
                   </Link>

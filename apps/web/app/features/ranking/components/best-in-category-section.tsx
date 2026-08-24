@@ -51,7 +51,7 @@ export function BestInCategorySection() {
       {populated.map(({ category, items }) => (
         <section key={category.categoryId}>
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="font-serif text-2xl font-bold text-ink-900">Best in {category.categoryName}</h2>
+            <h2 className="font-sans text-2xl font-bold text-ink-900">Best in {category.categoryName}</h2>
             <Link
               href={`/businesses?categoryId=${category.categoryId}`}
               className="inline-flex shrink-0 items-center rounded-full border border-primary-600 px-4 py-1.5 text-sm font-bold text-primary-600 transition hover:bg-primary-50"

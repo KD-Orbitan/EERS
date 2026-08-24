@@ -41,7 +41,7 @@ export function ReviewCard({ review, businessId, isAuthor, canReply, onEdit, onD
     <div className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-serif text-sm font-bold text-ink-900">{review.author.name}</p>
+          <p className="font-sans text-sm font-bold text-ink-900">{review.author.name}</p>
           <div className="mt-1 flex items-center gap-2">
             <StarRating value={review.overallRating} readOnly size="sm" />
             <span className="text-xs text-ink-500">{new Date(review.createdAt).toLocaleDateString()}</span>

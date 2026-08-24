@@ -28,7 +28,7 @@ export function MyReviewRow({ review }: { review: MyReviewListItem }) {
     >
       <BusinessLogoBadge logoUrl={business?.logoUrl} name={review.business.name} />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-serif text-sm font-bold text-ink-900">{review.business.name}</p>
+        <p className="truncate font-sans text-sm font-bold text-ink-900">{review.business.name}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <StarRating value={review.overallRating} readOnly size="sm" />
           <span className="text-xs text-ink-500">{new Date(review.createdAt).toLocaleDateString()}</span>

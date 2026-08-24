@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { loginSchema, type LoginInput } from '@/features/auth/schemas/auth.schema';
 import { useLoginMutation } from '@/features/auth/mutations/use-login.mutation';
 import { QUERY_KEYS } from '@/lib/query-keys';
+import { PasswordInput } from '@/components/ui/password-input';
 
 export function LoginForm() {
   const router = useRouter();
@@ -62,10 +63,9 @@ export function LoginForm() {
           <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="password">
             Password
           </label>
-          <input
+          <PasswordInput
             id="password"
-            type="password"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            className="focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             {...register('password')}
           />
           {errors.password?.message ? (

@@ -16,7 +16,7 @@ export function RankingMethodology() {
   return (
     <div className="space-y-4">
       <div className="rounded-3xl border border-slate-200 bg-white/70 p-6 shadow-xs backdrop-blur-sm">
-        <h2 className="font-serif text-lg font-bold text-ink-900">How rankings work</h2>
+        <h2 className="font-sans text-lg font-bold text-ink-900">How rankings work</h2>
         <p className="mt-3 text-sm text-ink-700">
           Scores are recalculated hourly from approved reviews only, combining weighted criteria ratings with a
           Bayesian adjustment so businesses with few reviews aren&apos;t unfairly boosted or penalized. Rankings are
@@ -40,7 +40,7 @@ export function RankingMethodology() {
       <div className="rounded-3xl bg-primary-600 p-6 text-white">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5" />
-          <h3 className="font-serif text-base font-bold">Moderated reviews</h3>
+          <h3 className="font-sans text-base font-bold">Moderated reviews</h3>
         </div>
         <p className="mt-2 text-sm text-primary-100">
           Every review is checked before it affects a ranking &mdash; only approved reviews count toward a

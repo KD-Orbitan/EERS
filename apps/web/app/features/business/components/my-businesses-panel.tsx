@@ -13,7 +13,7 @@ export function MyBusinessesPanel() {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-serif text-lg font-bold text-ink-900">
+        <h2 className="font-sans text-lg font-bold text-ink-900">
           {total} {total === 1 ? 'Business' : 'Businesses'}
         </h2>
         <div className="flex items-center gap-4">

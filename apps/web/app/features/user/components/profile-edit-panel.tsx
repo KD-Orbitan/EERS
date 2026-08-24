@@ -34,7 +34,7 @@ export function ProfileEditPanel() {
 
   return (
     <>
-      <h2 className="mb-6 font-serif text-lg font-bold text-ink-900">Edit Profile</h2>
+      <h2 className="mb-6 font-sans text-lg font-bold text-ink-900">Edit Profile</h2>
       <ProfileForm profile={profile} onSubmit={onSubmit} isLoading={updateProfileMutation.isPending} />
     </>
   );

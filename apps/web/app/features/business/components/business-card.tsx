@@ -43,7 +43,7 @@ export function BusinessCard({ business, onDelete }: BusinessCardProps) {
         </div>
 
         <Link href={`/businesses/${business.businessId}`}>
-          <h3 className="truncate font-serif text-lg font-bold text-ink-900 hover:text-primary-600">
+          <h3 className="truncate font-sans text-lg font-bold text-ink-900 hover:text-primary-600">
             {business.name}
           </h3>
         </Link>
@@ -77,7 +77,7 @@ export function BusinessCard({ business, onDelete }: BusinessCardProps) {
       <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
         <Link
           href={`/businesses/${business.businessId}`}
-          className="inline-flex items-center gap-1 font-serif text-sm font-bold text-primary-600 hover:text-primary-700"
+          className="inline-flex items-center gap-1 font-sans text-sm font-bold text-primary-600 hover:text-primary-700"
         >
           View Profile
           <ArrowRight className="h-3.5 w-3.5" />

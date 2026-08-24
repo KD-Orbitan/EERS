@@ -15,6 +15,7 @@ describe('ReviewController', () => {
       {} as any,
       {} as any,
       {} as any,
+      {} as any,
     )
 
     const result = await controller.getMyReviews({ userId: 7 }, { page: 1, limit: 2 })
@@ -35,6 +36,7 @@ describe('ReviewController', () => {
       {} as any,
       {} as any,
       getMyReviewsUseCase,
+      {} as any,
       {} as any,
       {} as any,
       {} as any,
@@ -61,6 +63,7 @@ describe('ReviewController', () => {
       {} as any,
       {} as any,
       {} as any,
+      {} as any,
     )
 
     const result = await controller.getRecentReviews(undefined as any)
@@ -78,6 +81,7 @@ describe('ReviewController', () => {
       {} as any,
       {} as any,
       getRecentReviewsUseCase,
+      {} as any,
       {} as any,
       {} as any,
       {} as any,

@@ -11,7 +11,7 @@ export default function CriterionWeightsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="font-serif text-3xl font-bold text-ink-900">Criterion Weights</h1>
+        <h1 className="font-sans text-3xl font-bold text-ink-900">Criterion Weights</h1>
         <p className="mt-1 text-sm text-ink-700">
           Weight each criterion within a category (used in D-012 Step 3 multi-criteria scoring).
         </p>

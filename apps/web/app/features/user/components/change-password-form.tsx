@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { PasswordInput } from '@/components/ui/password-input';
 import { changePasswordSchema, ChangePasswordInput } from '@/features/user/schemas/change-password.schema';
 
 interface ChangePasswordFormProps {
@@ -28,10 +29,9 @@ export function ChangePasswordForm({ onSubmit, isLoading }: ChangePasswordFormPr
         <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="currentPassword">
           Current Password
         </label>
-        <input
+        <PasswordInput
           id="currentPassword"
-          type="password"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+          className="text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
           {...register('currentPassword')}
         />
         {errors.currentPassword?.message ? (
@@ -43,10 +43,9 @@ export function ChangePasswordForm({ onSubmit, isLoading }: ChangePasswordFormPr
         <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="newPassword">
           New Password
         </label>
-        <input
+        <PasswordInput
           id="newPassword"
-          type="password"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+          className="text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
           {...register('newPassword')}
         />
         {errors.newPassword?.message ? <p className="mt-1 text-sm text-red-600">{errors.newPassword.message}</p> : null}
@@ -56,10 +55,9 @@ export function ChangePasswordForm({ onSubmit, isLoading }: ChangePasswordFormPr
         <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="confirmPassword">
           Confirm New Password
         </label>
-        <input
+        <PasswordInput
           id="confirmPassword"
-          type="password"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+          className="text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
           {...register('confirmPassword')}
         />
         {errors.confirmPassword?.message ? (

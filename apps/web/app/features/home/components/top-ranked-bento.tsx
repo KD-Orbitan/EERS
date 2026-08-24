@@ -41,7 +41,7 @@ function FeaturedCard({ item, detail }: { item: TopRankingItem; detail?: Busines
             Rank #{item.rank}
           </span>
         </div>
-        <h3 className="mt-4 font-serif text-3xl font-bold">{item.businessName}</h3>
+        <h3 className="mt-4 font-sans text-3xl font-bold">{item.businessName}</h3>
         {detail?.description ? (
           <p className="mt-2 line-clamp-2 text-sm text-white/70">{detail.description}</p>
         ) : null}
@@ -73,7 +73,7 @@ function FeaturedCard({ item, detail }: { item: TopRankingItem; detail?: Busines
         <div className="mt-6 flex items-center justify-between border-t border-white/20 pt-4">
           <div>
             <p className="text-xs uppercase tracking-wide text-white/60">Ranking Score</p>
-            <p className="font-serif text-3xl font-black">{item.rankingScore.toFixed(1)}</p>
+            <p className="font-sans text-3xl font-black">{item.rankingScore.toFixed(1)}</p>
           </div>
           <span className="inline-flex items-center gap-1 text-sm font-bold text-white transition group-hover:gap-2">
             View detail
@@ -96,7 +96,7 @@ function SecondaryCard({ item, detail }: { item: TopRankingItem; detail?: Busine
           #{item.rank}
         </span>
         <div className="truncate">
-          <p className="truncate font-serif text-sm font-bold text-ink-900">{item.businessName}</p>
+          <p className="truncate font-sans text-sm font-bold text-ink-900">{item.businessName}</p>
           <div className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-700">
             <span className="flex items-center gap-1 font-bold text-ink-900">
               <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -116,7 +116,7 @@ function SecondaryCard({ item, detail }: { item: TopRankingItem; detail?: Busine
           ) : null}
         </div>
       </div>
-      <span className="shrink-0 font-serif text-lg font-bold text-primary-600">{item.rankingScore.toFixed(1)}</span>
+      <span className="shrink-0 font-sans text-lg font-bold text-primary-600">{item.rankingScore.toFixed(1)}</span>
     </Link>
   );
 }
@@ -141,12 +141,12 @@ export function TopRankedBento() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="font-serif text-3xl font-bold text-ink-900">Top-Ranked Businesses</h2>
+            <h2 className="font-sans text-3xl font-bold text-ink-900">Top-Ranked Businesses</h2>
             <p className="mt-2 text-base text-ink-700">The highest-scoring entities across all sectors right now.</p>
           </div>
           <Link
             href="/rankings"
-            className="inline-flex items-center gap-1 font-serif text-sm font-bold text-primary-600 hover:text-primary-700"
+            className="inline-flex items-center gap-1 font-sans text-sm font-bold text-primary-600 hover:text-primary-700"
           >
             View full leaderboard
             <ArrowRight className="h-3.5 w-3.5" />

@@ -44,7 +44,7 @@ export function BusinessLeaderboardCard({
           {growthPercent !== undefined ? <Badge variant="success">+{growthPercent.toFixed(1)}%</Badge> : null}
         </div>
 
-        <h3 className="truncate font-serif text-lg font-bold text-ink-900 group-hover:text-primary-600">{businessName}</h3>
+        <h3 className="truncate font-sans text-lg font-bold text-ink-900 group-hover:text-primary-600">{businessName}</h3>
 
         <div className="mt-1 flex items-center gap-1.5 text-sm font-bold text-ink-900">
           <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -61,7 +61,7 @@ export function BusinessLeaderboardCard({
       </div>
 
       <div className="mt-4 flex items-center border-t border-slate-200 pt-4">
-        <span className="inline-flex items-center gap-1 font-serif text-sm font-bold text-primary-600 group-hover:text-primary-700">
+        <span className="inline-flex items-center gap-1 font-sans text-sm font-bold text-primary-600 group-hover:text-primary-700">
           View Profile
           <ArrowRight className="h-3.5 w-3.5" />
         </span>

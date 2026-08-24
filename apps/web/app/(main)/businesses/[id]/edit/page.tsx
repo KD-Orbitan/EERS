@@ -55,7 +55,7 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
       <div className="mx-auto max-w-2xl">
-        <h1 className="mb-6 font-serif text-3xl font-bold text-ink-900">Edit business</h1>
+        <h1 className="mb-6 font-sans text-3xl font-bold text-ink-900">Edit business</h1>
 
         <div className="relative mb-6 h-48 w-full overflow-hidden rounded-2xl">
           <CoverUpload businessId={businessId} coverUrl={business.coverUrl} isOwner={isOwner} />

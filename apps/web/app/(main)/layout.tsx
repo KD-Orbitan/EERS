@@ -1,8 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserCircle2 } from 'lucide-react';
+import { Menu, UserCircle2, X } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { NotificationBell } from '@/features/notification/components/notification-bell';
 import { SiteFooter } from '@/components/site-footer';
@@ -22,13 +23,18 @@ const NAV_LINKS = [
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [pathname]);
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-8">
-            <Link href="/" className="font-serif text-lg font-bold text-primary-600">
+            <Link href="/" className="font-sans text-lg font-bold text-primary-600">
               EERS
             </Link>
             <nav className="hidden items-center gap-6 sm:flex">
@@ -69,8 +75,38 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 Sign in
               </Link>
             )}
+            <button
+              type="button"
+              onClick={() => setIsMobileNavOpen((open) => !open)}
+              aria-label={isMobileNavOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMobileNavOpen}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-ink-700 transition hover:bg-slate-100 sm:hidden"
+            >
+              {isMobileNavOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
+
+        {isMobileNavOpen ? (
+          <nav className="border-t border-slate-200 bg-white sm:hidden">
+            <div className="mx-auto flex max-w-7xl flex-col px-4 py-2">
+              {NAV_LINKS.map((link) => {
+                const active = link.isActive(pathname);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+                      active ? 'text-primary-600' : 'text-ink-700 hover:text-primary-600'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        ) : null}
       </header>
 
       <div className="flex-1">{children}</div>

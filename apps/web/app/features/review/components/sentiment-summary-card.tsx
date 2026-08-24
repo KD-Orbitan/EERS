@@ -23,7 +23,7 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
   if (!data || data.totalReviews === 0) {
     return (
       <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-        <h2 className="font-serif text-lg font-bold text-ink-900">Customer Sentiment</h2>
+        <h2 className="font-sans text-lg font-bold text-ink-900">Customer Sentiment</h2>
         <p className="mt-1 text-xs text-ink-500">AI-powered perception analysis</p>
         <p className="mt-8 text-center text-sm text-ink-500">Not enough analyzed reviews yet.</p>
       </div>
@@ -34,7 +34,7 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-      <h2 className="font-serif text-lg font-bold text-ink-900">Customer Sentiment</h2>
+      <h2 className="font-sans text-lg font-bold text-ink-900">Customer Sentiment</h2>
       <p className="mt-1 text-xs text-ink-500">AI-powered perception analysis</p>
 
       <div className="relative mt-4 flex items-center justify-center">
@@ -53,7 +53,7 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
           />
         </svg>
         <div className="absolute flex flex-col items-center">
-          <span className="font-serif text-2xl font-bold text-ink-900">{data.positive}%</span>
+          <span className="font-sans text-2xl font-bold text-ink-900">{data.positive}%</span>
           <span className="text-[10px] uppercase tracking-wide text-ink-500">Positive</span>
         </div>
       </div>
