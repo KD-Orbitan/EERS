@@ -4,7 +4,7 @@ import { PrismaService } from '../../../infrastructure/database/prisma.service'
 
 describe('GetBusinessRankingUseCase', () => {
   let prisma: { rankingSnapshot: { findFirst: jest.Mock }; rankingSnapshotHistory: { findFirst: jest.Mock } }
-  let rankingTrendConfigService: jest.Mocked<Pick<RankingTrendConfigService, 'getPeriod' | 'periodToDays'>>
+  let rankingTrendConfigService: jest.Mocked<Pick<RankingTrendConfigService, 'getPeriod' | 'periodToDays' | 'getBaselines'>>
   let useCase: GetBusinessRankingUseCase
 
   beforeEach(() => {
@@ -15,6 +15,7 @@ describe('GetBusinessRankingUseCase', () => {
     rankingTrendConfigService = {
       getPeriod: jest.fn().mockResolvedValue('WEEK'),
       periodToDays: jest.fn().mockReturnValue(7),
+      getBaselines: jest.fn(),
     }
     useCase = new GetBusinessRankingUseCase(
       prisma as unknown as PrismaService,
@@ -31,7 +32,7 @@ describe('GetBusinessRankingUseCase', () => {
 
   it('returns trend=null when there is no history baseline yet', async () => {
     prisma.rankingSnapshot.findFirst.mockResolvedValue({ rank: 3, rankingScore: 4.2 })
-    prisma.rankingSnapshotHistory.findFirst.mockResolvedValue(null)
+    rankingTrendConfigService.getBaselines.mockResolvedValue(new Map())
 
     const result = await useCase.execute(1)
 
@@ -40,7 +41,7 @@ describe('GetBusinessRankingUseCase', () => {
 
   it('computes rankChange and scoreChange from the closest history row at/before the lookback cutoff', async () => {
     prisma.rankingSnapshot.findFirst.mockResolvedValue({ rank: 2, rankingScore: 4.5 })
-    prisma.rankingSnapshotHistory.findFirst.mockResolvedValue({ rank: 5, rankingScore: 4.1 })
+    rankingTrendConfigService.getBaselines.mockResolvedValue(new Map([[1, { rank: 5, rankingScore: 4.1 }]]))
 
     const result = await useCase.execute(1)
 
