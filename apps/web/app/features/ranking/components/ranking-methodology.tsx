@@ -15,7 +15,7 @@ export function RankingMethodology() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-slate-200 bg-white/70 p-6 shadow-xs backdrop-blur-sm">
+      <div className="rounded-3xl border border-ink-200 bg-ink-50/70 p-6 shadow-xs backdrop-blur-sm">
         <h2 className="font-sans text-lg font-bold text-ink-900">How rankings work</h2>
         <p className="mt-3 text-sm text-ink-700">
           Scores are recalculated hourly from approved reviews only, combining weighted criteria ratings with a
@@ -23,7 +23,7 @@ export function RankingMethodology() {
           never computed on the fly &mdash; every score comes from the latest precomputed snapshot.
         </p>
 
-        <div className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-100">
+        <div className="mt-4 divide-y divide-ink-100 rounded-xl border border-ink-100">
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
             <span className="text-ink-700">Last updated</span>
             <span className="font-medium text-ink-900">

@@ -27,7 +27,7 @@ export default function MyBusinessesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-sans text-3xl font-bold text-ink-900">My businesses</h1>

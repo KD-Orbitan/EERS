@@ -18,7 +18,7 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
   const { user } = useAuth();
 
   const { data: business, isLoading, isError } = useBusinessDetailQuery(businessId);
-  const isOwner = Boolean(business && user && (user.userId === business.owner.userId || user.role === 'ADMIN'));
+  const isOwner = Boolean(business && user && (business.owner?.userId === user.userId || user.role === 'ADMIN'));
 
   const { data: ranking } = useBusinessRankingQuery(businessId);
   const deleteBusinessMutation = useDeleteBusinessMutation();
@@ -37,17 +37,17 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-600">Loading...</p>
+      <main className="flex min-h-screen items-center justify-center bg-ink-50">
+        <p className="text-sm text-ink-600">Loading...</p>
       </main>
     );
   }
 
   if (isError || !business) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
-          <p className="text-lg font-semibold text-slate-900">Business not found</p>
+      <main className="flex min-h-screen items-center justify-center bg-ink-50 px-4">
+        <div className="rounded-2xl bg-ink-50 p-10 text-center shadow-sm ring-1 ring-ink-200">
+          <p className="text-lg font-semibold text-ink-900">Business not found</p>
           <Link href="/businesses" className="mt-3 inline-block text-sm font-medium text-primary-600 hover:text-primary-700">
             Back to businesses
           </Link>
@@ -57,7 +57,7 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-7xl">
         <BusinessDetail
           business={business}

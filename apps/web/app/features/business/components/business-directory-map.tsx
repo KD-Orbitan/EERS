@@ -53,7 +53,7 @@ function FitBounds({ pins }: { pins: MapPin[] }) {
 export function BusinessDirectoryMap({ pins }: BusinessDirectoryMapProps) {
   if (pins.length === 0) {
     return (
-      <div className="flex h-full min-h-[400px] flex-col items-center justify-center rounded-3xl bg-white p-6 text-center shadow-xs ring-1 ring-slate-200">
+      <div className="flex h-full min-h-[400px] flex-col items-center justify-center rounded-3xl bg-ink-50 p-6 text-center shadow-xs ring-1 ring-ink-200">
         <p className="text-sm font-medium text-ink-900">No mapped locations yet</p>
         <p className="mt-1 text-xs text-ink-500">Businesses shown here haven&apos;t had their address geocoded.</p>
       </div>
@@ -61,7 +61,7 @@ export function BusinessDirectoryMap({ pins }: BusinessDirectoryMapProps) {
   }
 
   return (
-    <div className="h-full min-h-[400px] overflow-hidden rounded-3xl shadow-xs ring-1 ring-slate-200">
+    <div className="h-full min-h-[400px] overflow-hidden rounded-3xl shadow-xs ring-1 ring-ink-200">
       <MapContainer center={[pins[0].latitude, pins[0].longitude]} zoom={12} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

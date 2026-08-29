@@ -19,7 +19,7 @@ export function RankingFilters({ categoryId, province, onCategoryChange, onProvi
 
   return (
     <div className="flex flex-wrap gap-3">
-      <div className="relative flex items-center gap-2 rounded-xl border border-slate-200 bg-primary-50 px-4 py-2.5">
+      <div className="relative flex items-center gap-2 rounded-xl border border-ink-200 bg-primary-50 px-4 py-2.5">
         <Tag className="h-4 w-4 shrink-0 text-primary-600" />
         <select
           value={categoryId ?? ''}
@@ -36,7 +36,7 @@ export function RankingFilters({ categoryId, province, onCategoryChange, onProvi
         <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-ink-500" />
       </div>
 
-      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-primary-50 px-4 py-2.5">
+      <div className="flex items-center gap-2 rounded-xl border border-ink-200 bg-primary-50 px-4 py-2.5">
         <MapPin className="h-4 w-4 shrink-0 text-primary-600" />
         <input
           type="text"
@@ -48,7 +48,7 @@ export function RankingFilters({ categoryId, province, onCategoryChange, onProvi
       </div>
 
       <div
-        className="flex cursor-not-allowed items-center gap-2 rounded-xl border border-slate-200 bg-primary-50 px-4 py-2.5 opacity-60"
+        className="flex cursor-not-allowed items-center gap-2 rounded-xl border border-ink-200 bg-primary-50 px-4 py-2.5 opacity-60"
         title="Historical trends are not available yet"
       >
         <Clock className="h-4 w-4 shrink-0 text-primary-600" />

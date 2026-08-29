@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, UserCircle2, X } from 'lucide-react';
@@ -9,13 +9,15 @@ import { NotificationBell } from '@/features/notification/components/notificatio
 import { SiteFooter } from '@/components/site-footer';
 
 // Nav links mirror the Figma "Landing Page" TopNavBar (node 1:590) — minus
-// "Analytics", which has no backing page/feature in this app, per explicit
-// product decision. "Directory" is active on both `/` (the landing/search
-// page itself, per the Figma screenshot) and `/businesses`. "For Business" is
-// an addition beyond the Figma mockup, pointing at the new business-owner
-// marketing page (app/(main)/for-business).
+// "Analytics", which has no backing feature/page in this app, per explicit
+// product decision. "Home" is an addition beyond the Figma mockup so `/`
+// itself is reachable and highlighted from the nav, rather than lighting up
+// "Directory" while on the landing page. "For Business" is an addition
+// beyond the Figma mockup, pointing at the new business-owner marketing page
+// (app/(main)/for-business).
 const NAV_LINKS = [
-  { href: '/businesses', label: 'Directory', isActive: (pathname: string) => pathname === '/' || pathname.startsWith('/businesses') },
+  { href: '/', label: 'Home', isActive: (pathname: string) => pathname === '/' },
+  { href: '/businesses', label: 'Directory', isActive: (pathname: string) => pathname.startsWith('/businesses') },
   { href: '/rankings', label: 'Leaderboards', isActive: (pathname: string) => pathname.startsWith('/rankings') },
   { href: '/for-business', label: 'For Business', isActive: (pathname: string) => pathname.startsWith('/for-business') },
 ];
@@ -24,14 +26,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const { user, isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-  useEffect(() => {
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsMobileNavOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-ink-200 bg-ink-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-8">
             <Link href="/" className="font-sans text-lg font-bold text-primary-600">
@@ -62,7 +66,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 <Link
                   href="/profile"
                   aria-label={user?.name ?? 'Profile'}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-ink-700 transition hover:bg-slate-100"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-ink-700 transition hover:bg-ink-100"
                 >
                   <UserCircle2 className="h-6 w-6" />
                 </Link>
@@ -70,7 +74,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             ) : (
               <Link
                 href="/login"
-                className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-md transition hover:bg-primary-700"
+                className="ease-md rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:bg-primary-700 hover:shadow-md active:scale-95"
               >
                 Sign in
               </Link>
@@ -80,7 +84,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               onClick={() => setIsMobileNavOpen((open) => !open)}
               aria-label={isMobileNavOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMobileNavOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-ink-700 transition hover:bg-slate-100 sm:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-ink-700 transition hover:bg-ink-100 sm:hidden"
             >
               {isMobileNavOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -88,7 +92,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {isMobileNavOpen ? (
-          <nav className="border-t border-slate-200 bg-white sm:hidden">
+          <nav className="border-t border-ink-200 bg-ink-50 sm:hidden">
             <div className="mx-auto flex max-w-7xl flex-col px-4 py-2">
               {NAV_LINKS.map((link) => {
                 const active = link.isActive(pathname);

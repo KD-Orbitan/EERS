@@ -34,7 +34,7 @@ export function RankingTrendConfigForm({ config, onSubmit, isLoading }: RankingT
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <h2 className="font-sans text-base font-bold text-ink-900">Trend Lookback Period</h2>
         <p className="mt-1 text-xs text-ink-500">
           Used by GET /rankings/businesses/:businessId to compute the rank/score trend shown on business profiles
@@ -46,7 +46,7 @@ export function RankingTrendConfigForm({ config, onSubmit, isLoading }: RankingT
             <label
               key={option.value}
               className={`cursor-pointer rounded-2xl border p-4 transition ${
-                selected === option.value ? 'border-primary-500 bg-primary-50' : 'border-slate-200 hover:bg-slate-50'
+                selected === option.value ? 'border-primary-500 bg-primary-50' : 'border-ink-200 hover:bg-ink-100'
               }`}
             >
               <input type="radio" value={option.value} className="sr-only" {...register('period')} />

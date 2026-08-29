@@ -1,29 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fffbfe;
+  --foreground: #1c1b1f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-roboto);
   --font-mono: var(--font-geist-mono);
 
-  /* Brand tokens extracted from Figma file 0wO1xj82IEVPuSwyLZQqQ2 — see app/lib/tokens/colors.ts */
-  --color-primary-50: #eff4ff;
-  --color-primary-100: #e5eeff;
-  --color-primary-200: #dce9ff;
-  --color-primary-500: #4f46e5;
-  --color-primary-600: #3525cd;
-  --color-primary-700: #2d1fb0;
-  --color-info-100: #c9e6ff;
-  --color-info-700: #004c6e;
-  --color-ink-400: #6b7280;
-  --color-ink-500: #777587;
-  --color-ink-700: #464555;
-  --color-ink-900: #0b1c30;
+  /* Material You (Material Design 3) — site-wide, see docs/promptFE6.md and
+     app/lib/tokens/colors.ts for the source-of-truth table and full
+     rationale. Purple/violet seed #6750A4, MD3 tonal-surface roles rather
+     than a flat brand ramp. Status colors (amber/emerald/red/rose/slate) are
+     intentionally left as Tailwind's stock palette — see colors.ts `status`. */
+  --color-primary-50: #f3edf7;
+  --color-primary-100: #e8def8;
+  --color-primary-200: #e8def8;
+  --color-primary-400: #9179c4;
+  --color-primary-500: #7d5260;
+  --color-primary-600: #6750a4;
+  --color-primary-700: #56438c;
+  --color-primary-900: #56438c;
+  --color-info-100: #7d5260;
+  --color-info-700: #fffbfe;
+  --color-ink-50: #fffbfe;
+  --color-ink-100: #f3edf7;
+  --color-ink-200: #cac4d0;
+  --color-ink-300: #79747e;
+  --color-ink-400: #49454f;
+  --color-ink-500: #49454f;
+  --color-ink-600: #49454f;
+  --color-ink-700: #1c1b1f;
+  --color-ink-900: #1c1b1f;
+
+  /* MD3 radius scale (docs/promptFE6.md: 12/16/24/32/48px) — overriding
+     Tailwind's own `--radius-*` scale remaps every existing `rounded-lg`/
+     `rounded-xl`/`rounded-2xl`/`rounded-3xl`/`rounded-4xl` class app-wide,
+     so cards, dialogs, and containers everywhere pick up MD3's generous,
+     organic rounding without editing each usage individually. Tailwind
+     defaults for reference: lg=8px, xl=12px, 2xl=16px, 3xl=24px, 4xl=32px. */
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --radius-4xl: 48px;
+
+  --ease-md: cubic-bezier(0.2, 0, 0, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,7 +61,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-roboto), Arial, Helvetica, sans-serif;
 }
 
 @keyframes marquee {
@@ -54,4 +79,45 @@ body {
 
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Material You atmospheric background blocks (site-wide, docs/promptFE6.md):
+   a small cluster of overlapping color blocks drifting gently behind hero
+   copy. Each shape gets its own duration/direction so the cluster feels
+   organic rather than lock-stepped. */
+@keyframes float-a {
+  0%, 100% { transform: translate(0, 0) rotate(3deg); }
+  50% { transform: translate(1.25rem, -1rem) rotate(9deg); }
+}
+
+@keyframes float-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-1rem, 1.25rem) scale(1.06); }
+}
+
+@keyframes float-c {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-0.75rem, 1rem); }
+}
+
+.animate-float-a {
+  animation: float-a 16s ease-in-out infinite;
+}
+
+.animate-float-b {
+  animation: float-b 20s ease-in-out infinite;
+}
+
+.animate-float-c {
+  animation: float-c 24s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

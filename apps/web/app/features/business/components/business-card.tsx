@@ -35,7 +35,7 @@ interface BusinessCardProps {
 // business's logo (imageType='BUSINESS_LOGO') when set, generic icon otherwise.
 export function BusinessCard({ business, onDelete }: BusinessCardProps) {
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="flex h-full flex-col justify-between rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200 transition hover:-translate-y-0.5 hover:shadow-md">
       <div>
         <div className="mb-3 flex items-start justify-between">
           <BusinessLogoBadge logoUrl={business.logoUrl} name={business.name} />
@@ -74,7 +74,7 @@ export function BusinessCard({ business, onDelete }: BusinessCardProps) {
         ) : null}
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
+      <div className="mt-4 flex items-center justify-between border-t border-ink-200 pt-4">
         <Link
           href={`/businesses/${business.businessId}`}
           className="inline-flex items-center gap-1 font-sans text-sm font-bold text-primary-600 hover:text-primary-700"

@@ -116,17 +116,17 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <p className="mb-2 text-sm font-medium text-ink-700">Overall rating</p>
         <StarRating value={overallRating} onChange={setOverallRating} size="lg" />
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <p className="mb-1 text-sm font-medium text-ink-700">Criteria ratings</p>
         {isLoadingCriteria ? (
           <p className="text-sm text-ink-500">Loading criteria...</p>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-ink-100">
             {(criteria ?? []).map((criterion) => (
               <CriteriaRatingInput
                 key={criterion.criterionId}
@@ -139,7 +139,7 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
         )}
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <div className="mb-1 flex items-center justify-between">
           <label className="text-sm font-medium text-ink-700" htmlFor="content">
             Your review
@@ -154,22 +154,22 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
           maxLength={CONTENT_MAX_LENGTH}
           value={content}
           onChange={(event) => setContent(event.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+          className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
         />
       </div>
 
       {!isEditMode ? (
-        <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+        <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
           <p className="mb-2 text-sm font-medium text-ink-700">Photos (optional)</p>
           <div className="flex flex-wrap items-center gap-2">
             {photoDrafts.map((draft) => (
-              <div key={draft.previewUrl} className="group relative h-16 w-16 overflow-hidden rounded-lg bg-slate-100">
+              <div key={draft.previewUrl} className="group relative h-16 w-16 overflow-hidden rounded-lg bg-ink-100">
                 {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview, not a remote/optimizable image */}
                 <img src={draft.previewUrl} alt="Selected review photo" className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => removePhotoDraft(draft.previewUrl)}
-                  className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900/70 text-white opacity-0 transition group-hover:opacity-100"
+                  className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink-900/70 text-white opacity-0 transition group-hover:opacity-100"
                   aria-label="Remove selected photo"
                 >
                   <X className="h-3 w-3" />
@@ -182,7 +182,7 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
                 <button
                   type="button"
                   onClick={() => photoInputRef.current?.click()}
-                  className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-slate-300 text-ink-500 transition hover:border-primary-400 hover:text-primary-600"
+                  className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-ink-300 text-ink-500 transition hover:border-primary-400 hover:text-primary-600"
                   aria-label="Add photos"
                 >
                   <ImagePlus className="h-4 w-4" />

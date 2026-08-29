@@ -65,7 +65,7 @@ export function ReportManagementTable() {
             setStatus(event.target.value as ReportStatus | '');
             setPage(1);
           }}
-          className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+          className="w-full rounded-xl border border-ink-300 px-3 py-2.5 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
         >
           {STATUS_FILTERS.map((filter) => (
             <option key={filter.value} value={filter.value}>
@@ -78,17 +78,17 @@ export function ReportManagementTable() {
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="h-24 animate-pulse rounded-2xl bg-white shadow-xs ring-1 ring-slate-200" />
+            <div key={index} className="h-24 animate-pulse rounded-2xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
           ))}
         </div>
       ) : !data || data.items.length === 0 ? (
-        <div className="rounded-3xl bg-white p-10 text-center shadow-xs ring-1 ring-slate-200">
+        <div className="rounded-3xl bg-ink-50 p-10 text-center shadow-xs ring-1 ring-ink-200">
           <p className="text-sm text-ink-700">No reports found.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {data.items.map((report) => (
-            <div key={report.reportId} className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200">
+            <div key={report.reportId} className="rounded-2xl bg-ink-50 p-5 shadow-xs ring-1 ring-ink-200">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -104,7 +104,7 @@ export function ReportManagementTable() {
               <p className="mt-3 whitespace-pre-wrap text-sm text-ink-700">{report.review.content}</p>
 
               {report.status === 'pending' || report.status === 'reviewing' ? (
-                <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3">
+                <div className="mt-3 flex items-center gap-3 border-t border-ink-100 pt-3">
                   <Button
                     onClick={() => onResolve(report.reportId)}
                     disabled={resolveMutation.isPending || rejectMutation.isPending}
@@ -135,18 +135,18 @@ export function ReportManagementTable() {
             type="button"
             onClick={() => setPage((prev) => prev - 1)}
             disabled={data.meta.page <= 1}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
-          <span className="text-sm text-slate-600">
+          <span className="text-sm text-ink-600">
             Page {data.meta.page} of {data.meta.totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((prev) => prev + 1)}
             disabled={data.meta.page >= data.meta.totalPages}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>

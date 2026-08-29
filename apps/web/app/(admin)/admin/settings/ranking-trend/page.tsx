@@ -30,9 +30,9 @@ export default function RankingTrendConfigPage() {
       </div>
 
       {isLoading ? (
-        <div className="h-40 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />
+        <div className="h-40 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
       ) : !config ? (
-        <div className="rounded-3xl bg-white p-10 text-center shadow-xs ring-1 ring-slate-200">
+        <div className="rounded-3xl bg-ink-50 p-10 text-center shadow-xs ring-1 ring-ink-200">
           <p className="text-sm text-ink-700">No ranking trend configuration found.</p>
         </div>
       ) : (

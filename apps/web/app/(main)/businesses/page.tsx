@@ -14,7 +14,7 @@ import { GrowBusinessCtaSection } from '@/components/grow-business-cta-section';
 // Leaflet needs `window` — loaded client-only, never during SSR/prerender.
 const BusinessDirectoryMap = dynamic(
   () => import('@/features/business/components/business-directory-map').then((mod) => mod.BusinessDirectoryMap),
-  { ssr: false, loading: () => <div className="h-full min-h-[400px] animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" /> },
+  { ssr: false, loading: () => <div className="h-full min-h-[400px] animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" /> },
 );
 
 const SORT_BY_VALUES: NonNullable<BusinessListParams['sortBy']>[] = ['avgRating', 'createdAt', 'reviewCount'];
@@ -74,7 +74,7 @@ function BusinessesPageContent() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -128,7 +128,7 @@ function BusinessesPageContent() {
 
 export default function BusinessesPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-slate-50 px-4 py-8" />}>
+    <Suspense fallback={<main className="min-h-screen bg-ink-50 px-4 py-8" />}>
       <BusinessesPageContent />
     </Suspense>
   );

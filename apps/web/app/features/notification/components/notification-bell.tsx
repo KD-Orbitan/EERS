@@ -45,7 +45,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-label="Notifications"
-        className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink-700 transition hover:bg-slate-100"
+        className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink-700 transition hover:bg-ink-100"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 ? (
@@ -56,7 +56,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
       </button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-slate-200">
+        <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl bg-ink-50 p-2 shadow-lg ring-1 ring-ink-200">
           <div className="flex items-center justify-between px-2 py-1.5">
             <p className="font-sans text-sm font-bold text-ink-900">Notifications</p>
             {unreadCount > 0 ? (
@@ -75,7 +75,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
             {isLoading ? (
               <div className="space-y-1.5 p-2">
                 {Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="h-14 animate-pulse rounded-xl bg-slate-100" />
+                  <div key={index} className="h-14 animate-pulse rounded-xl bg-ink-100" />
                 ))}
               </div>
             ) : notifications.length === 0 ? (

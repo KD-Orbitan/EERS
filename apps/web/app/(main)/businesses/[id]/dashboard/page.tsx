@@ -25,7 +25,7 @@ export default function BusinessOwnerDashboardPage({ params }: { params: Promise
   const { data: business, isLoading, isError } = useBusinessDetailQuery(businessId);
   const { data: ranking } = useBusinessRankingQuery(businessId);
 
-  const isOwner = Boolean(business && user && (user.userId === business.owner.userId || user.role === 'ADMIN'));
+  const isOwner = Boolean(business && user && (business.owner?.userId === user.userId || user.role === 'ADMIN'));
 
   useEffect(() => {
     if (!isAuthLoading && !isLoading && business && !isOwner) {
@@ -36,8 +36,8 @@ export default function BusinessOwnerDashboardPage({ params }: { params: Promise
 
   if (isLoading || isAuthLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-600">Loading...</p>
+      <main className="flex min-h-screen items-center justify-center bg-ink-50">
+        <p className="text-sm text-ink-600">Loading...</p>
       </main>
     );
   }
@@ -54,7 +54,7 @@ export default function BusinessOwnerDashboardPage({ params }: { params: Promise
     : null;
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-ink-50">
       <OwnerDashboardSidebar businessId={businessId} currentPath={`/businesses/${businessId}/dashboard`} />
 
       <div className="flex-1 px-6 py-8 sm:px-10">
@@ -65,7 +65,7 @@ export default function BusinessOwnerDashboardPage({ params }: { params: Promise
               <p className="mt-1 text-sm text-ink-700">Real-time performance metrics for {business.name}</p>
             </div>
             {lastCalculated ? (
-              <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-ink-700">
+              <span className="rounded-full border border-ink-200 bg-ink-50 px-4 py-2 text-xs font-medium text-ink-700">
                 Rank last calculated {lastCalculated}
               </span>
             ) : null}

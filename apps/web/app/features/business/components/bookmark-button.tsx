@@ -26,7 +26,7 @@ export function BookmarkButton({ businessId }: BookmarkButtonProps) {
     return (
       <Link
         href="/login"
-        className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-ink-50/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-ink-50/20"
       >
         <Bookmark className="h-4 w-4" />
         Bookmark
@@ -56,7 +56,7 @@ export function BookmarkButton({ businessId }: BookmarkButtonProps) {
       type="button"
       onClick={onToggle}
       disabled={isPending}
-      className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-ink-50/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-ink-50/20 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {isBookmarked ? <BookmarkCheck className="h-4 w-4 fill-white" /> : <Bookmark className="h-4 w-4" />}
       {isBookmarked ? 'Bookmarked' : 'Bookmark'}

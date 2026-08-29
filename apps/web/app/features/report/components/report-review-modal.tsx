@@ -63,7 +63,7 @@ export function ReportReviewModal({ isOpen, onClose, onSubmit, isLoading }: Repo
             <select
               id="reasonId"
               disabled={isReasonsLoading}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+              className="w-full rounded-lg border border-ink-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
               {...register('reasonId', { valueAsNumber: true })}
             >
               <option value="">{isReasonsLoading ? 'Loading reasons...' : 'Select a reason...'}</option>
@@ -85,7 +85,7 @@ export function ReportReviewModal({ isOpen, onClose, onSubmit, isLoading }: Repo
               rows={4}
               maxLength={1000}
               placeholder="Add any extra context that might help our review..."
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+              className="w-full rounded-lg border border-ink-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
               {...register('description')}
             />
             <div className="mt-1 flex items-center justify-between text-xs">

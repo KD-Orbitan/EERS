@@ -27,7 +27,7 @@ export function ReplyForm({ onSubmit, onCancel, isLoading }: ReplyFormProps) {
       <textarea
         rows={3}
         placeholder="Write a response to this review..."
-        className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+        className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
         {...register('content')}
       />
       {errors.content?.message ? <p className="text-xs text-red-600">{errors.content.message}</p> : null}

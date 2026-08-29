@@ -12,12 +12,12 @@ export function MarketCompetitorsCard({ businessId }: MarketCompetitorsCardProps
   const { data, isLoading } = useMarketCompetitorsQuery(businessId);
 
   if (isLoading) {
-    return <div className="h-64 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />;
+    return <div className="h-64 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />;
   }
 
   if (!data || !data.categoryId || data.competitors.length === 0) {
     return (
-      <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <h2 className="font-sans text-lg font-bold text-ink-900">Market Competitors</h2>
         <p className="mt-8 text-center text-sm text-ink-500">Not ranked in any category yet.</p>
       </div>
@@ -25,7 +25,7 @@ export function MarketCompetitorsCard({ businessId }: MarketCompetitorsCardProps
   }
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <h2 className="font-sans text-lg font-bold text-ink-900">Market Competitors</h2>
       <p className="mt-1 text-xs text-ink-500">
         {data.categoryName} · Rank #{data.businessRank}
@@ -36,10 +36,10 @@ export function MarketCompetitorsCard({ businessId }: MarketCompetitorsCardProps
           <li key={competitor.businessId}>
             <Link
               href={`/businesses/${competitor.businessId}`}
-              className="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5 transition hover:border-primary-200 hover:bg-primary-50"
+              className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2.5 transition hover:border-primary-200 hover:bg-primary-50"
             >
               <div className="flex items-center gap-2 truncate">
-                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-ink-700">
+                <span className="shrink-0 rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">
                   #{competitor.rank}
                 </span>
                 <span className="truncate text-sm font-medium text-ink-900">{competitor.businessName}</span>

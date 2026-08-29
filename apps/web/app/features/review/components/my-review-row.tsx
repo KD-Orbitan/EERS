@@ -24,7 +24,7 @@ export function MyReviewRow({ review }: { review: MyReviewListItem }) {
   return (
     <Link
       href={`/businesses/${review.business.businessId}`}
-      className="flex items-center gap-4 rounded-2xl border border-slate-100 p-4 transition hover:-translate-y-0.5 hover:bg-primary-50 hover:shadow-md"
+      className="flex items-center gap-4 rounded-2xl border border-ink-100 p-4 transition hover:-translate-y-0.5 hover:bg-primary-50 hover:shadow-md"
     >
       <BusinessLogoBadge logoUrl={business?.logoUrl} name={review.business.name} />
       <div className="min-w-0 flex-1">

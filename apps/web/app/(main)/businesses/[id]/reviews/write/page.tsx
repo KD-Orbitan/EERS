@@ -52,7 +52,7 @@ export default function WriteReviewPage({ params }: { params: Promise<{ id: stri
 
   if (isLoadingBusiness || (isEditMode && isLoadingReview)) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
+      <main className="flex min-h-screen items-center justify-center bg-ink-50">
         <p className="text-sm text-ink-700">Loading...</p>
       </main>
     );
@@ -63,7 +63,7 @@ export default function WriteReviewPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-2xl">
         <h1 className="mb-6 font-sans text-3xl font-bold text-ink-900">
           {isEditMode ? 'Edit your review' : `Write a review for ${business.name}`}

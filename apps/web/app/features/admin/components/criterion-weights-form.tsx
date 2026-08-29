@@ -47,7 +47,7 @@ export function CriterionWeightsForm({ categoryId }: CriterionWeightsFormProps) 
     return (
       <div className="space-y-2">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="h-16 animate-pulse rounded-2xl bg-white shadow-xs ring-1 ring-slate-200" />
+          <div key={index} className="h-16 animate-pulse rounded-2xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
         ))}
       </div>
     );
@@ -55,7 +55,7 @@ export function CriterionWeightsForm({ categoryId }: CriterionWeightsFormProps) 
 
   if (!criteria || criteria.length === 0) {
     return (
-      <div className="rounded-3xl bg-white p-10 text-center shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-3xl bg-ink-50 p-10 text-center shadow-xs ring-1 ring-ink-200">
         <p className="text-sm text-ink-700">This category has no criteria defined.</p>
       </div>
     );
@@ -65,11 +65,11 @@ export function CriterionWeightsForm({ categoryId }: CriterionWeightsFormProps) 
 
   return (
     <div className="space-y-3">
-      <div className="rounded-3xl bg-white shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200">
         {criteria.map((criterion) => (
           <div
             key={criterion.criterionId}
-            className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4 last:border-0"
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 px-6 py-4 last:border-0"
           >
             <div>
               <p className="text-sm font-medium text-ink-900">{criterion.name}</p>
@@ -85,7 +85,7 @@ export function CriterionWeightsForm({ categoryId }: CriterionWeightsFormProps) 
                 onChange={(event) =>
                   setDraft((prev) => ({ ...prev, [criterion.criterionId]: Number(event.target.value) }))
                 }
-                className="w-24 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                className="w-24 rounded-lg border border-ink-300 px-3 py-1.5 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
               />
               <Button
                 onClick={() => onSave(criterion.criterionId)}

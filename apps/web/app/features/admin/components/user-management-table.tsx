@@ -66,7 +66,7 @@ export function UserManagementTable() {
                 setPage(1);
               }}
               className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                status === tab.value ? 'bg-primary-600 text-white' : 'bg-white text-ink-700 ring-1 ring-slate-200 hover:bg-slate-50'
+                status === tab.value ? 'bg-primary-600 text-white' : 'bg-ink-50 text-ink-700 ring-1 ring-ink-200 hover:bg-ink-100'
               }`}
             >
               {tab.label}
@@ -84,16 +84,16 @@ export function UserManagementTable() {
               setSearch(event.target.value);
               setPage(1);
             }}
-            className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+            className="w-full rounded-xl border border-ink-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
           />
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl bg-white shadow-xs ring-1 ring-slate-200">
+      <div className="overflow-hidden rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200">
         {isLoading ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-12 animate-pulse rounded-xl bg-slate-100" />
+              <div key={index} className="h-12 animate-pulse rounded-xl bg-ink-100" />
             ))}
           </div>
         ) : !data || data.items.length === 0 ? (
@@ -101,7 +101,7 @@ export function UserManagementTable() {
         ) : (
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-ink-500">
+              <tr className="border-b border-ink-100 text-xs uppercase tracking-wide text-ink-500">
                 <th className="px-5 py-3 font-medium">User</th>
                 <th className="px-5 py-3 font-medium">Role</th>
                 <th className="px-5 py-3 font-medium">Status</th>
@@ -111,7 +111,7 @@ export function UserManagementTable() {
             </thead>
             <tbody>
               {data.items.map((user) => (
-                <tr key={user.userId} className="border-b border-slate-50 last:border-0">
+                <tr key={user.userId} className="border-b border-ink-100 last:border-0">
                   <td className="px-5 py-3">
                     <p className="font-medium text-ink-900">{user.name}</p>
                     <p className="text-xs text-ink-500">{user.email}</p>
@@ -161,18 +161,18 @@ export function UserManagementTable() {
             type="button"
             onClick={() => setPage((prev) => prev - 1)}
             disabled={data.meta.page <= 1}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
-          <span className="text-sm text-slate-600">
+          <span className="text-sm text-ink-600">
             Page {data.meta.page} of {data.meta.totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((prev) => prev + 1)}
             disabled={data.meta.page >= data.meta.totalPages}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>

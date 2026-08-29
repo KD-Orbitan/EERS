@@ -51,7 +51,7 @@ export function ReviewSummary({ businessId, isOwner }: ReviewSummaryProps) {
   };
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-sans text-lg font-bold text-ink-900">Reviews</h2>

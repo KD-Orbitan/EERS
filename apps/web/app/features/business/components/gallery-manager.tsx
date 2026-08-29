@@ -88,7 +88,7 @@ export function GalleryManager({ businessId, gallery, isOwner }: GalleryManagerP
   const isBusy = uploadGalleryMutation.isPending || reorderGalleryMutation.isPending;
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-sans text-lg font-bold text-ink-900">Gallery</h2>
         {isOwner ? (
@@ -97,7 +97,7 @@ export function GalleryManager({ businessId, gallery, isOwner }: GalleryManagerP
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={isBusy || gallery.length >= MAX_GALLERY_IMAGES}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-ink-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {uploadGalleryMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -123,17 +123,17 @@ export function GalleryManager({ businessId, gallery, isOwner }: GalleryManagerP
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {gallery.map((image, index) => (
-            <div key={image.imageId} className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100">
+            <div key={image.imageId} className="group relative aspect-square overflow-hidden rounded-xl bg-ink-100">
               {/* eslint-disable-next-line @next/next/no-img-element -- external Cloudinary URL, next/image remote patterns not configured */}
               <img src={image.url} alt="" className="h-full w-full object-cover" />
 
               {isOwner ? (
-                <div className="absolute inset-0 flex flex-col justify-between bg-slate-900/0 p-1.5 opacity-0 transition group-hover:bg-slate-900/40 group-hover:opacity-100">
+                <div className="absolute inset-0 flex flex-col justify-between bg-ink-900/0 p-1.5 opacity-0 transition group-hover:bg-ink-900/40 group-hover:opacity-100">
                   <button
                     type="button"
                     onClick={() => onDelete(image.imageId)}
                     disabled={pendingImageId === image.imageId}
-                    className="ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-red-600 shadow transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className="ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-ink-50/90 text-red-600 shadow transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-60"
                     aria-label="Remove image"
                   >
                     {pendingImageId === image.imageId ? (
@@ -148,7 +148,7 @@ export function GalleryManager({ businessId, gallery, isOwner }: GalleryManagerP
                       type="button"
                       onClick={() => onMove(index, -1)}
                       disabled={index === 0 || isBusy}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-ink-700 shadow transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-ink-50/90 text-ink-700 shadow transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label="Move earlier"
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -157,7 +157,7 @@ export function GalleryManager({ businessId, gallery, isOwner }: GalleryManagerP
                       type="button"
                       onClick={() => onMove(index, 1)}
                       disabled={index === gallery.length - 1 || isBusy}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-ink-700 shadow transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-ink-50/90 text-ink-700 shadow transition hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label="Move later"
                     >
                       <ChevronRight className="h-4 w-4" />

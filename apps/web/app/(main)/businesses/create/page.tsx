@@ -22,7 +22,7 @@ export default function CreateBusinessPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-2xl">
         <h1 className="mb-6 font-sans text-3xl font-bold text-ink-900">List your business</h1>
         <CreateBusinessForm

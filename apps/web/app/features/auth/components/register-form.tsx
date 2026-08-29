@@ -33,21 +33,21 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-200">
+    <div className="w-full max-w-md rounded-3xl bg-ink-50 p-8 shadow-xl">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">Register</h1>
-        <p className="mt-2 text-sm text-slate-600">Create your new EERS account</p>
+        <h1 className="text-2xl font-medium text-ink-900">Register</h1>
+        <p className="mt-2 text-sm text-ink-600">Create your new EERS account</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="name">
+          <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="name">
             Name
           </label>
           <input
             id="name"
             type="text"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-t-xl rounded-b-none border-0 border-b-2 border-ink-300 bg-ink-100 px-3 py-2 outline-none transition-colors duration-200 focus:border-primary-600"
             {...register('name')}
           />
           {errors.name?.message ? (
@@ -56,13 +56,13 @@ export function RegisterForm() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="email">
+          <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="email">
             Email
           </label>
           <input
             id="email"
             type="email"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-t-xl rounded-b-none border-0 border-b-2 border-ink-300 bg-ink-100 px-3 py-2 outline-none transition-colors duration-200 focus:border-primary-600"
             {...register('email')}
           />
           {errors.email?.message ? (
@@ -71,28 +71,20 @@ export function RegisterForm() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="password">
+          <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="password">
             Password
           </label>
-          <PasswordInput
-            id="password"
-            className="focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-            {...register('password')}
-          />
+          <PasswordInput id="password" {...register('password')} />
           {errors.password?.message ? (
             <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
           ) : null}
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="confirmPassword">
+          <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="confirmPassword">
             Confirm Password
           </label>
-          <PasswordInput
-            id="confirmPassword"
-            className="focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-            {...register('confirmPassword')}
-          />
+          <PasswordInput id="confirmPassword" {...register('confirmPassword')} />
           {errors.confirmPassword?.message ? (
             <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
           ) : null}
@@ -101,15 +93,15 @@ export function RegisterForm() {
         <button
           type="submit"
           disabled={isSubmitting || registerMutation.isPending}
-          className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+          className="ease-md w-full rounded-full bg-primary-600 px-4 py-2.5 font-medium text-white transition-all duration-300 hover:bg-primary-700 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting || registerMutation.isPending ? 'Creating account...' : 'Register'}
         </button>
       </form>
 
-      <p className="mt-5 text-center text-sm text-slate-600">
+      <p className="mt-5 text-center text-sm text-ink-600">
         Already have an account?{' '}
-        <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-700">
+        <Link href="/login" className="font-semibold text-primary-600 hover:text-primary-700">
           Login here
         </Link>
       </p>

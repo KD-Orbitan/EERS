@@ -31,7 +31,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-sans text-3xl font-bold text-ink-900">Notifications</h1>
@@ -55,7 +55,7 @@ export default function NotificationsPage() {
                 setPage(1);
               }}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
-                isRead === filter.value ? 'bg-primary-600 text-white' : 'bg-white text-ink-700 ring-1 ring-slate-200 hover:bg-slate-50'
+                isRead === filter.value ? 'bg-primary-600 text-white' : 'bg-ink-50 text-ink-700 ring-1 ring-ink-200 hover:bg-ink-100'
               }`}
             >
               {filter.label}
@@ -66,17 +66,17 @@ export default function NotificationsPage() {
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-20 animate-pulse rounded-2xl bg-white shadow-xs ring-1 ring-slate-200" />
+              <div key={index} className="h-20 animate-pulse rounded-2xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
             ))}
           </div>
         ) : !data || data.items.length === 0 ? (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-xs ring-1 ring-slate-200">
+          <div className="rounded-2xl bg-ink-50 p-10 text-center shadow-xs ring-1 ring-ink-200">
             <p className="text-sm text-ink-700">
               {isRead === false ? 'No unread notifications.' : "You don't have any notifications yet."}
             </p>
           </div>
         ) : (
-          <div className="space-y-2 rounded-2xl bg-white p-2 shadow-xs ring-1 ring-slate-200">
+          <div className="space-y-2 rounded-2xl bg-ink-50 p-2 shadow-xs ring-1 ring-ink-200">
             {data.items.map((notification) => (
               <NotificationItem
                 key={notification.notificationId}
@@ -95,18 +95,18 @@ export default function NotificationsPage() {
               type="button"
               onClick={() => setPage((prev) => prev - 1)}
               disabled={data.meta.page <= 1}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Previous
             </button>
-            <span className="text-sm text-slate-600">
+            <span className="text-sm text-ink-600">
               Page {data.meta.page} of {data.meta.totalPages}
             </span>
             <button
               type="button"
               onClick={() => setPage((prev) => prev + 1)}
               disabled={data.meta.page >= data.meta.totalPages}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Next
             </button>

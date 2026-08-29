@@ -38,7 +38,7 @@ export function ReviewCard({ review, businessId, isAuthor, canReply, onEdit, onD
   const displayContent = isExpanded || !isLong ? review.content : `${review.content.slice(0, CONTENT_PREVIEW_LENGTH)}...`;
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-2xl bg-ink-50 p-5 shadow-xs ring-1 ring-ink-200">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-sans text-sm font-bold text-ink-900">{review.author.name}</p>
@@ -76,7 +76,7 @@ export function ReviewCard({ review, businessId, isAuthor, canReply, onEdit, onD
       <ReviewPhotoUpload reviewId={review.reviewId} businessId={businessId} photos={review.photos} isAuthor={Boolean(isAuthor)} />
 
       {isAuthor || canReply || (!isAuthor && onReport) ? (
-        <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
+        <div className="mt-3 flex gap-3 border-t border-ink-100 pt-3">
           {isAuthor ? (
             <>
               <button

@@ -41,7 +41,7 @@ interface ProfileHeaderProps {
 // they stay dropped.
 export function ProfileHeader({ profile, role, reviewCount, businessCount, savedCount, activeTab, onSignOut }: ProfileHeaderProps) {
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200 lg:sticky lg:top-20">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200 lg:sticky lg:top-20">
       <div className="flex flex-col items-center text-center">
         <AvatarUpload avatarUrl={profile.avatarUrl} size="lg" />
         <h1 className="mt-4 font-sans text-2xl font-bold text-ink-900">{profile.name}</h1>
@@ -53,7 +53,7 @@ export function ProfileHeader({ profile, role, reviewCount, businessCount, saved
         </p>
       </div>
 
-      <div className="mt-6 grid grid-cols-3 divide-x divide-slate-100 border-y border-slate-100 py-4">
+      <div className="mt-6 grid grid-cols-3 divide-x divide-ink-100 border-y border-ink-100 py-4">
         <div className="text-center">
           <p className="font-sans text-xl font-bold text-ink-900">{reviewCount}</p>
           <p className="text-xs text-ink-500">Reviews</p>
@@ -73,7 +73,7 @@ export function ProfileHeader({ profile, role, reviewCount, businessCount, saved
         <span className="truncate">{profile.email}</span>
       </p>
 
-      <div className="mt-6 border-t border-slate-100 pt-4">
+      <div className="mt-6 border-t border-ink-100 pt-4">
         <ProfileTabNav activeTab={activeTab} />
       </div>
 

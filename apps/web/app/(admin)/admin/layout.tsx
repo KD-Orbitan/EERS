@@ -25,8 +25,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-600">Loading...</p>
+      <main className="flex min-h-screen items-center justify-center bg-ink-50">
+        <p className="text-sm text-ink-600">Loading...</p>
       </main>
     );
   }
@@ -36,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-ink-50">
       <AdminSidebar currentPath={pathname} />
       <div className="flex-1 px-6 py-8 sm:px-10">{children}</div>
     </div>

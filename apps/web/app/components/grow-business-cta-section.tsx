@@ -10,7 +10,7 @@ import { ArrowRight, TrendingUp } from 'lucide-react';
 export function GrowBusinessCtaSection() {
   return (
     <div className="px-4 py-10">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xs sm:flex-row sm:justify-between sm:text-left">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 rounded-3xl border border-ink-200 bg-ink-50 p-8 text-center shadow-xs sm:flex-row sm:justify-between sm:text-left">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-600/10 text-primary-600">
             <TrendingUp className="h-6 w-6" />
@@ -24,7 +24,7 @@ export function GrowBusinessCtaSection() {
         </div>
         <Link
           href="/for-business"
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 font-sans text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-lg"
+          className="ease-md inline-flex shrink-0 items-center gap-2 rounded-full bg-primary-600 px-6 py-3 font-sans text-sm font-bold text-white transition-all duration-300 hover:bg-primary-700 hover:shadow-md active:scale-95"
         >
           Explore Business Tools
           <ArrowRight className="h-4 w-4" />

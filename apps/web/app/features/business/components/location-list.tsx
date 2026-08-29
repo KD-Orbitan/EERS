@@ -56,7 +56,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
   };
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-sans text-lg font-bold text-ink-900">Locations</h2>
         {isOwner ? (
@@ -79,7 +79,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
                   <input
                     type="text"
                     placeholder="Address"
-                    className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     {...register('addressLine')}
                   />
                   {errors.addressLine?.message ? (
@@ -90,7 +90,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
                   <input
                     type="text"
                     placeholder="Ward"
-                    className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     {...register('ward')}
                   />
                   {errors.ward?.message ? <p className="mt-1 text-xs text-red-600">{errors.ward.message}</p> : null}
@@ -99,7 +99,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
                   <input
                     type="text"
                     placeholder="Province"
-                    className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     {...register('province')}
                   />
                   {errors.province?.message ? (
@@ -119,10 +119,10 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
         {locations.map((location) => (
           <div
             key={location.locationId}
-            className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3"
+            className="flex items-start justify-between gap-3 rounded-lg border border-ink-200 p-3"
           >
-            <div className="flex items-start gap-2 text-sm text-slate-700">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+            <div className="flex items-start gap-2 text-sm text-ink-700">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />
               <span>
                 {location.addressLine}, {location.ward}, {location.province}
               </span>

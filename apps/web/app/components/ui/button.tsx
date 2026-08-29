@@ -11,12 +11,12 @@ export function Button({
 }: ButtonProps) {
   const variantClassName =
     variant === 'outline'
-      ? 'border border-slate-200 bg-white text-slate-900 hover:bg-slate-50'
-      : 'bg-primary-600 text-white shadow-md hover:bg-primary-700';
+      ? 'border border-primary-600 bg-transparent text-primary-600 hover:bg-primary-600/5'
+      : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md';
 
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${variantClassName} ${className}`}
+      className={`ease-md inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${variantClassName} ${className}`}
       {...props}
     />
   );

@@ -53,19 +53,19 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200">
+        <div className="rounded-2xl bg-ink-50 p-5 shadow-xs ring-1 ring-ink-200">
           <p className="text-xs uppercase tracking-wide text-ink-500">Total Users</p>
           <p className="mt-1 font-sans text-2xl font-bold text-ink-900">{users?.meta.total ?? '—'}</p>
         </div>
-        <Link href="/admin/businesses" className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
+        <Link href="/admin/businesses" className="rounded-2xl bg-ink-50 p-5 shadow-xs ring-1 ring-ink-200 transition hover:-translate-y-0.5 hover:shadow-md">
           <p className="text-xs uppercase tracking-wide text-ink-500">Pending Businesses</p>
           <p className="mt-1 font-sans text-2xl font-bold text-ink-900">{pendingBusinesses?.meta.total ?? '—'}</p>
         </Link>
-        <Link href="/admin/reviews" className="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
+        <Link href="/admin/reviews" className="rounded-2xl bg-ink-50 p-5 shadow-xs ring-1 ring-ink-200 transition hover:-translate-y-0.5 hover:shadow-md">
           <p className="text-xs uppercase tracking-wide text-ink-500">Pending Reviews</p>
           <p className="mt-1 font-sans text-2xl font-bold text-ink-900">{pendingReviews?.meta.total ?? '—'}</p>
         </Link>
-        <div className="flex items-center gap-3 rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200">
+        <div className="flex items-center gap-3 rounded-2xl bg-ink-50 p-5 shadow-xs ring-1 ring-ink-200">
           <Trophy className="h-6 w-6 shrink-0 text-primary-600" />
           <div>
             <p className="text-xs uppercase tracking-wide text-ink-500">Businesses Ranked</p>
@@ -75,7 +75,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+        <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-sans text-lg font-bold text-ink-900">Needs Attention</h2>
           </div>
@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
               {pendingBusinesses && pendingBusinesses.items.length > 0 ? (
                 <ul className="space-y-1.5">
                   {pendingBusinesses.items.map((item) => (
-                    <li key={item.businessId} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                    <li key={item.businessId} className="flex items-center justify-between rounded-xl bg-ink-100 px-3 py-2 text-sm">
                       <span className="truncate font-medium text-ink-900">{item.name}</span>
                       <span className="shrink-0 text-xs text-ink-500">{item.ownerName}</span>
                     </li>
@@ -112,7 +112,7 @@ export default function AdminDashboardPage() {
               {pendingReviews && pendingReviews.items.length > 0 ? (
                 <ul className="space-y-1.5">
                   {pendingReviews.items.map((item) => (
-                    <li key={item.reviewId} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                    <li key={item.reviewId} className="flex items-center justify-between rounded-xl bg-ink-100 px-3 py-2 text-sm">
                       <span className="truncate font-medium text-ink-900">{item.businessName}</span>
                       <span className="shrink-0 text-xs text-ink-500">{item.authorName}</span>
                     </li>
@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
               {pendingReports && pendingReports.items.length > 0 ? (
                 <ul className="space-y-1.5">
                   {pendingReports.items.map((item) => (
-                    <li key={item.reportId} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                    <li key={item.reportId} className="flex items-center justify-between rounded-xl bg-ink-100 px-3 py-2 text-sm">
                       <span className="truncate font-medium text-ink-900">{item.reason.name}</span>
                       <span className="shrink-0 text-xs text-ink-500">{item.reporter.name}</span>
                     </li>
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
             onClick={onRecalculate}
             disabled={recalcMutation.isPending}
             variant="outline"
-            className="mt-4 gap-1.5 border-white bg-white text-primary-600 hover:bg-primary-50"
+            className="mt-4 gap-1.5 border-white bg-ink-50 text-primary-600 hover:bg-primary-50"
           >
             <RefreshCw className={`h-4 w-4 ${recalcMutation.isPending ? 'animate-spin' : ''}`} />
             {recalcMutation.isPending ? 'Triggering...' : 'Trigger Recalculation'}
@@ -169,7 +169,7 @@ export default function AdminDashboardPage() {
           <Link
             key={href}
             href={href}
-            className="flex items-start gap-3 rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md"
+            className="flex items-start gap-3 rounded-2xl bg-ink-50 p-5 shadow-xs ring-1 ring-ink-200 transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100">
               <Icon className="h-5 w-5 text-primary-600" />

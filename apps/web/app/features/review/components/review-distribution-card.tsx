@@ -13,12 +13,12 @@ export function ReviewDistributionCard({ businessId }: ReviewDistributionCardPro
   const { data, isLoading } = useReviewStatisticsQuery(businessId);
 
   if (isLoading) {
-    return <div className="h-64 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />;
+    return <div className="h-64 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />;
   }
 
   if (!data || data.reviewCount === 0) {
     return (
-      <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <h2 className="font-sans text-lg font-bold text-ink-900">Review Distribution</h2>
         <p className="mt-8 text-center text-sm text-ink-500">No approved reviews yet.</p>
       </div>
@@ -26,7 +26,7 @@ export function ReviewDistributionCard({ businessId }: ReviewDistributionCardPro
   }
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <h2 className="font-sans text-lg font-bold text-ink-900">Review Distribution</h2>
 
       <div className="mt-4 space-y-2">

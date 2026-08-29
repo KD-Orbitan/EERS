@@ -3,13 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 // Mirrors Figma "Hero Section" (node 1:488): certification pill, headline,
 // subcopy, glassmorphism search bar. The hero copy/ISO badge is generic site
 // marketing text (not a claim about specific data), so it's kept as-is —
 // unlike per-business figures elsewhere, this isn't fabricating a fact about
 // any real entity.
+//
+// Material You (site-wide, see docs/promptFE6.md): the layered blur shapes
+// are MD3's signature "organic atmospheric background" — primary and
+// tertiary tones at low opacity, heavily blurred, positioned off-canvas.
 export function HomeHero() {
   const router = useRouter();
   const [search, setSearch] = useState('');
@@ -22,41 +25,48 @@ export function HomeHero() {
 
   return (
     <div className="relative overflow-hidden px-4 pb-24 pt-20 sm:pb-28 sm:pt-28">
-      <div className="pointer-events-none absolute -left-32 -top-24 h-96 w-96 rounded-full bg-primary-600/5 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -right-32 h-80 w-[32rem] rounded-full bg-info-100/40 blur-3xl" />
+      {/* Hidden below lg: sized/offset so they clear the centered max-w-2xl
+          text column with margin to spare from lg up, instead of waiting
+          for xl just to be safe. */}
+      <div className="animate-float-c pointer-events-none absolute -right-16 -top-20 hidden h-56 w-56 rounded-full bg-primary-100/70 blur-2xl lg:block" aria-hidden="true" />
+      <div className="animate-float-a pointer-events-none absolute -left-16 top-10 hidden h-36 w-36 rounded-[2.5rem] bg-primary-600/60 lg:block" aria-hidden="true" />
+      <div className="animate-float-b pointer-events-none absolute left-8 top-24 hidden h-28 w-28 rounded-full bg-info-100/55 lg:block" aria-hidden="true" />
 
       <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-info-100 px-4 py-1 text-xs font-medium tracking-wide text-info-700">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-4 py-1.5 text-xs font-medium tracking-wide text-primary-600">
           <ShieldCheck className="h-3.5 w-3.5" />
           ISO 27001 CERTIFIED ENTERPRISE DATA
         </span>
 
-        <h1 className="font-sans text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">
+        <h1 className="text-4xl font-medium leading-[1.2] tracking-tight text-ink-900 sm:text-5xl md:text-6xl">
           Find the Best in Enterprise
         </h1>
 
-        <p className="max-w-xl text-lg text-ink-700">
+        <p className="max-w-xl text-lg leading-relaxed text-ink-600">
           Global rankings for B2B intelligence, precision performance analysis, and industry-leading performance
           benchmarks.
         </p>
 
         <form
           onSubmit={onSubmit}
-          className="flex w-full flex-col gap-2 rounded-2xl border border-white bg-white/60 p-2.5 shadow-lg backdrop-blur-md sm:flex-row"
+          className="ease-md flex w-full flex-col gap-2 rounded-full bg-primary-50 p-2 shadow-sm transition-shadow duration-300 focus-within:shadow-md sm:flex-row sm:items-center"
         >
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search by business, sector, or ISO rating..."
-              className="w-full rounded-xl bg-transparent py-2.5 pl-9 pr-3 text-sm text-ink-900 outline-none placeholder:text-ink-700/60"
+              className="h-11 w-full rounded-full bg-transparent pl-11 pr-3 text-sm text-ink-900 outline-none placeholder:text-ink-400"
             />
           </div>
-          <Button type="submit" className="shrink-0 shadow-md">
+          <button
+            type="submit"
+            className="ease-md inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-primary-600 px-6 text-sm font-medium text-white transition-all duration-300 hover:bg-primary-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 active:scale-95"
+          >
             Explore
-          </Button>
+          </button>
         </form>
       </div>
     </div>

@@ -16,7 +16,7 @@ interface BusinessStatTilesProps {
 export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: BusinessStatTilesProps) {
   return (
     <>
-      <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
+      <div className="rounded-3xl border border-ink-200 bg-primary-50 p-6">
         <p className="text-xs uppercase tracking-wide text-ink-700">Average Rating</p>
         <div className="mt-1 flex items-center gap-2">
           <span className="font-sans text-4xl font-bold text-primary-600">{avgRating.toFixed(1)}</span>
@@ -24,7 +24,7 @@ export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: Busin
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
+      <div className="rounded-3xl border border-ink-200 bg-primary-50 p-6">
         <p className="text-xs uppercase tracking-wide text-ink-700">Total Reviews</p>
         <div className="mt-1 flex items-center gap-2">
           <span className="font-sans text-4xl font-bold text-ink-900">{reviewCount}</span>
@@ -32,7 +32,7 @@ export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: Busin
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
+      <div className="rounded-3xl border border-ink-200 bg-primary-50 p-6">
         <p className="text-xs uppercase tracking-wide text-ink-700">Global Rank</p>
         <div className="mt-1 flex items-center gap-2">
           <span className="font-sans text-4xl font-bold text-ink-900">{rank ? `#${rank}` : '—'}</span>

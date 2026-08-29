@@ -22,7 +22,7 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
   const { data: business, isLoading, isError } = useBusinessDetailQuery(businessId);
   const updateBusinessMutation = useUpdateBusinessMutation(businessId);
 
-  const isOwner = Boolean(business && user && (user.userId === business.owner.userId || user.role === 'ADMIN'));
+  const isOwner = Boolean(business && user && (business.owner?.userId === user.userId || user.role === 'ADMIN'));
 
   useEffect(() => {
     if (!isAuthLoading && !isLoading && business && !isOwner) {
@@ -42,8 +42,8 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
 
   if (isLoading || isAuthLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-600">Loading...</p>
+      <main className="flex min-h-screen items-center justify-center bg-ink-50">
+        <p className="text-sm text-ink-600">Loading...</p>
       </main>
     );
   }
@@ -53,7 +53,7 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-2xl">
         <h1 className="mb-6 font-sans text-3xl font-bold text-ink-900">Edit business</h1>
 

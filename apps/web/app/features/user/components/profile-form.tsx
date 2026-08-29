@@ -29,7 +29,7 @@ export function ProfileForm({ profile, onSubmit, isLoading }: ProfileFormProps) 
   const pending = isLoading || isSubmitting;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200 sm:p-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200 sm:p-8">
       <div>
         <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="name">
           Name
@@ -37,7 +37,7 @@ export function ProfileForm({ profile, onSubmit, isLoading }: ProfileFormProps) 
         <input
           id="name"
           type="text"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+          className="w-full rounded-lg border border-ink-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
           {...register('name')}
         />
         {errors.name?.message ? <p className="mt-1 text-sm text-red-600">{errors.name.message}</p> : null}
@@ -53,7 +53,7 @@ export function ProfileForm({ profile, onSubmit, isLoading }: ProfileFormProps) 
           value={profile.email}
           disabled
           title="Email cannot be changed"
-          className="w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-ink-500 outline-none"
+          className="w-full cursor-not-allowed rounded-lg border border-ink-200 bg-ink-100 px-3 py-2 text-sm text-ink-500 outline-none"
         />
       </div>
 

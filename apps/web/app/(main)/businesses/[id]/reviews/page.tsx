@@ -33,7 +33,7 @@ export default function BusinessReviewsPage({ params }: { params: Promise<{ id: 
   const createReplyMutation = useCreateReplyMutation(businessId);
   const createReportMutation = useCreateReportMutation();
 
-  const isOwner = Boolean(business && user && (user.userId === business.owner.userId || user.role === 'ADMIN'));
+  const isOwner = Boolean(business && user && (business.owner?.userId === user.userId || user.role === 'ADMIN'));
 
   const onEdit = (reviewId: number) => {
     router.push(`/businesses/${businessId}/reviews/write?reviewId=${reviewId}`);
@@ -71,7 +71,7 @@ export default function BusinessReviewsPage({ params }: { params: Promise<{ id: 
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-3xl">
         <Link href={`/businesses/${businessId}`} className="text-sm font-medium text-primary-600 hover:text-primary-700">
           &larr; Back to {business?.name ?? 'business'}

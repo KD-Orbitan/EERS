@@ -14,7 +14,7 @@ export function CriteriaScoresCard({ businessId }: CriteriaScoresCardProps) {
   const { data, isLoading } = useCriteriaScoresQuery(businessId);
 
   if (isLoading) {
-    return <div className="h-48 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />;
+    return <div className="h-48 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />;
   }
 
   if (!data || data.criteria.length === 0) {
@@ -22,7 +22,7 @@ export function CriteriaScoresCard({ businessId }: CriteriaScoresCardProps) {
   }
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <h2 className="font-sans text-lg font-bold text-ink-900">Performance Benchmarks</h2>
       <p className="mt-1 text-xs text-ink-500">Average rating per criterion, out of 5</p>
 

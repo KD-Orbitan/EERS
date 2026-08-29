@@ -18,8 +18,6 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   Retail: ShoppingBag,
 };
 
-const CATEGORY_TINTS = ['bg-primary-600/10 text-primary-600', 'bg-info-100 text-info-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-rose-100 text-rose-700'];
-
 export function CategoryGridSection() {
   const { data: categories, isLoading } = useCategoriesQuery();
 
@@ -31,14 +29,14 @@ export function CategoryGridSection() {
     <div className="bg-primary-50/40 px-4 py-16">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10 text-center">
-          <h2 className="font-sans text-3xl font-bold text-ink-900">Explore by Sector</h2>
-          <p className="mt-2 text-base text-ink-700">Specialized rankings tailored to vertical-specific metrics.</p>
+          <h2 className="text-3xl font-medium tracking-tight text-ink-900 sm:text-4xl">Explore by Sector</h2>
+          <p className="mt-2 text-base text-ink-600">Specialized rankings tailored to vertical-specific metrics.</p>
         </div>
 
         {isLoading ? (
           <div className="flex gap-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-40 w-48 shrink-0 animate-pulse rounded-2xl bg-white shadow-xs ring-1 ring-slate-200" />
+              <div key={index} className="h-40 w-48 shrink-0 animate-pulse rounded-2xl bg-primary-50 shadow-sm" />
             ))}
           </div>
         ) : (
@@ -46,17 +44,16 @@ export function CategoryGridSection() {
             <div className="animate-marquee flex w-max gap-4">
               {[...categories!, ...categories!].map((category, index) => {
                 const Icon = CATEGORY_ICONS[category.categoryName] ?? Building2;
-                const tint = CATEGORY_TINTS[index % CATEGORY_TINTS.length];
                 return (
                   <Link
                     key={`${category.categoryId}-${index}`}
                     href={`/businesses?categoryId=${category.categoryId}`}
-                    className="flex w-48 shrink-0 flex-col items-center gap-3 rounded-2xl border border-white bg-white p-6 text-center shadow-xs transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="ease-md group flex w-48 shrink-0 flex-col items-center gap-3 rounded-2xl bg-primary-50 p-6 text-center shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
                   >
-                    <span className={`flex h-16 w-16 items-center justify-center rounded-2xl ${tint}`}>
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-primary-600 transition-transform duration-300 group-hover:scale-110">
                       <Icon className="h-5 w-5" />
                     </span>
-                    <span className="font-sans text-sm font-semibold text-ink-900">{category.categoryName}</span>
+                    <span className="text-sm font-medium text-ink-900">{category.categoryName}</span>
                   </Link>
                 );
               })}

@@ -37,7 +37,7 @@ export function CriterionManagementPanel() {
   };
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <h2 className="font-sans text-base font-bold text-ink-900">Criteria</h2>
       <p className="mt-1 text-xs text-ink-500">
         Rating dimensions (e.g. Cleanliness, Service). Assign these to categories below.
@@ -49,7 +49,7 @@ export function CriterionManagementPanel() {
             <input
               placeholder="New criterion name..."
               maxLength={100}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+              className="w-full rounded-lg border border-ink-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
               {...register('name')}
             />
             {errors.name?.message ? <p className="mt-1 text-xs text-red-600">{errors.name.message}</p> : null}
@@ -63,7 +63,7 @@ export function CriterionManagementPanel() {
           <input
             placeholder="Description (optional)..."
             maxLength={500}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+            className="w-full rounded-lg border border-ink-300 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
             {...register('description')}
           />
           {errors.description?.message ? <p className="mt-1 text-xs text-red-600">{errors.description.message}</p> : null}
@@ -72,11 +72,11 @@ export function CriterionManagementPanel() {
 
       <div className="mt-4 space-y-1">
         {isLoading ? (
-          <div className="h-20 animate-pulse rounded-xl bg-slate-100" />
+          <div className="h-20 animate-pulse rounded-xl bg-ink-100" />
         ) : !criteria || criteria.length === 0 ? (
           <p className="text-sm text-ink-500">No criteria yet.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-ink-100">
             {criteria.map((criterion) => (
               <li key={criterion.criterionId} className="py-2">
                 <p className="text-sm font-medium text-ink-900">{criterion.name}</p>

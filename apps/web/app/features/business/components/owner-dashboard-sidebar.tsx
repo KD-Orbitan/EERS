@@ -24,7 +24,7 @@ export function OwnerDashboardSidebar({ businessId, currentPath }: OwnerDashboar
   ];
 
   return (
-    <nav className="flex w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white p-4 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:overflow-y-auto">
+    <nav className="flex w-60 shrink-0 flex-col gap-1 border-r border-ink-200 bg-ink-50 p-4 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:overflow-y-auto">
       <div className="mb-4 px-2">
         <p className="font-sans text-lg font-bold text-ink-900">Owner Dashboard</p>
         <p className="text-xs text-ink-500">Manage your business</p>

@@ -34,7 +34,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md' }: S
         >
           <Star
             className={`${sizeClass[size]} ${
-              star <= displayValue ? 'fill-amber-400 text-amber-400' : 'fill-transparent text-slate-300'
+              star <= displayValue ? 'fill-amber-400 text-amber-400' : 'fill-transparent text-ink-300'
             }`}
           />
         </button>

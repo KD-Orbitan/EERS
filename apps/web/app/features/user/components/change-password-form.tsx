@@ -24,7 +24,7 @@ export function ChangePasswordForm({ onSubmit, isLoading }: ChangePasswordFormPr
   const pending = isLoading || isSubmitting;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200 sm:p-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200 sm:p-8">
       <div>
         <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="currentPassword">
           Current Password

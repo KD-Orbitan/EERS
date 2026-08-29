@@ -19,14 +19,14 @@ export function ReviewTrendChart({ businessId }: ReviewTrendChartProps) {
   const { data, isLoading } = useReviewTrendQuery(businessId);
 
   if (isLoading) {
-    return <div className="h-72 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />;
+    return <div className="h-72 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />;
   }
 
   const hasData = Boolean(data && data.some((point) => point.reviewCount > 0));
   const chartData = (data ?? []).map((point) => ({ ...point, label: formatMonthLabel(point.month) }));
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <h2 className="font-sans text-lg font-bold text-ink-900">Reviews Over Time</h2>
       <p className="mt-1 text-xs text-ink-500">Approved reviews per month, last 12 months</p>
 

@@ -1,57 +1,57 @@
 /**
- * Component styles extracted from Figma file 0wO1xj82IEVPuSwyLZQqQ2.
- *
- * Each entry lists the raw values plus the Tailwind utility classes that
- * encode them in this codebase (the project styles exclusively with
- * Tailwind classes — no inline styles/CSS-in-JS — so these classes ARE the
- * applied tokens, via the `primary-*`/`ink-*`/`info-*` vars in
- * `app/globals.css`). Radius/shadow figures already line up almost exactly
- * with Tailwind v4's default scale (16px = `rounded-2xl`, 8px = `rounded-lg`,
- * 9999px = `rounded-full`), so no custom radius/shadow tokens were needed.
+ * Component style reference for the app's Tailwind classes (no inline
+ * styles/CSS-in-JS — these classes ARE the applied tokens, via the
+ * `primary-*`/`ink-*`/`info-*` vars in `app/globals.css`, sourced from
+ * `app/lib/tokens/colors.ts`). Material You (docs/promptFE6.md): the
+ * `rounded-*` scale itself is remapped in `app/globals.css` (`@theme`
+ * `--radius-*` overrides) to MD3's radius steps (12/16/24/32px), so every
+ * existing `rounded-lg`/`rounded-xl`/`rounded-2xl`/`rounded-3xl` usage
+ * app-wide picks up the new values automatically — the px figures below
+ * reflect that remap, not Tailwind's stock scale.
  */
 
 export const components = {
   button: {
     primary: {
-      background: '#3525cd', // node 1:52
+      background: '#6750a4',
       text: '#ffffff',
-      radius: '12px', // rounded-xl
-      shadow: '0px 4px 6px -1px rgba(0,0,0,0.1), 0px 2px 4px -2px rgba(0,0,0,0.1)', // node 1:53 — equals Tailwind `shadow-md`
+      radius: '9999px', // rounded-full — MD3 buttons are always pill-shaped
+      shadow: 'none at rest, shadow-md on hover', // MD3 elevation, not a static drop shadow
       padding: '16px 24px',
-      className: 'bg-primary-600 text-white rounded-xl shadow-md hover:bg-primary-700',
+      className: 'bg-primary-600 text-white rounded-full shadow-none hover:bg-primary-700 hover:shadow-md active:scale-95',
     },
     outline: {
-      background: '#ffffff',
-      border: 'rgba(199,196,216,0.3)', // node 1:111
-      radius: '8px', // rounded-lg
-      className: 'border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 rounded-lg',
+      background: 'transparent',
+      border: 'rgba(103,80,164,1)', // MD3 Outline, full opacity on outlined buttons
+      radius: '9999px', // rounded-full
+      className: 'border border-primary-600 bg-transparent text-primary-600 hover:bg-primary-600/5 rounded-full active:scale-95',
     },
   },
   input: {
-    background: '#eff4ff', // node 1:346
-    border: 'rgba(199,196,216,0.2)',
-    radius: '12px', // rounded-xl
-    placeholderColor: '#6b7280', // node 1:351
-    className: 'bg-primary-50 border border-slate-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100',
+    background: '#e7e0ec', // MD3 Surface Container Low
+    border: '#79747e', // MD3 Outline, bottom border only (filled text field style)
+    radius: '12px 12px 0px 0px', // MD3 filled text field — rounded top, square bottom
+    placeholderColor: '#49454f',
+    className: 'bg-ink-100 border-b-2 border-ink-300 rounded-t-xl rounded-b-none focus:border-primary-600',
   },
   card: {
-    background: 'rgba(255,255,255,0.7)', // node 1:84 (glassmorphism); solid white used for opaque cards, e.g. node 1:965
-    border: 'rgba(255,255,255,0.3)',
-    radius: '16px', // rounded-2xl — node 1:84
-    shadowSubtle: '0px 1px 1px rgba(0,0,0,0.05)', // node 1:533 — close to Tailwind `shadow-xs`
+    background: '#f3edf7', // MD3 Surface Container — never pure white
+    border: 'none', // MD3 prefers tonal surfaces over borders
+    radius: '24px', // rounded-2xl (remapped) — MD3 "Large"
+    shadowSubtle: 'shadow-sm at rest, shadow-md on hover',
     padding: '25px 25px 25px 28px',
-    className: 'bg-white rounded-2xl shadow-xs ring-1 ring-slate-200',
+    className: 'bg-primary-50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300',
   },
   badge: {
     brand: {
-      background: '#dce9ff', // node 1:98
-      text: '#3525cd', // node 1:99
-      radius: '8px', // rounded-lg
-      className: 'bg-primary-200 text-primary-600 rounded-lg',
+      background: '#e8def8',
+      text: '#6750a4',
+      radius: '9999px', // rounded-full
+      className: 'bg-primary-200 text-primary-600 rounded-full',
     },
     info: {
-      background: '#c9e6ff', // node 1:1523
-      text: '#004c6e', // node 1:93
+      background: '#7d5260',
+      text: '#fffbfe',
       radius: '9999px', // rounded-full
       className: 'bg-info-100 text-info-700 rounded-full',
     },

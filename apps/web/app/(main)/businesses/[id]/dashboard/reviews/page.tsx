@@ -41,7 +41,7 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
   const createReplyMutation = useCreateReplyMutation(businessId);
   const createReportMutation = useCreateReportMutation();
 
-  const isOwner = Boolean(business && user && (user.userId === business.owner.userId || user.role === 'ADMIN'));
+  const isOwner = Boolean(business && user && (business.owner?.userId === user.userId || user.role === 'ADMIN'));
 
   useEffect(() => {
     if (!isAuthLoading && !isLoading && business && !isOwner) {
@@ -81,8 +81,8 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
 
   if (isLoading || isAuthLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-600">Loading...</p>
+      <main className="flex min-h-screen items-center justify-center bg-ink-50">
+        <p className="text-sm text-ink-600">Loading...</p>
       </main>
     );
   }
@@ -95,7 +95,7 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
   const visibleReviews = needsReplyOnly ? reviews.filter((review) => !review.reply) : reviews;
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-ink-50">
       <OwnerDashboardSidebar businessId={businessId} currentPath={`/businesses/${businessId}/dashboard/reviews`} />
 
       <div className="flex-1 px-6 py-8 sm:px-10">
@@ -106,14 +106,14 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
+            <div className="rounded-3xl border border-ink-200 bg-primary-50 p-6">
               <p className="text-xs uppercase tracking-wide text-ink-700">Average Rating</p>
               <div className="mt-1 flex items-center gap-2">
                 <span className="font-sans text-4xl font-bold text-primary-600">{(stats?.avgRating ?? 0).toFixed(1)}</span>
                 <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
               </div>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-primary-50 p-6">
+            <div className="rounded-3xl border border-ink-200 bg-primary-50 p-6">
               <p className="text-xs uppercase tracking-wide text-ink-700">Total Reviews</p>
               <div className="mt-1 flex items-center gap-2">
                 <span className="font-sans text-4xl font-bold text-ink-900">{stats?.reviewCount ?? 0}</span>
@@ -128,13 +128,13 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-4 shadow-xs ring-1 ring-slate-200">
+          <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-ink-50 p-4 shadow-xs ring-1 ring-ink-200">
             <label className="flex items-center gap-2 text-sm font-medium text-ink-700">
               Rating
               <select
                 value={ratingFilter}
                 onChange={(event) => onRatingFilterChange(Number(event.target.value))}
-                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-ink-900"
+                className="rounded-lg border border-ink-300 px-2 py-1.5 text-sm text-ink-900"
               >
                 <option value={0}>All</option>
                 {RATING_OPTIONS.map((rating) => (
@@ -146,7 +146,7 @@ export default function BusinessDashboardReviewsPage({ params }: { params: Promi
             </label>
 
             <label className="flex items-center gap-2 text-sm font-medium text-ink-700">
-              <input type="checkbox" checked={needsReplyOnly} onChange={onNeedsReplyToggle} className="h-4 w-4 rounded border-slate-300" />
+              <input type="checkbox" checked={needsReplyOnly} onChange={onNeedsReplyToggle} className="h-4 w-4 rounded border-ink-300" />
               Needs reply only
             </label>
           </div>

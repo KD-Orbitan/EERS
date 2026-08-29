@@ -27,7 +27,7 @@ export function TrendingBusinessesSection() {
     return (
       <div className={LEADERBOARD_ROW_CLASS}>
         {Array.from({ length: TRENDING_LIMIT }).map((_, index) => (
-          <div key={index} className={`h-48 animate-pulse rounded-2xl bg-white shadow-xs ring-1 ring-slate-200 ${LEADERBOARD_CARD_CLASS}`} />
+          <div key={index} className={`h-48 animate-pulse rounded-2xl bg-ink-50 shadow-xs ring-1 ring-ink-200 ${LEADERBOARD_CARD_CLASS}`} />
         ))}
       </div>
     );

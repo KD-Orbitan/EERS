@@ -39,7 +39,7 @@ export default function AboutPage() {
   const { data: metadata } = useRankingMetadataQuery();
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-ink-50">
       <div className="relative overflow-hidden px-4 pb-20 pt-20 text-center">
         <div className="pointer-events-none absolute -left-32 -top-24 h-96 w-96 rounded-full bg-primary-600/5 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -right-32 h-80 w-[32rem] rounded-full bg-info-100/40 blur-3xl" />
@@ -56,7 +56,7 @@ export default function AboutPage() {
       <div className="mx-auto max-w-5xl px-4 pb-20">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {PRINCIPLES.map((principle) => (
-            <div key={principle.title} className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+            <div key={principle.title} className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-600/10 text-primary-600">
                 <principle.icon className="h-5 w-5" />
               </span>
@@ -99,7 +99,7 @@ export default function AboutPage() {
           </Link>
           <Link
             href="/rankings"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-sans text-sm font-bold text-ink-900 shadow-xs transition hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-ink-300 bg-ink-50 px-6 py-3 font-sans text-sm font-bold text-ink-900 shadow-xs transition hover:bg-ink-100"
           >
             View the Leaderboard
           </Link>

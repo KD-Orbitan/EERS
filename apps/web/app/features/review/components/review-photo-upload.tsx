@@ -66,7 +66,7 @@ export function ReviewPhotoUpload({ reviewId, businessId, photos, isAuthor }: Re
   return (
     <div className="mt-3 flex flex-wrap items-center gap-2">
       {photos.map((photo) => (
-        <div key={photo.imageId} className="group relative h-16 w-16 overflow-hidden rounded-lg bg-slate-100">
+        <div key={photo.imageId} className="group relative h-16 w-16 overflow-hidden rounded-lg bg-ink-100">
           <a href={photo.url} target="_blank" rel="noreferrer">
             {/* eslint-disable-next-line @next/next/no-img-element -- external Cloudinary URL, next/image remote patterns not configured */}
             <img src={photo.url} alt="Review photo" className="h-full w-full object-cover" />
@@ -76,7 +76,7 @@ export function ReviewPhotoUpload({ reviewId, businessId, photos, isAuthor }: Re
               type="button"
               onClick={() => onDelete(photo.imageId)}
               disabled={pendingImageId === photo.imageId}
-              className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900/70 text-white opacity-0 transition group-hover:opacity-100 disabled:cursor-not-allowed"
+              className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink-900/70 text-white opacity-0 transition group-hover:opacity-100 disabled:cursor-not-allowed"
               aria-label="Remove photo"
             >
               {pendingImageId === photo.imageId ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
@@ -91,7 +91,7 @@ export function ReviewPhotoUpload({ reviewId, businessId, photos, isAuthor }: Re
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploadPhotosMutation.isPending}
-            className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-slate-300 text-ink-500 transition hover:border-primary-400 hover:text-primary-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-ink-300 text-ink-500 transition hover:border-primary-400 hover:text-primary-600 disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Add photos"
           >
             {uploadPhotosMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}

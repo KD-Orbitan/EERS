@@ -17,12 +17,12 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
   const { data, isLoading } = useSentimentSummaryQuery(businessId);
 
   if (isLoading) {
-    return <div className="h-64 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />;
+    return <div className="h-64 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />;
   }
 
   if (!data || data.totalReviews === 0) {
     return (
-      <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <h2 className="font-sans text-lg font-bold text-ink-900">Customer Sentiment</h2>
         <p className="mt-1 text-xs text-ink-500">AI-powered perception analysis</p>
         <p className="mt-8 text-center text-sm text-ink-500">Not enough analyzed reviews yet.</p>
@@ -33,7 +33,7 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
   const offset = CIRCUMFERENCE * (1 - data.positive / 100);
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <h2 className="font-sans text-lg font-bold text-ink-900">Customer Sentiment</h2>
       <p className="mt-1 text-xs text-ink-500">AI-powered perception analysis</p>
 
@@ -64,7 +64,7 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
           <p className="text-ink-500">Positive</p>
         </div>
         <div>
-          <p className="font-bold text-slate-500">{data.neutral}%</p>
+          <p className="font-bold text-ink-500">{data.neutral}%</p>
           <p className="text-ink-500">Neutral</p>
         </div>
         <div>

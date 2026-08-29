@@ -40,7 +40,7 @@ export function CategoryCriteriaAssignmentPanel() {
   const isLoading = isCriteriaLoading || (categoryId ? isAssignedLoading : false);
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+    <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
       <h2 className="font-sans text-base font-bold text-ink-900">Assign Criteria to Category</h2>
       <p className="mt-1 text-xs text-ink-500">
         Businesses inherit criteria from their categories — pick a category, then check the criteria it should use.
@@ -54,7 +54,7 @@ export function CategoryCriteriaAssignmentPanel() {
           id="assignment-category-picker"
           value={categoryId ?? ''}
           onChange={(event) => setCategoryId(event.target.value ? Number(event.target.value) : undefined)}
-          className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+          className="w-full rounded-xl border border-ink-300 px-3 py-2.5 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
         >
           <option value="">Select a category...</option>
           {categories?.map((category) => (
@@ -66,11 +66,11 @@ export function CategoryCriteriaAssignmentPanel() {
       </div>
 
       {!categoryId ? null : isLoading ? (
-        <div className="mt-4 h-32 animate-pulse rounded-xl bg-slate-100" />
+        <div className="mt-4 h-32 animate-pulse rounded-xl bg-ink-100" />
       ) : !allCriteria || allCriteria.length === 0 ? (
         <p className="mt-4 text-sm text-ink-500">No criteria exist yet — add one above first.</p>
       ) : (
-        <ul className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200">
+        <ul className="mt-4 divide-y divide-ink-100 rounded-xl border border-ink-200">
           {allCriteria.map((criterion) => {
             const isAssigned = assignedIds.has(criterion.criterionId);
             const isRowMutating = isMutating && pendingCriterionId === criterion.criterionId;
@@ -82,7 +82,7 @@ export function CategoryCriteriaAssignmentPanel() {
                     checked={isAssigned}
                     disabled={isRowMutating}
                     onChange={() => onToggle(criterion.criterionId, isAssigned)}
-                    className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                    className="h-4 w-4 rounded border-ink-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span>
                     <span className="text-sm font-medium text-ink-900">{criterion.name}</span>

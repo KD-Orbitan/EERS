@@ -80,7 +80,7 @@ export function CoverUpload({ businessId, coverUrl, isOwner }: CoverUploadProps)
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={isBusy}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-ink-50/10 px-3 py-2 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-ink-50/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {uploadCoverMutation.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -94,7 +94,7 @@ export function CoverUpload({ businessId, coverUrl, isOwner }: CoverUploadProps)
               type="button"
               onClick={onRemove}
               disabled={isBusy}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-red-600/80 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-ink-50/10 px-3 py-2 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-red-600/80 disabled:cursor-not-allowed disabled:opacity-60"
               aria-label="Remove cover photo"
             >
               {deleteCoverMutation.isPending ? (

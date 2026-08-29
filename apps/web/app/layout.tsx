@@ -1,15 +1,19 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist_Mono, Roboto } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+// Material You (site-wide, see docs/promptFE6.md) — Roboto is the canonical
+// Material Design typeface. `--font-sans` in globals.css points at this
+// variable, so every page gets Roboto via Tailwind's default font stack.
+const roboto = Roboto({
+  variable: '--font-roboto',
+  weight: ['400', '500', '700'],
   subsets: ['latin'],
 });
 
@@ -27,7 +31,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistMono.variable} ${roboto.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>

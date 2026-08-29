@@ -64,7 +64,7 @@ export function LogoUpload({ businessId, logoUrl, isOwner }: LogoUploadProps) {
 
   return (
     <div className="relative h-16 w-16 shrink-0">
-      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white/90 shadow-lg">
+      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-ink-50/90 shadow-lg">
         {displayUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- external Cloudinary URL, next/image remote patterns not configured
           <img src={displayUrl} alt="Logo" className="h-full w-full object-cover" />
@@ -93,7 +93,7 @@ export function LogoUpload({ businessId, logoUrl, isOwner }: LogoUploadProps) {
               type="button"
               onClick={onRemove}
               disabled={isBusy}
-              className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white text-red-600 shadow-md ring-2 ring-white transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink-50 text-red-600 shadow-md ring-2 ring-white transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
               aria-label="Remove logo"
             >
               {deleteLogoMutation.isPending ? (

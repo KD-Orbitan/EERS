@@ -17,7 +17,7 @@ interface BusinessSortTabsProps {
 // container with a "SORT BY" label and 3 buttons, active tab filled primary-500.
 export function BusinessSortTabs({ sortBy, onSortByChange }: BusinessSortTabsProps) {
   return (
-    <div className="inline-flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-[5px] shadow-xs">
+    <div className="inline-flex items-center gap-4 rounded-xl border border-ink-200 bg-ink-50 p-[5px] shadow-xs">
       <span className="pl-2 text-xs font-medium uppercase tracking-wide text-ink-500">Sort by</span>
       {TABS.map((tab) => {
         const isActive = tab.sortBy === sortBy;
@@ -27,7 +27,7 @@ export function BusinessSortTabs({ sortBy, onSortByChange }: BusinessSortTabsPro
             type="button"
             onClick={() => onSortByChange(tab.sortBy)}
             className={`rounded-lg px-4 py-1 font-sans text-sm font-bold transition ${
-              isActive ? 'bg-primary-500 text-white' : 'text-ink-700 hover:bg-slate-50'
+              isActive ? 'bg-primary-500 text-white' : 'text-ink-700 hover:bg-ink-100'
             }`}
           >
             {tab.label}
