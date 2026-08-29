@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder-google-client-id
+
+jobs:
+  api:
+    name: API — test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # `pnpm --filter api run lint` is intentionally not run here: the
+      # script reports ~440 pre-existing errors unrelated to any of this
+      # CI setup, so it would fail on every run. Wire it in once that debt
+      # has its own cleanup pass.
+      - run: pnpm --filter api run test
+      - run: pnpm --filter api run build
+
+  web:
+    name: Web — lint, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web run lint
+      - run: pnpm --filter web run build
+
+  docker:
+    name: Docker images build
+    needs: [api, web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ env.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
