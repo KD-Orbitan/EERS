@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { LayoutDashboard, Building2, MessageSquareText, Flag, Users, Sliders, Scale, Bell, TrendingUp, Tags } from 'lucide-react';
+import { LayoutDashboard, Building2, MessageSquareText, Flag, Users, Sliders, Scale, Bell, TrendingUp, Tags, UserCheck } from 'lucide-react';
 import { useUnreadCountQuery } from '@/features/notification/queries/use-unread-count.query';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/businesses', label: 'Business Verification', icon: Building2 },
+  { href: '/admin/business-claims', label: 'Business Claims', icon: UserCheck },
   { href: '/admin/reviews', label: 'Review Moderation', icon: MessageSquareText },
   { href: '/admin/reports', label: 'Report Management', icon: Flag },
   { href: '/admin/users', label: 'User Management', icon: Users },
@@ -26,7 +27,7 @@ export function AdminSidebar({ currentPath }: { currentPath: string }) {
   const { data: unreadCount = 0 } = useUnreadCountQuery(true);
 
   return (
-    <nav className="flex w-60 shrink-0 flex-col gap-1 border-r border-slate-200 bg-white p-4">
+    <nav className="flex w-60 shrink-0 flex-col gap-1 border-r border-ink-200 bg-ink-50 p-4">
       <div className="mb-4 px-2">
         <p className="font-sans text-lg font-bold text-ink-900">Admin Panel</p>
         <p className="text-xs text-ink-500">EERS moderation &amp; config</p>
@@ -45,7 +46,7 @@ export function AdminSidebar({ currentPath }: { currentPath: string }) {
           </span>
         ) : null}
       </Link>
-      <div className="my-2 border-t border-slate-100" />
+      <div className="my-2 border-t border-ink-100" />
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
         const isActive = href === '/admin' ? currentPath === '/admin' : currentPath.startsWith(href);
         return (

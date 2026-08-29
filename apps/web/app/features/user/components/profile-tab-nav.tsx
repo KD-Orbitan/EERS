@@ -2,10 +2,10 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Bookmark, Building2, ChevronDown, Flag, KeyRound, MessageSquareText, Pencil } from 'lucide-react';
+import { Bookmark, Building2, ChevronDown, Flag, KeyRound, MessageSquareText, Pencil, UserCheck } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-export type ProfileTab = 'reviews' | 'edit' | 'change-password' | 'businesses' | 'bookmarks' | 'reports';
+export type ProfileTab = 'reviews' | 'edit' | 'change-password' | 'businesses' | 'bookmarks' | 'reports' | 'claims';
 
 interface TabConfig {
   tab: ProfileTab;
@@ -20,6 +20,7 @@ const TABS: TabConfig[] = [
   { tab: 'businesses', label: 'My Businesses', icon: Building2 },
   { tab: 'bookmarks', label: 'My Bookmarks', icon: Bookmark },
   { tab: 'reports', label: 'My Reports', icon: Flag },
+  { tab: 'claims', label: 'My Claims', icon: UserCheck },
 ];
 
 function tabHref(tab: ProfileTab) {

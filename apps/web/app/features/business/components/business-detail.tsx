@@ -18,6 +18,7 @@ import { ReviewDistributionCard } from '@/features/review/components/review-dist
 import { MarketCompetitorsCard } from '@/features/ranking/components/market-competitors-card';
 import { CriteriaScoresCard } from '@/features/review/components/criteria-scores-card';
 import { ReviewSummary } from '@/features/review/components/review-summary';
+import { ClaimBusinessDialog } from '@/features/business-claim/components/claim-business-dialog';
 
 interface BusinessDetailProps {
   business: BusinessDetailData;
@@ -50,11 +51,11 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-sans text-3xl font-bold text-white sm:text-4xl">{business.name}</h1>
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary-100 backdrop-blur-sm">
+                <span className="rounded-full bg-ink-50/15 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary-100 backdrop-blur-sm">
                   {business.status}
                 </span>
                 {ranking?.rank ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-ink-50/15 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
                     <span className="inline-flex items-center gap-1">
                       <Trophy className="h-3.5 w-3.5" />
                       Global Rank #{ranking.rank}
@@ -80,18 +81,19 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
                 Write Review
               </Link>
             ) : null}
+            {isAuthenticated && !business.owner ? <ClaimBusinessDialog businessId={business.businessId} /> : null}
             {isOwner ? (
               <>
                 <Link
                   href={`/businesses/${business.businessId}/dashboard`}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-ink-50/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-ink-50/20"
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <Link
                   href={`/businesses/${business.businessId}/edit`}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-ink-50/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-ink-50/20"
                 >
                   <Pencil className="h-4 w-4" />
                   Edit
@@ -111,7 +113,7 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <div className="flex flex-wrap gap-1.5">
           {business.categories.map((category) => (
             <Badge key={category.categoryId} variant="brand">
@@ -133,7 +135,13 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
           ) : null}
         </div>
 
-        <p className="mt-4 text-xs text-ink-500">Owned by {business.owner.name}</p>
+        <div className="mt-4 flex items-center gap-2">
+          {business.owner ? (
+            <p className="text-xs text-ink-500">Owned by {business.owner.name}</p>
+          ) : (
+            <Badge variant="neutral">Unclaimed</Badge>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -7,6 +7,9 @@ export type NotificationType =
   | 'NEW_REPLY'
   | 'REPORT_CREATED'
   | 'NEW_REVIEW'
+  | 'CLAIM_SUBMITTED'
+  | 'CLAIM_APPROVED'
+  | 'CLAIM_REJECTED'
   | (string & {});
 
 export interface NotificationListItem {

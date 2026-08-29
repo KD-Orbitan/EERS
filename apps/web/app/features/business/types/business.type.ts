@@ -54,7 +54,7 @@ export interface BusinessDetail {
   owner: {
     userId: number;
     name: string;
-  };
+  } | null;
   categories: BusinessCategory[];
   locations: BusinessLocation[];
   coverUrl: string | null;

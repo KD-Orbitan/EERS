@@ -20,20 +20,30 @@ interface BusinessFormValues {
 
 type CreateBusinessFormProps =
   | {
+      // 'create' (default) = public "list your business" flow, resulting in
+      // a pending business owned by the submitter; 'admin-create' = same
+      // fields, but the caller wires onSubmit to the admin endpoint, which
+      // creates an auto-approved, unclaimed business instead. The two share
+      // this branch of the union because their payload shape and rendered
+      // fields are identical — only the submit target (chosen by the page)
+      // and the button label differ.
+      mode?: 'create' | 'admin-create';
       initialData?: undefined;
       isLoading?: boolean;
       onSubmit: (data: CreateBusinessInput) => void | Promise<void>;
       onCancel?: () => void;
     }
   | {
+      mode?: 'edit';
       initialData: BusinessDetail;
       isLoading?: boolean;
       onSubmit: (data: UpdateBusinessInput) => void | Promise<void>;
       onCancel?: () => void;
     };
 
-export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel }: CreateBusinessFormProps) {
+export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onCancel }: CreateBusinessFormProps) {
   const isEditMode = Boolean(initialData);
+  const isAdminCreate = mode === 'admin-create';
   const { data: categories } = useCategoriesQuery();
 
   const {
@@ -87,54 +97,54 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
 
   return (
     <form onSubmit={submitHandler} className="space-y-6">
-      <div className="space-y-4 rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+      <div className="space-y-4 rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="name">
+          <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="name">
             Business name
           </label>
           <input
             id="name"
             type="text"
-            className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+            className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
             {...register('name')}
           />
           {errors.name?.message ? <p className="mt-1 text-sm text-red-600">{errors.name.message}</p> : null}
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="description">
+          <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="description">
             Description
           </label>
           <textarea
             id="description"
             rows={4}
-            className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+            className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
             {...register('description')}
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="phone">
+            <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="phone">
               Phone
             </label>
             <input
               id="phone"
               type="text"
-              className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+              className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
               {...register('phone')}
             />
             {errors.phone?.message ? <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p> : null}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="email">
+            <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="email">
               Email
             </label>
             <input
               id="email"
               type="email"
-              className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+              className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
               {...register('email')}
             />
             {errors.email?.message ? <p className="mt-1 text-sm text-red-600">{errors.email.message}</p> : null}
@@ -143,8 +153,8 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
       </div>
 
       {!isEditMode ? (
-        <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
-          <h2 className="mb-3 text-sm font-medium text-slate-700">Categories</h2>
+        <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
+          <h2 className="mb-3 text-sm font-medium text-ink-700">Categories</h2>
           <Controller
             control={control}
             name="categoryIds"
@@ -155,7 +165,7 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
                   return (
                     <label
                       key={category.categoryId}
-                      className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700"
+                      className="inline-flex items-center gap-2 rounded-lg border border-ink-300 px-3 py-1.5 text-sm text-ink-700"
                     >
                       <input
                         type="checkbox"
@@ -181,13 +191,13 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
       ) : null}
 
       {!isEditMode ? (
-        <div className="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200">
+        <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-slate-700">Locations</h2>
+            <h2 className="text-sm font-medium text-ink-700">Locations</h2>
             <button
               type="button"
               onClick={() => append({ addressLine: '', ward: '', province: '' })}
-              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
             >
               <Plus className="h-4 w-4" />
               Add location
@@ -196,9 +206,9 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
 
           <div className="space-y-4">
             {fields.map((locationField, index) => (
-              <div key={locationField.id} className="rounded-lg border border-slate-200 p-4">
+              <div key={locationField.id} className="rounded-lg border border-ink-200 p-4">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-500">Location {index + 1}</span>
+                  <span className="text-xs font-medium text-ink-500">Location {index + 1}</span>
                   {fields.length > 1 ? (
                     <button
                       type="button"
@@ -216,7 +226,7 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
                     <input
                       type="text"
                       placeholder="Address"
-                      className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                      className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                       {...register(`locations.${index}.addressLine` as const)}
                     />
                     {errors.locations?.[index]?.addressLine?.message ? (
@@ -227,7 +237,7 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
                     <input
                       type="text"
                       placeholder="Ward"
-                      className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                      className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                       {...register(`locations.${index}.ward` as const)}
                     />
                     {errors.locations?.[index]?.ward?.message ? (
@@ -238,7 +248,7 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
                     <input
                       type="text"
                       placeholder="Province"
-                      className="w-full rounded-xl border border-slate-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                      className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                       {...register(`locations.${index}.province` as const)}
                     />
                     {errors.locations?.[index]?.province?.message ? (
@@ -260,7 +270,7 @@ export function CreateBusinessForm({ initialData, isLoading, onSubmit, onCancel 
           </Button>
         ) : null}
         <Button type="submit" disabled={busy}>
-          {busy ? 'Saving...' : isEditMode ? 'Save changes' : 'Create business'}
+          {busy ? 'Saving...' : isEditMode ? 'Save changes' : isAdminCreate ? 'Add business' : 'Create business'}
         </Button>
       </div>
     </form>

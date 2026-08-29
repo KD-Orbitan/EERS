@@ -36,4 +36,7 @@ export const QUERY_KEYS = {
   ADMIN_BUSINESSES: ['admin', 'businesses'],
   ADMIN_REVIEWS: ['admin', 'reviews'],
   ADMIN_USERS: ['admin', 'users'],
+  MY_CLAIMS: ['business-claims', 'me'],
+  ADMIN_CLAIMS: ['admin', 'business-claims'],
+  BUSINESS_CLAIM_DETAIL: (id: number) => ['business-claims', id],
 } as const;

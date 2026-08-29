@@ -10,6 +10,9 @@ const iconByType: Partial<Record<NotificationType, typeof Bell>> = {
   NEW_REPLY: MessageSquareText,
   REPORT_CREATED: AlertTriangle,
   NEW_REVIEW: Star,
+  CLAIM_SUBMITTED: AlertTriangle,
+  CLAIM_APPROVED: CheckCircle2,
+  CLAIM_REJECTED: XCircle,
 };
 
 const iconColorByType: Partial<Record<NotificationType, string>> = {
@@ -21,6 +24,9 @@ const iconColorByType: Partial<Record<NotificationType, string>> = {
   NEW_REPLY: 'text-primary-600 bg-primary-100',
   REPORT_CREATED: 'text-red-600 bg-red-100',
   NEW_REVIEW: 'text-primary-600 bg-primary-100',
+  CLAIM_SUBMITTED: 'text-red-600 bg-red-100',
+  CLAIM_APPROVED: 'text-emerald-600 bg-emerald-100',
+  CLAIM_REJECTED: 'text-red-600 bg-red-100',
 };
 
 interface NotificationItemProps {
@@ -31,7 +37,7 @@ interface NotificationItemProps {
 
 export function NotificationItem({ notification, onClick, compact = false }: NotificationItemProps) {
   const Icon = iconByType[notification.type] ?? Bell;
-  const iconColor = iconColorByType[notification.type] ?? 'text-ink-700 bg-slate-100';
+  const iconColor = iconColorByType[notification.type] ?? 'text-ink-700 bg-ink-100';
 
   return (
     <button
@@ -39,8 +45,8 @@ export function NotificationItem({ notification, onClick, compact = false }: Not
       onClick={onClick}
       disabled={!onClick}
       className={`flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition ${
-        notification.isRead ? 'bg-white' : 'bg-primary-50'
-      } ${onClick ? 'hover:bg-slate-50 disabled:cursor-default' : 'cursor-default'}`}
+        notification.isRead ? 'bg-ink-50' : 'bg-primary-50'
+      } ${onClick ? 'hover:bg-ink-100 disabled:cursor-default' : 'cursor-default'}`}
     >
       <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${iconColor}`}>
         <Icon className="h-4 w-4" />

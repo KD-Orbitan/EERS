@@ -15,8 +15,9 @@ import { MyReviewsPanel } from '@/features/review/components/my-reviews-panel';
 import { MyBusinessesPanel } from '@/features/business/components/my-businesses-panel';
 import { MyBookmarksPanel } from '@/features/business/components/my-bookmarks-panel';
 import { MyReportsPanel } from '@/features/report/components/my-reports-panel';
+import { MyClaimsPanel } from '@/features/business-claim/components/my-claims-panel';
 
-const VALID_TABS: ProfileTab[] = ['reviews', 'edit', 'change-password', 'businesses', 'bookmarks', 'reports'];
+const VALID_TABS: ProfileTab[] = ['reviews', 'edit', 'change-password', 'businesses', 'bookmarks', 'reports', 'claims'];
 
 function ActiveTabPanel({ tab }: { tab: ProfileTab }) {
   switch (tab) {
@@ -30,6 +31,8 @@ function ActiveTabPanel({ tab }: { tab: ProfileTab }) {
       return <MyBookmarksPanel />;
     case 'reports':
       return <MyReportsPanel />;
+    case 'claims':
+      return <MyClaimsPanel />;
     case 'reviews':
     default:
       return <MyReviewsPanel />;
@@ -63,10 +66,10 @@ function ProfilePageContent() {
 
   if (isAuthLoading || isProfileLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-8">
+      <main className="min-h-screen bg-ink-50 px-4 py-8">
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
-          <div className="h-96 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />
-          <div className="h-96 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />
+          <div className="h-96 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
+          <div className="h-96 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
         </div>
       </main>
     );
@@ -79,7 +82,7 @@ function ProfilePageContent() {
   const reviewCount = reviewsData?.meta?.total ?? 0;
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-5xl">
         <h1 className="sr-only">My Profile</h1>
 
@@ -94,7 +97,7 @@ function ProfilePageContent() {
             onSignOut={onSignOut}
           />
 
-          <div className="min-w-0 rounded-3xl bg-white p-6 shadow-xs ring-1 ring-slate-200 sm:p-8">
+          <div className="min-w-0 rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200 sm:p-8">
             <ActiveTabPanel tab={activeTab} />
           </div>
         </div>
@@ -107,10 +110,10 @@ export default function ProfilePage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-slate-50 px-4 py-8">
+        <main className="min-h-screen bg-ink-50 px-4 py-8">
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
-            <div className="h-96 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />
-            <div className="h-96 animate-pulse rounded-3xl bg-white shadow-xs ring-1 ring-slate-200" />
+            <div className="h-96 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
+            <div className="h-96 animate-pulse rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200" />
           </div>
         </main>
       }
