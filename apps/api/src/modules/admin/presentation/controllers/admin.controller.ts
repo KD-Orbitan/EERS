@@ -37,6 +37,13 @@ import { ResolveReportDto } from '../../../report/application/dto/resolve-report
 import { ListAdminReportsUseCase } from '../../../report/application/use-cases/list-admin-reports.use-case'
 import { ResolveReportUseCase } from '../../../report/application/use-cases/resolve-report.use-case'
 import { RejectReportUseCase } from '../../../report/application/use-cases/reject-report.use-case'
+import { CreateBusinessDto } from '../../../business/application/dto/create-business.dto'
+import { CreateBusinessAsAdminUseCase } from '../../../business/application/use-cases/create-business-as-admin.use-case'
+import { AdminClaimQueryDto } from '../../../business-claim/application/dto/admin-claim-query.dto'
+import { RejectClaimDto } from '../../../business-claim/application/dto/reject-claim.dto'
+import { ListAdminClaimsUseCase } from '../../../business-claim/application/use-cases/list-admin-claims.use-case'
+import { ApproveClaimUseCase } from '../../../business-claim/application/use-cases/approve-claim.use-case'
+import { RejectClaimUseCase } from '../../../business-claim/application/use-cases/reject-claim.use-case'
 
 @ApiTags('admin')
 @Controller('admin')
@@ -62,6 +69,10 @@ export class AdminController {
     private readonly listAdminReportsUseCase: ListAdminReportsUseCase,
     private readonly resolveReportUseCase: ResolveReportUseCase,
     private readonly rejectReportUseCase: RejectReportUseCase,
+    private readonly createBusinessAsAdminUseCase: CreateBusinessAsAdminUseCase,
+    private readonly listAdminClaimsUseCase: ListAdminClaimsUseCase,
+    private readonly approveClaimUseCase: ApproveClaimUseCase,
+    private readonly rejectClaimUseCase: RejectClaimUseCase,
   ) {}
 
   @Get('businesses')
@@ -73,6 +84,14 @@ export class AdminController {
     const page = query.page ?? 1
     const limit = query.limit ?? 20
     return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  }
+
+  @Post('businesses')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async createBusinessAsAdmin(@CurrentUser() user: { userId: number }, @Body() dto: CreateBusinessDto) {
+    return this.createBusinessAsAdminUseCase.execute({ currentUserId: user.userId, dto })
   }
 
   @Post('businesses/:businessId/approve')
@@ -228,6 +247,37 @@ export class AdminController {
   @Roles('ADMIN')
   async rejectReport(@Param('reportId', ParseIntPipe) reportId: number) {
     return this.rejectReportUseCase.execute({ reportId })
+  }
+
+  @Get('business-claims')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async listBusinessClaims(@Query() query: AdminClaimQueryDto) {
+    const { items, total } = await this.listAdminClaimsUseCase.execute({ page: query.page, limit: query.limit, status: query.status })
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  }
+
+  @Post('business-claims/:claimId/approve')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async approveBusinessClaim(@CurrentUser() user: { userId: number }, @Param('claimId', ParseIntPipe) claimId: number) {
+    return this.approveClaimUseCase.execute({ claimId, currentUserId: user.userId })
+  }
+
+  @Post('business-claims/:claimId/reject')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async rejectBusinessClaim(
+    @CurrentUser() user: { userId: number },
+    @Param('claimId', ParseIntPipe) claimId: number,
+    @Body() dto: RejectClaimDto,
+  ) {
+    return this.rejectClaimUseCase.execute({ claimId, currentUserId: user.userId, reason: dto.reason })
   }
 
   @Get('users')

@@ -755,6 +755,7 @@ ranking_snapshot_history → Ranking Module (ranking)
 ranking_trend_config   → Ranking Module (ranking)
 notifications          → Notification Module (notification)
 logs                   → Audit Log Module (audit-log)
+business_claims        → Business Claim Module (business-claim)
 ```
 
 Cross-module access rule:
@@ -990,6 +991,55 @@ Rationale:
   geocode must never be a hard error
 - Never accepting lat/lng as request input prevents a client from spoofing a business's
   mapped location independent of its stated address
+```
+
+---
+
+# Section 17. Business Claim & Ownership Transfer
+
+## D-033 — Business Claim & Ownership Transfer
+
+**Decision:** Admin can create a business directly (auto-approved immediately, `ownerUserId = null`
+means "unclaimed"). Any authenticated user may submit a claim (free-text message only, no evidence
+upload) on an unclaimed approved business. Admin approves (transfers `ownerUserId` to the claimant,
+promotes the claimant's role to `BUSINESS_OWNER`) or rejects (reason required, min 10 chars) a
+claim. Approving one claim auto-rejects all other pending claims on the same business.
+
+```
+Business creation : Admin-created businesses skip the pending/approval flow — status='approved'
+                     and approvedByUserId=currentUserId are set directly at creation time, and
+                     ownerUserId is left null (no placeholder/system user).
+Claimable scope    : Only a business with ownerUserId IS NULL can be claimed
+                     (BUSINESS_ALREADY_CLAIMED otherwise). Since only admin-created businesses
+                     ever have a null owner, this alone scopes claiming to admin-added
+                     businesses — no extra "source" flag needed.
+Claim submission   : Free-text message only (no evidence upload) — same minimal shape as the
+                     existing Report flow.
+Claim approval     : Transfers Business.ownerUserId to the claimant AND promotes the claimant's
+                     role to BUSINESS_OWNER — this mirrors the existing (previously undocumented)
+                     side effect in ApproveBusinessUseCase, which bumps a business creator's role
+                     to BUSINESS_OWNER on approval. Claim approval behaves the same way so
+                     BusinessOwner+-gated endpoints (e.g. review replies) work identically no
+                     matter how ownership was established.
+Rival claims       : Approving one claim auto-rejects every other pending claim on the same
+                     business, preserving the one-owner invariant without manual admin cleanup.
+Resubmission       : No unique constraint on (userId, businessId) — a user may resubmit a claim
+                     after a rejection. "One active pending claim per user per business" is
+                     enforced in application logic, not the database.
+```
+
+Rationale:
+
+```
+- Nullable ownerUserId ("unclaimed") is simpler and more honest than assigning a placeholder/
+  system user, which would misrepresent a real account as owner
+- Auto-approving admin-created businesses avoids a pointless self-approval step — admin is
+  already the trusted actor creating the record
+- Mirroring the existing role-bump mechanism from business approval keeps ownership-derived
+  permissions consistent regardless of which path (direct creation + approval, or claim
+  approval) established that ownership
+- Auto-rejecting rival claims on approval avoids leaving stale pending claims around that would
+  otherwise require a separate admin cleanup pass
 ```
 
 ---

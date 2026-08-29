@@ -13,10 +13,12 @@ import { GeocodingService } from './infrastructure/services/geocoding.service'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CreateBusinessUseCase } from './application/use-cases/create-business.use-case'
+import { CreateBusinessAsAdminUseCase } from './application/use-cases/create-business-as-admin.use-case'
 import { UpdateBusinessUseCase } from './application/use-cases/update-business.use-case'
 import { DeleteBusinessUseCase } from './application/use-cases/delete-business.use-case'
 import { GetBusinessListUseCase } from './application/use-cases/get-business-list.use-case'
 import { GetBusinessByIdUseCase } from './application/use-cases/get-business-by-id.use-case'
+import { GetBusinessSummaryUseCase } from './application/use-cases/get-business-summary.use-case'
 import { GetMyBusinessesUseCase } from './application/use-cases/get-my-businesses.use-case'
 import { GetBusinessStatisticsUseCase } from './application/use-cases/get-business-statistics.use-case'
 import { GetBusinessReviewTrendUseCase } from './application/use-cases/get-business-review-trend.use-case'
@@ -62,10 +64,12 @@ import { ReorderGalleryUseCase } from './application/use-cases/reorder-gallery.u
     },
     GeocodingService,
     CreateBusinessUseCase,
+    CreateBusinessAsAdminUseCase,
     UpdateBusinessUseCase,
     DeleteBusinessUseCase,
     GetBusinessListUseCase,
     GetBusinessByIdUseCase,
+    GetBusinessSummaryUseCase,
     GetMyBusinessesUseCase,
     GetBusinessStatisticsUseCase,
     GetBusinessReviewTrendUseCase,
@@ -81,6 +85,6 @@ import { ReorderGalleryUseCase } from './application/use-cases/reorder-gallery.u
     DeleteGalleryImageUseCase,
     ReorderGalleryUseCase,
   ],
-  exports: [GetBusinessByIdUseCase, ValidateBusinessOwnershipUseCase, BusinessRepository],
+  exports: [GetBusinessByIdUseCase, GetBusinessSummaryUseCase, ValidateBusinessOwnershipUseCase, BusinessRepository, CreateBusinessAsAdminUseCase],
 })
 export class BusinessModule {}

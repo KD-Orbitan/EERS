@@ -103,6 +103,74 @@ export class PrismaBusinessRepository extends BusinessRepository {
     }
   }
 
+  async createUnclaimedBusinessWithLocationsAndCategories(params: {
+    name: string
+    description?: string | null
+    phone: string
+    email?: string | null
+    approvedByUserId: number
+    categoryIds: number[]
+    locations: Array<{ addressLine: string; ward: string; province: string; latitude?: number | null; longitude?: number | null }>
+  }) {
+    const business = await this.prisma.$transaction(async (tx) => {
+      const createdBusiness = await tx.business.create({
+        data: {
+          name: params.name,
+          description: params.description,
+          phone: params.phone,
+          email: params.email,
+          ownerUserId: null,
+          status: 'approved',
+          approvedByUserId: BigInt(params.approvedByUserId),
+          avgRating: 0,
+        },
+      })
+
+      const locations = await Promise.all(
+        params.locations.map((location) =>
+          tx.location.create({
+            data: {
+              addressLine: location.addressLine,
+              ward: location.ward,
+              province: location.province,
+              latitude: location.latitude ?? null,
+              longitude: location.longitude ?? null,
+            },
+          }),
+        ),
+      )
+
+      await Promise.all(
+        locations.map((location) =>
+          tx.businessLocation.create({
+            data: {
+              businessId: createdBusiness.businessId,
+              locationId: location.locationId,
+            },
+          }),
+        ),
+      )
+
+      await Promise.all(
+        params.categoryIds.map((categoryId) =>
+          tx.businessCategory.create({
+            data: {
+              businessId: createdBusiness.businessId,
+              categoryId,
+            },
+          }),
+        ),
+      )
+
+      return createdBusiness
+    })
+
+    return {
+      businessId: Number(business.businessId),
+      status: business.status,
+    }
+  }
+
   async updateBusiness(businessId: number, data: { name?: string; description?: string; phone?: string; email?: string }) {
     const updated = await this.prisma.business.updateMany({
       where: { businessId, deletedAt: null },
@@ -302,10 +370,12 @@ export class PrismaBusinessRepository extends BusinessRepository {
       avgRating: Number(business.avgRating),
       reviewCount,
       status: business.status,
-      owner: {
-        userId: Number(business.owner.userId),
-        name: business.owner.name,
-      },
+      owner: business.owner
+        ? {
+            userId: Number(business.owner.userId),
+            name: business.owner.name,
+          }
+        : null,
       categories: business.businessCategories.map((bc) => ({
         categoryId: bc.category.categoryId,
         categoryName: bc.category.categoryName,
@@ -424,7 +494,7 @@ export class PrismaBusinessRepository extends BusinessRepository {
       email: business.email,
       status: business.status,
       avgRating: Number(business.avgRating),
-      ownerUserId: Number(business.ownerUserId),
+      ownerUserId: business.ownerUserId !== null ? Number(business.ownerUserId) : null,
       createdAt: business.createdAt,
       updatedAt: business.updatedAt,
       deletedAt: business.deletedAt,

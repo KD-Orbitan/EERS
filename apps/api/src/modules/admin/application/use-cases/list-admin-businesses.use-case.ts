@@ -27,7 +27,7 @@ export class ListAdminBusinessesUseCase {
       businessId: Number(business.businessId),
       name: business.name,
       status: business.status,
-      ownerName: business.owner.name,
+      ownerName: business.owner?.name ?? null,
       phone: business.phone,
       createdAt: business.createdAt.toISOString(),
       categories: business.businessCategories.map((bc) => ({

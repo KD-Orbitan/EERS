@@ -13,7 +13,7 @@ export class GetBusinessByIdUseCase {
     }
 
     const status = business.status
-    const isOwner = currentUser?.userId === business.owner.userId
+    const isOwner = !!currentUser && !!business.owner && currentUser.userId === business.owner.userId
     const isAdmin = currentUser?.role === 'ADMIN'
 
     if (status === 'approved') {

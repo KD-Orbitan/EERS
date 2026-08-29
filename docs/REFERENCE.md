@@ -122,6 +122,9 @@ REPORT_RESOLVED     = 'REPORT_RESOLVED'
 NEW_REPLY           = 'NEW_REPLY'
 REPORT_CREATED      = 'REPORT_CREATED'
 NEW_REVIEW          = 'NEW_REVIEW'
+CLAIM_SUBMITTED     = 'CLAIM_SUBMITTED'
+CLAIM_APPROVED      = 'CLAIM_APPROVED'
+CLAIM_REJECTED      = 'CLAIM_REJECTED'
 ```
 
 Notification templates:
@@ -136,11 +139,15 @@ Notification templates:
 | NEW_REPLY          | "New Reply"            | `The business owner replied to your review.`                 |
 | REPORT_CREATED     | "New Report"            | `A new report was submitted for review #{reviewId}.`         |
 | NEW_REVIEW         | "New Review"            | `Your business "{name}" received a new review.`              |
+| CLAIM_SUBMITTED    | "New Business Claim"    | `A new claim was submitted for business "{name}".`           |
+| CLAIM_APPROVED     | "Claim Approved"        | `Your claim on "{name}" has been approved. You are now the owner of this business.` |
+| CLAIM_REJECTED     | "Claim Rejected"        | `Your claim on "{name}" was rejected. Reason: {reason}`      |
 
 REPORT_CREATED is sent to every user with the ADMIN role (see WF-RPT-001). NEW_REVIEW
-is sent to the business owner (`business.ownerUserId`, see WF-REV-001). Both are
-delivered through the same `CreateNotificationUseCase` mechanism as every other type
-(see WF-NOTI-001) — no new endpoint or transport.
+is sent to the business owner (`business.ownerUserId`, see WF-REV-001). CLAIM_SUBMITTED
+is sent to every user with the ADMIN role (see WF-CLAIM-001). All are delivered through
+the same `CreateNotificationUseCase` mechanism as every other type (see WF-NOTI-001) —
+no new endpoint or transport.
 
 ---
 
@@ -207,6 +214,11 @@ REVIEW_DELETED          = 'REVIEW_DELETED'
 // Report
 REPORT_RESOLVED         = 'REPORT_RESOLVED'
 
+// Business Claim
+BUSINESS_CLAIM_SUBMITTED = 'BUSINESS_CLAIM_SUBMITTED'
+BUSINESS_CLAIM_APPROVED  = 'BUSINESS_CLAIM_APPROVED'
+BUSINESS_CLAIM_REJECTED  = 'BUSINESS_CLAIM_REJECTED'
+
 // User
 USER_BANNED             = 'USER_BANNED'
 
@@ -221,6 +233,7 @@ User
 Business
 Review
 Report
+BusinessClaim
 Ranking
 System
 ```
@@ -323,6 +336,16 @@ Applied via `class-validator` in DTOs.
 | reviewId    | required, isInt, isPositive    |
 | reasonId    | required, isInt, isPositive    |
 | description | optional, string               |
+
+## Business Claim
+
+| Field      | Rules                                         |
+|------------|------------------------------------------------|
+| businessId | required, isInt, isPositive                    |
+| message    | required, string, minLength=20, maxLength=1000 |
+
+Claim rejection reuses the existing `## Admin moderation` table's `reason` rule
+(required, string, minLength=10) below — no separate rule needed.
 
 ## Reply
 
@@ -490,6 +513,15 @@ Global exception filter maps these codes to HTTP responses.
 | REPORT_ALREADY_EXISTS   | 409  | User already reported this review        |
 | REPORT_NOT_WITHDRAWABLE | 400  | Report status is not pending             |
 | REASON_NOT_FOUND        | 404  | Report reason does not exist             |
+
+## Business Claim errors
+
+| Code                     | HTTP | Description                                    |
+|--------------------------|------|-------------------------------------------------|
+| BUSINESS_CLAIM_NOT_FOUND | 404  | Business claim does not exist                  |
+| BUSINESS_ALREADY_CLAIMED | 409  | Business already has an owner                  |
+| CLAIM_ALREADY_PENDING    | 409  | User already has a pending claim on this business |
+| CLAIM_NOT_PENDING        | 400  | Claim status is not pending                    |
 
 ## Bookmark errors
 

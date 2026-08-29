@@ -73,7 +73,7 @@ export interface RecentReviewItem {
 export abstract class ReviewRepository {
   abstract findById(reviewId: number): Promise<ReviewEntity | null>
   abstract findByWriterAndBusiness(writerUserId: number, businessId: number): Promise<ReviewEntity | null>
-  abstract findBusinessById(businessId: number): Promise<{ businessId: number; status: string; ownerUserId: number; deletedAt: Date | null } | null>
+  abstract findBusinessById(businessId: number): Promise<{ businessId: number; status: string; ownerUserId: number | null; deletedAt: Date | null } | null>
   abstract findBusinessCriteria(businessId: number): Promise<Array<{ criterionId: number }>>
   abstract createReviewWithCriteria(params: {
     writerUserId: number

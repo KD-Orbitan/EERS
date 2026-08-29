@@ -30,12 +30,14 @@ export class RejectBusinessUseCase {
       data: { status: 'rejected' },
     })
 
-    await this.createNotificationUseCase.execute({
-      userId: Number(business.ownerUserId),
-      type: NOTIFICATION_TYPE.BUSINESS_REJECTED,
-      title: 'Business Rejected',
-      content: `Your business "${business.name}" was rejected. Reason: ${reason}`,
-    })
+    if (business.ownerUserId !== null) {
+      await this.createNotificationUseCase.execute({
+        userId: Number(business.ownerUserId),
+        type: NOTIFICATION_TYPE.BUSINESS_REJECTED,
+        title: 'Business Rejected',
+        content: `Your business "${business.name}" was rejected. Reason: ${reason}`,
+      })
+    }
 
     return { businessId, status: 'rejected' as const }
   }

@@ -27,7 +27,14 @@ export class PrismaReviewRepository extends ReviewRepository {
       where: { businessId: BigInt(businessId), deletedAt: null },
       select: { businessId: true, status: true, ownerUserId: true, deletedAt: true },
     })
-    return business ? { businessId: Number(business.businessId), status: business.status, ownerUserId: Number(business.ownerUserId), deletedAt: business.deletedAt } : null
+    return business
+      ? {
+          businessId: Number(business.businessId),
+          status: business.status,
+          ownerUserId: business.ownerUserId !== null ? Number(business.ownerUserId) : null,
+          deletedAt: business.deletedAt,
+        }
+      : null
   }
 
   async findBusinessCriteria(businessId: number) {

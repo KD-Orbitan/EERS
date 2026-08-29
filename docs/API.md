@@ -1936,7 +1936,99 @@ REPORT_NOT_WITHDRAWABLE   400  // status is not 'pending'
 
 ---
 
-# Chapter 9. Ranking APIs
+# Chapter 9. Business Claim APIs
+
+Base: `/business-claims`
+
+---
+
+## POST /business-claims
+
+```
+Auth   : User+
+Purpose: Submit a claim of ownership on an unclaimed, approved business
+```
+
+Request:
+
+```typescript
+interface SubmitClaimDto {
+  businessId: number
+  message:    string  // min 20 chars, max 1000 chars
+}
+```
+
+Response `201`:
+
+```typescript
+interface SubmitClaimResponse {
+  claimId: number
+  status:  'pending'
+}
+```
+
+Errors:
+
+```
+BUSINESS_NOT_FOUND        404
+BUSINESS_NOT_APPROVED     400
+BUSINESS_ALREADY_CLAIMED  409
+CLAIM_ALREADY_PENDING     409
+VALIDATION_ERROR          400
+```
+
+---
+
+## GET /business-claims/my
+
+```
+Auth   : User+
+Purpose: Get all claims submitted by current user
+```
+
+Notes:
+
+```
+IMPORTANT: Register this route BEFORE /business-claims/:claimId in NestJS
+```
+
+Response `200` (paginated):
+
+```typescript
+interface MyClaimListItem {
+  claimId:      number
+  businessId:   number
+  businessName: string
+  status:       'pending' | 'approved' | 'rejected'
+  message:      string
+  createdAt:    string
+}
+```
+
+---
+
+## DELETE /business-claims/:claimId
+
+```
+Auth     : User+ (must own claim)
+Purpose  : Withdraw a pending claim
+Allowed  : Only when status = 'pending'
+Behavior : Hard delete (claim withdrawn)
+```
+
+Response `204`: No content
+
+Errors:
+
+```
+BUSINESS_CLAIM_NOT_FOUND  404
+FORBIDDEN                 403
+CLAIM_NOT_PENDING         400
+```
+
+---
+
+# Chapter 10. Ranking APIs
 
 Base: `/rankings`
 
@@ -2139,7 +2231,7 @@ BUSINESS_NOT_FOUND  404
 
 ---
 
-# Chapter 10. Notification APIs
+# Chapter 11. Notification APIs
 
 Base: `/notifications`
 
@@ -2332,7 +2424,7 @@ Security:
 
 ---
 
-# Chapter 11. Admin APIs
+# Chapter 12. Admin APIs
 
 Base: `/admin`
 
@@ -2379,6 +2471,57 @@ Notes:
 - Unlike public GET /businesses, this returns businesses of ANY status
   (deletedAt IS NULL still applies — soft-deleted businesses never appear)
 - Sorted by createdAt ascending (oldest pending request first)
+```
+
+---
+
+### POST /admin/businesses
+
+```
+Purpose: Create a business directly with no owner (admin-added, immediately approved)
+```
+
+Request:
+
+```typescript
+interface CreateBusinessAsAdminDto {
+  name:        string    // max 150 chars
+  description: string?
+  phone:       string    // max 20 chars, unique
+  email:       string?   // valid email, unique
+  categoryIds: number[]  // min 1 category (smallint IDs)
+  locations: Array<{
+    addressLine: string  // required
+    ward:        string  // max 100 chars
+    province:    string  // max 100 chars
+  }>                     // min 1 location
+}
+```
+
+Response `201`:
+
+```typescript
+interface CreateBusinessAsAdminResponse {
+  businessId: number
+  status:     'approved'
+}
+```
+
+Notes:
+
+```
+- No ownerUserId field — never client-supplied. The created business has ownerUserId = null
+  ("unclaimed") until a user successfully claims it — see Chapter 9. Business Claim APIs
+- status is 'approved' and approvedByUserId is set immediately — no separate approval step
+```
+
+Errors:
+
+```
+VALIDATION_ERROR          400
+CATEGORY_NOT_FOUND        404
+PHONE_ALREADY_EXISTS      409
+EMAIL_ALREADY_EXISTS      409
 ```
 
 ---
@@ -2744,6 +2887,123 @@ REPORT_NOT_FOUND  404
 
 ---
 
+## Business Claim Management
+
+### GET /admin/business-claims
+
+```
+Purpose: List business claims with filtering
+```
+
+Query params:
+
+```typescript
+interface AdminClaimListQuery extends PaginationQuery {
+  status?: 'pending' | 'approved' | 'rejected'  // default 'pending'
+}
+```
+
+Response `200` (paginated):
+
+```typescript
+interface AdminClaimListItem {
+  claimId:      number
+  businessId:   number
+  businessName: string
+  claimantName: string
+  message:      string
+  status:       'pending' | 'approved' | 'rejected'
+  createdAt:    string
+}
+```
+
+---
+
+### POST /admin/business-claims/:claimId/approve
+
+```
+Purpose: Approve a pending business claim
+```
+
+Request:
+
+```typescript
+interface ApproveClaimDto {
+  // no body required
+}
+```
+
+Response `200`:
+
+```typescript
+interface ApproveClaimResponse {
+  claimId: number
+  status:  'approved'
+}
+```
+
+Side effects:
+
+```
+- Set business.ownerUserId to the claimant
+- Promote claimant's role to BUSINESS_OWNER
+- Auto-reject all other pending claims on the same business
+- Create CLAIM_APPROVED notification for the claimant
+- Create CLAIM_REJECTED notification for each auto-rejected rival claimant
+- Create audit log entry
+- Push SSE event to each notified user (outside transaction, per D-017)
+```
+
+Errors:
+
+```
+BUSINESS_CLAIM_NOT_FOUND  404
+CLAIM_NOT_PENDING         400
+```
+
+---
+
+### POST /admin/business-claims/:claimId/reject
+
+```
+Purpose: Reject a pending business claim
+```
+
+Request:
+
+```typescript
+interface RejectClaimDto {
+  reason: string  // required, min 10 chars
+}
+```
+
+Response `200`:
+
+```typescript
+interface RejectClaimResponse {
+  claimId: number
+  status:  'rejected'
+}
+```
+
+Side effects:
+
+```
+- Create CLAIM_REJECTED notification for the claimant
+- Push SSE event to the claimant
+- Create audit log entry
+```
+
+Errors:
+
+```
+BUSINESS_CLAIM_NOT_FOUND  404
+CLAIM_NOT_PENDING         400
+VALIDATION_ERROR          400
+```
+
+---
+
 ## User Management
 
 ### GET /admin/users
@@ -3046,7 +3306,7 @@ interface AdminLogListItem {
 
 ---
 
-# Chapter 12. Bookmark APIs
+# Chapter 13. Bookmark APIs
 
 Base: `/businesses/:businessId/bookmark` and `/bookmarks`
 

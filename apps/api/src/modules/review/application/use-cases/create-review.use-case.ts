@@ -53,12 +53,14 @@ export class CreateReviewUseCase {
       criteriaRatings: dto.criteriaRatings,
     })
 
-    await this.createNotificationUseCase.execute({
-      userId: business.ownerUserId,
-      type: NOTIFICATION_TYPE.NEW_REVIEW,
-      title: 'New Review',
-      content: `Your business "${business.name}" received a new review.`,
-    })
+    if (business.ownerUserId !== null) {
+      await this.createNotificationUseCase.execute({
+        userId: business.ownerUserId,
+        type: NOTIFICATION_TYPE.NEW_REVIEW,
+        title: 'New Review',
+        content: `Your business "${business.name}" received a new review.`,
+      })
+    }
 
     return review
   }

@@ -31,23 +31,27 @@ export class ApproveBusinessUseCase {
         data: { status: 'approved', approvedByUserId: currentUserId },
       })
 
-      const businessOwnerRole = await tx.role.findFirst({ where: { roleName: 'BUSINESS_OWNER' } })
-      if (businessOwnerRole) {
-        await tx.user.updateMany({
-          where: { userId: business.ownerUserId },
-          data: { roleId: businessOwnerRole.roleId },
-        })
+      if (business.ownerUserId !== null) {
+        const businessOwnerRole = await tx.role.findFirst({ where: { roleName: 'BUSINESS_OWNER' } })
+        if (businessOwnerRole) {
+          await tx.user.updateMany({
+            where: { userId: business.ownerUserId },
+            data: { roleId: businessOwnerRole.roleId },
+          })
+        }
       }
 
       return { businessId, status: 'approved' as const }
     })
 
-    await this.createNotificationUseCase.execute({
-      userId: Number(business.ownerUserId),
-      type: NOTIFICATION_TYPE.BUSINESS_APPROVED,
-      title: 'Business Approved',
-      content: `Your business "${business.name}" has been approved.`,
-    })
+    if (business.ownerUserId !== null) {
+      await this.createNotificationUseCase.execute({
+        userId: Number(business.ownerUserId),
+        type: NOTIFICATION_TYPE.BUSINESS_APPROVED,
+        title: 'Business Approved',
+        content: `Your business "${business.name}" has been approved.`,
+      })
+    }
 
     return result
   }

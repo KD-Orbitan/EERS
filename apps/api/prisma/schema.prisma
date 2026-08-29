@@ -39,6 +39,12 @@ enum ReportStatus {
   rejected
 }
 
+enum BusinessClaimStatus {
+  pending
+  approved
+  rejected
+}
+
 enum SentimentType {
   positive
   neutral
@@ -111,6 +117,8 @@ model User {
   logs              Log[]
   trustScore        UserTrustScore?
   bookmarks         Bookmark[]
+  businessClaims         BusinessClaim[] @relation("BusinessClaimant")
+  reviewedBusinessClaims BusinessClaim[] @relation("BusinessClaimReviewer")
 
   @@index([email])
   @@map("users")
@@ -132,8 +140,8 @@ model Business {
   updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz
 
-  ownerUserId      BigInt  @map("owner_user_id")
-  owner            User    @relation("BusinessOwner", fields: [ownerUserId], references: [userId])
+  ownerUserId      BigInt? @map("owner_user_id")
+  owner            User?   @relation("BusinessOwner", fields: [ownerUserId], references: [userId])
 
   approvedByUserId BigInt? @map("approved_by_user_id")
   approvedBy       User?   @relation("BusinessApprover", fields: [approvedByUserId], references: [userId])
@@ -145,6 +153,7 @@ model Business {
   rankingSnapshots    RankingSnapshot[]
   rankingSnapshotHistory RankingSnapshotHistory[]
   bookmarks           Bookmark[]
+  claims              BusinessClaim[]
 
   @@index([status])
   @@index([ownerUserId])
@@ -177,6 +186,31 @@ model BusinessLocation {
 
   @@id([businessId, locationId])
   @@map("business_locations")
+}
+
+// ============================================================================
+// Module: Business Claim
+// ============================================================================
+
+model BusinessClaim {
+  claimId     BigInt              @id @default(autoincrement()) @map("claim_id")
+  message     String              @db.Text
+  status      BusinessClaimStatus @default(pending)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  businessId BigInt   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [businessId])
+
+  userId BigInt @map("user_id")
+  user   User   @relation("BusinessClaimant", fields: [userId], references: [userId])
+
+  reviewedByUserId BigInt? @map("reviewed_by_user_id")
+  reviewedBy       User?   @relation("BusinessClaimReviewer", fields: [reviewedByUserId], references: [userId])
+
+  @@index([businessId])
+  @@index([status])
+  @@map("business_claims")
 }
 
 // ============================================================================

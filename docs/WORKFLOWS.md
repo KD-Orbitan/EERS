@@ -415,7 +415,45 @@ Steps:
 
 ---
 
-## WF-BUS-006 — Upload Business Cover
+## WF-BUS-006 — Admin Create Business
+
+**UseCase:** `CreateBusinessAsAdminUseCase`
+**Trigger:** `POST /admin/businesses`
+
+Preconditions:
+
+```
+- Current user is admin
+- phone is unique across businesses (deletedAt IS NULL)
+- email is unique across businesses if provided (deletedAt IS NULL)
+- all categoryIds exist in categories table
+- at least 1 location provided
+- at least 1 categoryId provided
+```
+
+Steps:
+
+```
+1. Validate all categoryIds exist → throw CATEGORY_NOT_FOUND if any missing
+2. Check phone uniqueness → throw PHONE_ALREADY_EXISTS if taken
+3. Check email uniqueness if provided → throw EMAIL_ALREADY_EXISTS if taken
+4. BEGIN TRANSACTION:
+   a. Create business record:
+        name, description, phone, email,
+        ownerUserId=null, status='approved', approvedByUserId=currentUserId, avgRating=0
+   b. Create location records for each location in request
+   c. Create business_locations join records
+   d. Create business_categories join records for each categoryId
+5. Return { businessId, status: 'approved' }
+```
+
+Transaction: wraps step 4a-4d.
+
+Side effects: none (business is immediately public and unclaimed — no owner to notify).
+
+---
+
+## WF-BUS-007 — Upload Business Cover
 
 **UseCase:** `UploadCoverUseCase`
 **Trigger:** `POST /businesses/:businessId/cover`
@@ -440,7 +478,7 @@ Transaction: wraps step 5 only (Cloudinary upload is outside transaction).
 
 ---
 
-## WF-BUS-007 — Upload Business Gallery Images
+## WF-BUS-008 — Upload Business Gallery Images
 
 **UseCase:** `UploadGalleryUseCase`
 **Trigger:** `POST /businesses/:businessId/gallery`
@@ -462,7 +500,7 @@ Steps:
 
 ---
 
-## WF-BUS-008 — Reorder Business Gallery
+## WF-BUS-009 — Reorder Business Gallery
 
 **UseCase:** `ReorderGalleryUseCase`
 **Trigger:** `PATCH /businesses/:businessId/gallery/reorder`
@@ -480,7 +518,7 @@ Steps:
 
 ---
 
-## WF-BUS-009 — Upload Business Logo
+## WF-BUS-010 — Upload Business Logo
 
 **UseCase:** `UploadLogoUseCase`
 **Trigger:** `POST /businesses/:businessId/logo`
@@ -746,7 +784,63 @@ Steps:
 
 ---
 
-# Section 6. Report Workflows
+# Section 6. Business Claim Workflows
+
+---
+
+## WF-CLAIM-001 — Submit Claim
+
+**UseCase:** `SubmitClaimUseCase`
+**Trigger:** `POST /business-claims`
+
+Preconditions:
+
+```
+- Business exists (deletedAt IS NULL)
+- Business status = 'approved'
+- Business.ownerUserId IS NULL (unclaimed)
+- Current user has NO existing pending claim for this business
+```
+
+Steps:
+
+```
+1. Load business WHERE deletedAt IS NULL
+2. If not found → throw BUSINESS_NOT_FOUND
+3. If business.status != 'approved' → throw BUSINESS_NOT_APPROVED
+4. If business.ownerUserId IS NOT NULL → throw BUSINESS_ALREADY_CLAIMED
+5. Check for existing pending claim by currentUserId for this businessId
+   → throw CLAIM_ALREADY_PENDING if exists
+6. Create business_claims record:
+     businessId, userId=currentUserId, message, status='pending'
+7. Return { claimId, status: 'pending' }
+```
+
+Transaction: wraps step 6 only.
+
+Side effects: create `CLAIM_SUBMITTED` notification for every user with the ADMIN
+role (see WF-NOTI-001), sent after the transaction commits.
+
+---
+
+## WF-CLAIM-002 — Withdraw Claim
+
+**UseCase:** `WithdrawClaimUseCase`
+**Trigger:** `DELETE /business-claims/:claimId`
+
+Steps:
+
+```
+1. Load claim by claimId
+2. If not found → throw BUSINESS_CLAIM_NOT_FOUND
+3. If claim.userId != currentUserId → throw FORBIDDEN
+4. If claim.status != 'pending' → throw CLAIM_NOT_PENDING
+5. Delete business_claims record (hard delete)
+```
+
+---
+
+# Section 7. Report Workflows
 
 ---
 
@@ -801,7 +895,7 @@ Steps:
 
 ---
 
-# Section 7. Admin Moderation Workflows
+# Section 8. Admin Moderation Workflows
 
 ---
 
@@ -1026,7 +1120,86 @@ Transaction: single table write, no explicit transaction needed.
 
 ---
 
-# Section 8. Ranking Workflow
+## WF-ADMIN-008 — Approve Claim
+
+**UseCase:** `ApproveClaimUseCase`
+**Trigger:** `POST /admin/business-claims/:claimId/approve`
+
+Preconditions:
+
+```
+- Claim exists
+- Claim status = 'pending'
+```
+
+Steps:
+
+```
+1. Load claim by claimId
+2. If not found → throw BUSINESS_CLAIM_NOT_FOUND
+3. If claim.status != 'pending' → throw CLAIM_NOT_PENDING
+4. BEGIN TRANSACTION:
+   a. Update claim:
+        status='approved', reviewedByUserId=currentUserId
+   b. Update business:
+        ownerUserId=claim.userId
+   c. Look up roleId for BUSINESS_OWNER
+   d. Update claimant user:
+        UPDATE users SET roleId=businessOwnerRoleId WHERE userId=claim.userId
+   e. Find all OTHER pending claims WHERE businessId=claim.businessId
+      AND claimId != claim.claimId AND status='pending'
+   f. Bulk-update those rival claims: status='rejected'
+   g. Create audit log:
+        action='BUSINESS_CLAIM_APPROVED', entityType='BusinessClaim',
+        entityId=claimId, userId=currentUserId,
+        newData={ status: 'approved', businessId, ownerUserId: claim.userId }
+5. (OUTSIDE transaction, per D-017 Realtime Transport):
+   a. Create notification + push SSE event to claim.userId:
+        type='CLAIM_APPROVED',
+        title='Claim Approved',
+        content='Your claim on "{name}" has been approved. You are now the owner of this business.'
+   b. For each auto-rejected rival claimant, create notification + push SSE event:
+        type='CLAIM_REJECTED',
+        title='Claim Rejected',
+        content='Your claim on "{name}" was rejected. Reason: Another user's claim for this business was approved.'
+6. Return { claimId, status: 'approved' }
+```
+
+Transaction: wraps steps 4a-4g.
+SSE push (step 5): OUTSIDE transaction, after commit — per D-017.
+
+---
+
+## WF-ADMIN-009 — Reject Claim
+
+**UseCase:** `RejectClaimUseCase`
+**Trigger:** `POST /admin/business-claims/:claimId/reject`
+
+Steps:
+
+```
+1. Load claim by claimId → throw BUSINESS_CLAIM_NOT_FOUND
+2. If claim.status != 'pending' → throw CLAIM_NOT_PENDING
+3. BEGIN TRANSACTION:
+   a. Update claim:
+        status='rejected', reviewedByUserId=currentUserId
+   b. Create notification:
+        userId=claim.userId,
+        type='CLAIM_REJECTED',
+        title='Claim Rejected',
+        content='Your claim on "{name}" was rejected. Reason: {reason}'
+   c. Create audit log:
+        action='BUSINESS_CLAIM_REJECTED', entityType='BusinessClaim',
+        entityId=claimId, userId=currentUserId
+4. Push SSE event to claim.userId
+5. Return { claimId, status: 'rejected' }
+```
+
+Transaction: wraps step 3a-3c.
+
+---
+
+# Section 9. Ranking Workflow
 
 ---
 
@@ -1124,7 +1297,7 @@ computed on read, not cached).
 
 ---
 
-# Section 9. Notification Workflow
+# Section 10. Notification Workflow
 
 ---
 
@@ -1154,7 +1327,7 @@ This means SSE push happens OUTSIDE any transaction.
 
 ---
 
-# Section 10. Search Workflow
+# Section 11. Search Workflow
 
 ---
 
@@ -1189,7 +1362,7 @@ Steps:
 
 ---
 
-# Section 11. Bookmark Workflows
+# Section 12. Bookmark Workflows
 
 ---
 
@@ -1237,7 +1410,7 @@ Steps:
 
 ---
 
-# Section 12. State Transition Reference
+# Section 13. State Transition Reference
 
 ## Business Status
 
@@ -1252,6 +1425,20 @@ FORBIDDEN transitions:
   approved → pending
   rejected → pending
   rejected → approved (must create new business)
+```
+
+## Business Claim Status
+
+```
+ALLOWED transitions:
+  pending  → approved   (WF-ADMIN-008)
+  pending  → rejected   (WF-ADMIN-009)
+  pending  → [deleted]  (WF-CLAIM-002, user withdraws)
+
+FORBIDDEN transitions:
+  approved → pending
+  rejected → pending
+  rejected → approved (must submit a new claim)
 ```
 
 ## Review Status
@@ -1285,7 +1472,7 @@ FORBIDDEN transitions:
 
 ---
 
-# Section 13. Domain Exceptions Reference
+# Section 14. Domain Exceptions Reference
 
 Every exception below maps to an HTTP status code in REFERENCE.md.
 Throw the domain exception by name — the global filter handles HTTP mapping.
@@ -1327,6 +1514,12 @@ Report:
   REPORT_ALREADY_EXISTS
   REPORT_NOT_WITHDRAWABLE
   REASON_NOT_FOUND
+
+Business Claim:
+  BUSINESS_CLAIM_NOT_FOUND
+  BUSINESS_ALREADY_CLAIMED
+  CLAIM_ALREADY_PENDING
+  CLAIM_NOT_PENDING
 
 Bookmark:
   BOOKMARK_NOT_FOUND

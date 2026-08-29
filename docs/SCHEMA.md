@@ -70,6 +70,12 @@ enum ReportStatus {
   rejected
 }
 
+enum BusinessClaimStatus {
+  pending
+  approved
+  rejected
+}
+
 enum SentimentType {
   positive
   neutral
@@ -167,6 +173,8 @@ model User {
   refreshTokens     RefreshToken[]
   logs              Log[]
   bookmarks         Bookmark[]
+  businessClaims          BusinessClaim[]   @relation("BusinessClaimant")
+  reviewedBusinessClaims  BusinessClaim[]   @relation("BusinessClaimReviewer")
 
   @@index([email])
   @@map("users")
@@ -203,8 +211,8 @@ model Business {
   updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz
   deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz
 
-  ownerUserId      BigInt  @map("owner_user_id")
-  owner            User    @relation("BusinessOwner", fields: [ownerUserId], references: [userId])
+  ownerUserId      BigInt? @map("owner_user_id")
+  owner            User?   @relation("BusinessOwner", fields: [ownerUserId], references: [userId])
 
   approvedByUserId BigInt? @map("approved_by_user_id")
   approvedBy       User?   @relation("BusinessApprover", fields: [approvedByUserId], references: [userId])
@@ -216,6 +224,7 @@ model Business {
   rankingSnapshots    RankingSnapshot[]
   rankingSnapshotHistory RankingSnapshotHistory[]
   bookmarks           Bookmark[]
+  claims              BusinessClaim[]
 
   @@index([status])
   @@index([ownerUserId])
@@ -231,6 +240,9 @@ Notes:
 - avgRating is denormalized for read performance, updated after ranking recalc
 - deletedAt: soft delete
 - Full text search index added separately (see Indexes section)
+- ownerUserId is nullable — NULL means "unclaimed" (admin-created business with no owner yet).
+  Only an admin-created business ever has ownerUserId IS NULL; see D-033 and Module: Business
+  Claim below for how a user claims an unclaimed business and how ownership transfers.
 ```
 
 ---
@@ -563,6 +575,46 @@ Notes:
 ```
 - UNIQUE(userId, reviewId): one user can report one review only once
 - description: optional additional context from reporter
+```
+
+---
+
+## Module: Business Claim
+
+Owner: `business-claim` module
+
+### Table: business_claims
+
+```prisma
+model BusinessClaim {
+  claimId     BigInt              @id @default(autoincrement()) @map("claim_id")
+  message     String              @db.Text
+  status      BusinessClaimStatus @default(pending)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  businessId BigInt   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [businessId])
+
+  userId BigInt @map("user_id")
+  user   User   @relation("BusinessClaimant", fields: [userId], references: [userId])
+
+  reviewedByUserId BigInt? @map("reviewed_by_user_id")
+  reviewedBy       User?   @relation("BusinessClaimReviewer", fields: [reviewedByUserId], references: [userId])
+
+  @@index([businessId])
+  @@index([status])
+  @@map("business_claims")
+}
+```
+
+Notes:
+
+```
+- No UNIQUE(userId, businessId) constraint — a user may resubmit a claim after a rejection
+- "One active pending claim per user per business" is enforced in application logic, not the DB
+- message: required free-text explanation from the claimant (no evidence upload)
+- reviewedByUserId: set to the admin who approved/rejected the claim; null while pending
 ```
 
 ---

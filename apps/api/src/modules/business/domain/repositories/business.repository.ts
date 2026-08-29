@@ -49,7 +49,7 @@ export interface BusinessDetail {
   avgRating: number
   reviewCount: number
   status: string
-  owner: { userId: number; name: string }
+  owner: { userId: number; name: string } | null
   categories: Array<{ categoryId: number; categoryName: string }>
   locations: Array<{
     locationId: number
@@ -87,6 +87,15 @@ export abstract class BusinessRepository {
     phone: string
     email?: string | null
     ownerUserId: number
+    categoryIds: number[]
+    locations: CreateBusinessLocation[]
+  }): Promise<{ businessId: number; status: string }>
+  abstract createUnclaimedBusinessWithLocationsAndCategories(params: {
+    name: string
+    description?: string | null
+    phone: string
+    email?: string | null
+    approvedByUserId: number
     categoryIds: number[]
     locations: CreateBusinessLocation[]
   }): Promise<{ businessId: number; status: string }>

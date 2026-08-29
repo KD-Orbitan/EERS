@@ -6,7 +6,7 @@ export class BusinessEntity {
   email?: string | null
   status!: string
   avgRating!: number
-  ownerUserId!: number
+  ownerUserId!: number | null
   createdAt!: Date
   updatedAt!: Date
   deletedAt?: Date | null

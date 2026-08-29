@@ -24,6 +24,8 @@ import { RolesGuard } from '../../common/guards/roles.guard'
 import { RankingModule } from '../ranking/ranking.module'
 import { ReportModule } from '../report/report.module'
 import { NotificationModule } from '../notification/notification.module'
+import { BusinessModule } from '../business/business.module'
+import { BusinessClaimModule } from '../business-claim/business-claim.module'
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { NotificationModule } from '../notification/notification.module'
     RankingModule,
     ReportModule,
     NotificationModule,
+    BusinessModule,
+    BusinessClaimModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
