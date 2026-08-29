@@ -50,7 +50,7 @@ async function main() {
   await prisma.scoringConfig.createMany({
     data: [{
       configId: 1,
-      bayesianC: 3.5,
+      bayesianC: 0.63,
       bayesianM: 10,
       fraudLambda1: 0.4,
       fraudLambda2: 0.4,

@@ -96,6 +96,7 @@ export class RankingCalculationService {
       avgRating: number
       reviewCount: number
       businessId: number
+      preBayesianScore: number
     }> = []
 
     for (const business of businesses) {
@@ -111,6 +112,11 @@ export class RankingCalculationService {
         avgRating: Number(avgRating.toFixed(2)),
         reviewCount: aggregate.reviewCount,
         businessId: business.businessId,
+        // R_j (pre-Bayesian weighted average) — kept only in-memory for the
+        // Step 7 tiebreak below (DECISIONS.md D-012), not persisted to
+        // ranking_snapshot since only FinalScore/rankingScore is documented
+        // there.
+        preBayesianScore: R_j,
       })
     }
 
@@ -118,7 +124,7 @@ export class RankingCalculationService {
       const sorted = [...items].sort((a, b) => {
         if (b.rankingScore !== a.rankingScore) return b.rankingScore - a.rankingScore
         if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount
-        return b.rankingScore - a.rankingScore
+        return b.preBayesianScore - a.preBayesianScore
       })
       let rank = 1
       return sorted.map((item) => ({ ...item, scope, scopeId, rank: rank++ }))

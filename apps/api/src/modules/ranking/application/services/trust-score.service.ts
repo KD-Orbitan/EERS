@@ -43,7 +43,7 @@ export class TrustScoreService {
       const n = reviewCountByUser.get(Number(user.userId)) ?? 0
       const a = Math.floor((now.getTime() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24))
       const f = fraudCountByUser.get(Number(user.userId)) ?? 0
-      const score = this.sigmoid(config.trustAlpha * Math.log(1 + n) + config.trustBeta * a - config.trustGamma * f)
+      const score = this.sigmoid(config.trustAlpha * Math.log(1 + n) + config.trustBeta * Math.log(1 + a) - config.trustGamma * f)
 
       await this.prisma.userTrustScore.upsert({
         where: { userId: user.userId },

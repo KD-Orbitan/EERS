@@ -285,7 +285,7 @@ model CriterionWeight {
 model ScoringConfig {
   configId Int @id @default(autoincrement()) @map("config_id") @db.SmallInt
 
-  bayesianC        Decimal @default(3.5) @map("bayesian_c") @db.Decimal(4, 2)
+  bayesianC        Decimal @default(0.63) @map("bayesian_c") @db.Decimal(4, 2)
   bayesianM        Int     @default(10) @map("bayesian_m")
 
   fraudLambda1 Decimal @default(0.4) @map("fraud_lambda_1") @db.Decimal(4, 3)

@@ -399,7 +399,7 @@ S_i = \min\left(1,\frac{count\_reviews(u_i,\Delta t)}{\theta_{spam}}\right)
 Computed daily by cron.
 
 ```math
-Trust(u)=sigmoid(\alpha \cdot \log(1+n)+\beta \cdot a-\gamma \cdot f)
+Trust(u)=sigmoid(\alpha \cdot \log(1+n)+\beta \cdot \log(1+a)-\gamma \cdot f)
 ```
 
 Where:
@@ -407,6 +407,12 @@ Where:
 - `n` = valid review count
 - `a` = account age (days)
 - `f` = flagged review count
+
+`a` is log-scaled the same way `n` is: raw days grow unbounded, so a linear
+term saturates `sigmoid` for almost any account past ~30 days old (at
+`trustBeta = 0.3`), making `n` and `f` stop mattering for most users.
+`log(1+a)` keeps age informative across the account's whole lifetime instead
+of maxing out in the first month.
 
 ```math
 sigmoid(x)=\frac1{1+e^{-x}}
@@ -439,15 +445,21 @@ Status classification:
 x'_{ik}=\frac{x_{ik}-x_{min}}{x_{max}-x_{min}}
 ```
 
-#### Weighted Sum
+#### Weighted Average
 
 ```math
-S_i=\sum_k w_k x'_{ik}
+S_i=\frac{\sum_k w_k x'_{ik}}{\sum_k w_k}
 ```
 
 Where:
 
 - `w_k` = criterion weight (configurable by admin per category)
+
+Divided by `Σw_k` (not a raw weighted sum) because criterion weights are **not**
+constrained to sum to 1 per category — an unnormalized sum would let `S_i`
+exceed 1, breaking the [0, 1] scale that `x'_{ik}` (Step 3 Normalization),
+`R_j` (Step 5), and `bayesian_c` (Step 6) all share. If a criterion has no
+configured weight, it defaults to `w_k = 1.0`.
 
 #### Sentiment Adjustment
 
