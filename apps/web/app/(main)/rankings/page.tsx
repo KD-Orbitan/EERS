@@ -8,6 +8,7 @@ import { RankingMethodology } from '@/features/ranking/components/ranking-method
 import { RankingTable } from '@/features/ranking/components/ranking-table';
 import { TrendingBusinessesSection } from '@/features/ranking/components/trending-businesses-section';
 import { BestInCategorySection } from '@/features/ranking/components/best-in-category-section';
+import { TopRankedCategorySection } from '@/features/ranking/components/top-ranked-category-section';
 import { useRankingsQuery } from '@/features/ranking/queries/use-rankings.query';
 import { useTopBusinessesQuery } from '@/features/ranking/queries/use-top-businesses.query';
 
@@ -30,7 +31,7 @@ function RankingsPageContent() {
   const { data, isLoading } = useRankingsQuery({ page, ...filterParams });
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
+    <main className="min-h-screen bg-ink-50 px-4 py-8">
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-xl">
@@ -63,6 +64,8 @@ function RankingsPageContent() {
         <BestInCategorySection />
 
         <RankingTable rankings={data?.items ?? []} isLoading={isLoading} pagination={data?.meta} onPageChange={setPage} />
+
+        <TopRankedCategorySection />
       </div>
     </main>
   );
@@ -70,7 +73,7 @@ function RankingsPageContent() {
 
 export default function RankingsPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-slate-50 px-4 py-8" />}>
+    <Suspense fallback={<main className="min-h-screen bg-ink-50 px-4 py-8" />}>
       <RankingsPageContent />
     </Suspense>
   );

@@ -1,6 +1,7 @@
 import { HomeHero } from '@/features/home/components/home-hero';
 import { CategoryGridSection } from '@/features/home/components/category-grid-section';
 import { TopRankedBento } from '@/features/home/components/top-ranked-bento';
+import { BestInCategorySection } from '@/features/home/components/best-in-category-section';
 import { RecentReviewsSection } from '@/features/home/components/recent-reviews-section';
 import { WriteReviewCtaSection } from '@/features/home/components/write-review-cta-section';
 import { GrowBusinessCtaSection } from '@/components/grow-business-cta-section';
@@ -15,12 +16,18 @@ import { GrowBusinessCtaSection } from '@/components/grow-business-cta-section';
 // endpoint. WriteReviewCtaSection is a Trustpilot-style closing CTA.
 // GrowBusinessCtaSection is an addition beyond the Figma mockup, pointing
 // business owners at /for-business.
+//
+// Material You (site-wide, see docs/promptFE6.md) — this is now the real
+// design system, not a scoped trial, so this page uses the same global
+// `ink-*`/`primary-*` tokens and Roboto font as every other route (no
+// homepage-only background or font override needed anymore).
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-ink-50">
       <HomeHero />
       <CategoryGridSection />
       <TopRankedBento />
+      <BestInCategorySection />
       <GrowBusinessCtaSection />
       <RecentReviewsSection />
       <WriteReviewCtaSection />
