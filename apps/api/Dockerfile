@@ -25,6 +25,10 @@ RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 RUN pnpm --filter api exec prisma generate --schema=prisma/schema.prisma
 RUN pnpm exec turbo run build --filter=api...
+# Bake the sentiment model into the image so containers don't spend ~2min
+# downloading it on every cold start (a real problem on free-tier hosts
+# that spin down on idle). Same model/task SentimentService loads at runtime.
+RUN node apps/api/scripts/prefetch-model.mjs
 
 FROM base AS runner
 WORKDIR /app

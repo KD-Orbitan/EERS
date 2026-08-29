@@ -54,6 +54,11 @@ jobs:
           context: .
           file: apps/api/Dockerfile
           push: false
+          # The api image bakes a 339MB ML model into a build layer (see
+          # scripts/prefetch-model.mjs) — cache it so CI doesn't redownload
+          # that on every run, only when a preceding layer actually changes.
+          cache-from: type=gha,scope=api-image
+          cache-to: type=gha,mode=max,scope=api-image
       - name: Build web image
         uses: docker/build-push-action@v6
         with:
@@ -63,3 +68,5 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ env.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          cache-from: type=gha,scope=web-image
+          cache-to: type=gha,mode=max,scope=web-image
