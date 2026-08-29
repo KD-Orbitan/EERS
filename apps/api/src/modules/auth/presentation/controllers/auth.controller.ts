@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger'
+import { Throttle } from '@nestjs/throttler'
 import type { Response, Request } from 'express'
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard'
@@ -31,11 +32,15 @@ export class AuthController {
     private readonly logoutUseCase: LogoutUseCase,
   ) {}
 
+  // D-027: auth endpoints get a tighter limit than the app-wide default
+  // (see ThrottlerModule in app.module.ts) since they're the brute-force targets.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     return this.registerUseCase.execute(dto)
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.loginUseCase.execute(dto)
@@ -50,6 +55,7 @@ export class AuthController {
     return response
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('google')
   async google(@Body() dto: GoogleAuthDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.googleAuthUseCase.execute(dto)

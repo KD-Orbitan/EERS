@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
+import { APP_GUARD } from '@nestjs/core'
 import { ScheduleModule } from '@nestjs/schedule'
 import { ConfigModule } from '@nestjs/config'
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { InfrastructureModule } from './infrastructure/infrastructure.module'
@@ -31,6 +33,14 @@ import cloudinaryConfig from './config/cloudinary.config'
       load: [appConfig, databaseConfig, jwtConfig, redisConfig, cloudinaryConfig],
       envFilePath: '.env',
     }),
+    ThrottlerModule.forRoot([
+      {
+        // D-027 baseline: apply to every endpoint, tightened further on
+        // auth routes specifically via @Throttle (see AuthController).
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     ScheduleModule.forRoot(),
     InfrastructureModule,
     HealthModule,
@@ -48,6 +58,6 @@ import cloudinaryConfig from './config/cloudinary.config'
   ],
   controllers: [AppController],
   // providers: [AppService, RankingRecalculationJob, TrustScoreJob],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
