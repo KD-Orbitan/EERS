@@ -538,11 +538,33 @@ Both `C` and `m` are configurable by administrators.
 
 ---
 
+### Step 6b — Display Scaling
+
+```math
+DisplayScore_j = FinalScore_j \times 100
+```
+
+`FinalScore_j` (and `C`) live on the [0, 1] scale shared by every step of
+this pipeline (Step 3's `x'_{ik}` normalization through Step 6). The
+`ranking_score` persisted to `ranking_snapshots` — and returned as
+`rankingScore` by every ranking endpoint — is `DisplayScore_j`, on a [0, 100]
+scale instead. Deliberately not [1, 5]: the frontend already shows a
+business's raw `avgRating` (1-5, ⭐ icon) next to its `rankingScore` on the
+same card (e.g. TopRankedBento, MarketCompetitorsCard); a [1, 5] ranking
+score would read as a second, conflicting star rating for the same business.
+[0, 100] reads unambiguously as a distinct composite index (🏆 icon, not ⭐)
+— see REFERENCE.md/frontend components for the icon convention.
+
+Sorting (Step 7 below) is unaffected — `× 100` is a positive scalar, so it
+preserves order.
+
+---
+
 ### Step 7 — Ranking
 
 Businesses are sorted by:
 
-1. `FinalScore DESC`
+1. `FinalScore DESC` (equivalently, `DisplayScore DESC`)
 2. `v_j DESC`
 3. `R_j DESC`
 

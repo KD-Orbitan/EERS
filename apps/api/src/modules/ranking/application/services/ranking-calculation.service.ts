@@ -104,11 +104,16 @@ export class RankingCalculationService {
       const R_j = aggregate.weightSum > 0 ? aggregate.weightedSum / aggregate.weightSum : config.bayesianC
       const avgRating = aggregate.reviewCount > 0 ? Number((aggregate.avgRating / aggregate.reviewCount).toFixed(2)) : business.avgRating
       const finalScore = this.computeBayesianAdjustment(R_j, aggregate.reviewCount, config.bayesianC, config.bayesianM)
+      // DECISIONS.md D-012 Step 6b: FinalScore lives on [0, 1] (same scale as
+      // R_j/bayesianC); persisted rankingScore is rescaled to [0, 100] so it
+      // reads as a distinct composite index rather than a second star rating
+      // next to avgRating (both would otherwise sit in the same 1-5 range).
+      const displayScore = finalScore * 100
       snapshots.push({
         scope: 'GLOBAL',
         scopeId: null,
         rank: 0,
-        rankingScore: Number(finalScore.toFixed(4)),
+        rankingScore: Number(displayScore.toFixed(2)),
         avgRating: Number(avgRating.toFixed(2)),
         reviewCount: aggregate.reviewCount,
         businessId: business.businessId,

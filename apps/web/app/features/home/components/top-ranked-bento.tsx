@@ -73,7 +73,10 @@ function FeaturedCard({ item, detail }: { item: TopRankingItem; detail?: Busines
         <div className="mt-6 flex items-center justify-between border-t border-white/20 pt-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-widest text-white/70">Ranking Score</p>
-            <p className="text-3xl font-medium">{item.rankingScore.toFixed(1)}</p>
+            <p className="text-3xl font-medium">
+              {Math.round(item.rankingScore)}
+              <span className="text-sm font-normal text-white/60">/100</span>
+            </p>
           </div>
           <span className="inline-flex items-center gap-1 text-sm font-medium text-white transition group-hover:gap-2">
             View detail
@@ -118,7 +121,10 @@ function SecondaryCard({ item, detail }: { item: TopRankingItem; detail?: Busine
           ) : null}
         </div>
       </div>
-      <span className="relative shrink-0 text-lg font-medium text-primary-600">{item.rankingScore.toFixed(1)}</span>
+      <span className="relative flex shrink-0 items-center gap-1 text-lg font-medium text-primary-600">
+        <Trophy className="h-4 w-4" />
+        {Math.round(item.rankingScore)}
+      </span>
     </Link>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Building2, Minus, Star } from 'lucide-react';
+import { ArrowRight, Building2, Minus, Trophy } from 'lucide-react';
 import { RankingListItem } from '@/features/ranking/types/ranking.type';
 import { RankingTrendBadge } from '@/features/ranking/components/ranking-trend-badge';
 import { PaginationMeta } from '@/features/business/types/business.type';
@@ -43,8 +43,8 @@ function RankingTableRow({ item }: { item: RankingListItem }) {
       </td>
       <td className="px-6 py-4">
         <span className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-xs font-bold text-primary-600">
-          <Star className="h-3 w-3 fill-primary-600 text-primary-600" />
-          {item.rankingScore.toFixed(1)}
+          <Trophy className="h-3 w-3 text-primary-600" />
+          {Math.round(item.rankingScore)}
         </span>
       </td>
       <td className="px-6 py-4 text-ink-700">{item.reviewCount}</td>

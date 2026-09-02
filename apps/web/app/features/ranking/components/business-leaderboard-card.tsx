@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Building2, MapPin, Star } from 'lucide-react';
+import { ArrowRight, Building2, MapPin, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useBusinessDetailQuery } from '@/features/business/queries/use-business-detail.query';
 
@@ -22,8 +22,12 @@ export interface BusinessLeaderboardCardProps {
 // app, just with a growth-% badge standing in for BusinessCard's status
 // badge and rankingScore standing in for avgRating (this is a ranking page —
 // the other ranking components here already show rankingScore, not
-// avgRating). The whole card is one <Link>, so "View Profile" is a styled
-// span rather than a second nested anchor.
+// avgRating). rankingScore is a 0-100 composite index (DECISIONS.md D-012
+// Step 6b), not a 1-5 rating, so it gets a Trophy icon rather than Star —
+// same convention as MarketCompetitorsCard — to avoid reading as a second,
+// conflicting star rating wherever avgRating is also shown nearby. The whole
+// card is one <Link>, so "View Profile" is a styled span rather than a
+// second nested anchor.
 //
 // Neither GET /rankings/top nor the trending/category leaderboard use-cases
 // return a logo field (see API.md), so this additionally fetches
@@ -61,8 +65,8 @@ export function BusinessLeaderboardCard({
         <h3 className="truncate font-sans text-lg font-bold text-ink-900 group-hover:text-primary-600">{businessName}</h3>
 
         <div className="mt-1 flex items-center gap-1.5 text-sm font-bold text-ink-900">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span>{rankingScore.toFixed(1)}</span>
+          <Trophy className="h-4 w-4 text-primary-600" />
+          <span>{Math.round(rankingScore)}</span>
           {typeof reviewCount === 'number' ? <span className="font-normal text-ink-700">({reviewCount} reviews)</span> : null}
         </div>
 

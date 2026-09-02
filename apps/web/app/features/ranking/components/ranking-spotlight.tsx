@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Building2 } from 'lucide-react';
+import { Building2, Trophy } from 'lucide-react';
 import { useBusinessDetailQuery } from '@/features/business/queries/use-business-detail.query';
 import { TopRankingItem } from '@/features/ranking/types/ranking.type';
 
@@ -41,7 +41,10 @@ function SpotlightCard({ item, tier }: { item: TopRankingItem; tier: 1 | 2 | 3 }
       </div>
       <h3 className={`w-full truncate font-sans font-bold text-ink-900 ${tier === 1 ? 'text-sm sm:text-2xl' : 'text-xs sm:text-xl'}`}>{item.businessName}</h3>
       {item.province ? <p className="mt-0.5 w-full truncate text-[10px] text-ink-700 sm:mt-1 sm:text-sm">{item.province}</p> : null}
-      <p className={`mt-1 font-sans font-black text-primary-600 sm:mt-3 ${tier === 1 ? 'text-xl sm:text-5xl' : 'text-base sm:text-2xl'}`}>{item.rankingScore.toFixed(1)}</p>
+      <p className={`mt-1 flex items-center gap-1 font-sans font-black text-primary-600 sm:mt-3 ${tier === 1 ? 'text-xl sm:text-5xl' : 'text-base sm:text-2xl'}`}>
+        <Trophy className={tier === 1 ? 'h-4 w-4 sm:h-9 sm:w-9' : 'h-3.5 w-3.5 sm:h-6 sm:w-6'} />
+        {Math.round(item.rankingScore)}
+      </p>
     </Link>
   );
 }

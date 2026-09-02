@@ -51,7 +51,7 @@ export function MarketCompetitorsCard({ businessId }: MarketCompetitorsCardProps
                 </span>
                 <span className="flex items-center gap-1">
                   <Trophy className="h-3.5 w-3.5" />
-                  {competitor.rankingScore.toFixed(1)}
+                  {Math.round(competitor.rankingScore)}
                 </span>
               </div>
             </Link>
