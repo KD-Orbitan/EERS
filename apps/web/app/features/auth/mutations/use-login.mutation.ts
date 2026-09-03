@@ -1,9 +1,11 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Cookies from 'js-cookie';
 import apiClient, { setAccessToken } from '@/lib/api-client';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { LoginInput } from '@/features/auth/schemas/auth.schema';
+import { AUTH_HINT_COOKIE } from '@/lib/constants';
 
 interface LoginResponse {
   accessToken: string;
@@ -25,6 +27,8 @@ export function useLoginMutation() {
     },
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
+      // Matches the API's refreshToken cookie maxAge (7 days, see auth.controller.ts).
+      Cookies.set(AUTH_HINT_COOKIE, '1', { expires: 7, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH_ME });
     },
   });

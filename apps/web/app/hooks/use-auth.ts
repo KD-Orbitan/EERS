@@ -2,8 +2,10 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import Cookies from 'js-cookie';
 import apiClient, { getAccessToken, setAccessToken } from '@/lib/api-client';
 import { QUERY_KEYS } from '@/lib/query-keys';
+import { AUTH_HINT_COOKIE } from '@/lib/constants';
 
 export interface User {
   userId: number;
@@ -40,6 +42,7 @@ export function useAuth() {
           await apiClient.post('/auth/logout');
         } finally {
           setAccessToken(null);
+          Cookies.remove(AUTH_HINT_COOKIE, { path: '/' });
           queryClient.clear();
         }
       },

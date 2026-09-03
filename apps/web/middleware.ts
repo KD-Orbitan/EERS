@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AUTH_HINT_COOKIE } from './app/lib/constants';
 
 const protectedRoutes = ['/profile', '/reviews', '/reports', '/notifications', '/admin', '/bookmarks'];
 const authRoutes = ['/login', '/register'];
@@ -16,7 +17,13 @@ function isProtectedBusinessRoute(pathname: string) {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const refreshToken = request.cookies.get('refreshToken')?.value;
+  // The real refreshToken cookie is scoped to the API's domain (Render), not
+  // the web app's (Vercel) — the browser never sends it to a request headed
+  // here, so middleware can't read it directly. Read the same-site hint
+  // cookie the web app sets on login/logout instead (see use-auth.ts,
+  // use-login.mutation.ts). This is a UX redirect only, not the real auth
+  // boundary — that's JwtAuthGuard/RolesGuard server-side.
+  const authHint = request.cookies.get(AUTH_HINT_COOKIE)?.value
 
   const isProtectedRoute =
     isProtectedBusinessRoute(pathname) ||
@@ -28,11 +35,11 @@ export function middleware(request: NextRequest) {
 
   const isAuthRoute = authRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
-  if (isProtectedRoute && !refreshToken) {
+  if (isProtectedRoute && !authHint) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (isAuthRoute && refreshToken) {
+  if (isAuthRoute && authHint) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
