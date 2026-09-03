@@ -17,13 +17,20 @@ export class SentimentService implements OnModuleInit {
   private readonly logger = new Logger(SentimentService.name)
   private classifier: ((text: string, labels: string[], options: { hypothesis_template: string }) => Promise<{ labels: string[]; scores: number[] }>) | null = null
   private loadFailed = false
+  // Toggle for hosts too memory-constrained to load the model (e.g. Render
+  // free tier's 512MB cap) — set SENTIMENT_MODEL_ENABLED=false there.
+  private readonly modelDisabled = process.env.SENTIMENT_MODEL_ENABLED === 'false'
 
   async onModuleInit() {
+    if (this.modelDisabled) {
+      this.logger.warn('Sentiment model disabled via SENTIMENT_MODEL_ENABLED=false — sentiment analysis will be skipped')
+      return
+    }
     await this.init()
   }
 
   async init(): Promise<void> {
-    if (this.classifier || this.loadFailed) {
+    if (this.classifier || this.loadFailed || this.modelDisabled) {
       return
     }
     try {
