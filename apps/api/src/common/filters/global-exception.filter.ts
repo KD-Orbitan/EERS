@@ -118,7 +118,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = exception.message
       }
     } else if (exception instanceof Error) {
-      message = exception.message
       this.logger.error(`Unhandled exception: ${exception.message}`, exception.stack)
     }
 
