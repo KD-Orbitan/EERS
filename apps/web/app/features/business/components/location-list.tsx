@@ -12,6 +12,7 @@ import { locationSchema, LocationInput } from '@/features/business/schemas/locat
 import { useAddLocationMutation } from '@/features/business/mutations/use-add-location.mutation';
 import { useRemoveLocationMutation } from '@/features/business/mutations/use-remove-location.mutation';
 import { BusinessLocation } from '@/features/business/types/business.type';
+import { BusinessLocationMap } from '@/features/business/components/business-location-map';
 
 interface LocationListProps {
   businessId: number;
@@ -141,6 +142,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
           </div>
         ))}
       </div>
+      <BusinessLocationMap businessId={businessId} locations={locations} />
     </div>
   );
 }

@@ -21,6 +21,7 @@ const markerIcon = L.icon({
 
 export interface MapPin {
   businessId: number;
+  locationId?: number;
   name: string;
   latitude: number;
   longitude: number;
@@ -44,7 +45,7 @@ function FitBounds({ pins }: { pins: MapPin[] }) {
       return;
     }
     const bounds: LatLngBoundsExpression = pins.map((pin) => [pin.latitude, pin.longitude]);
-    map.fitBounds(bounds, { padding: [32, 32] });
+    map.fitBounds(bounds, { padding: [32, 32], maxZoom: 16 });
   }, [pins, map]);
 
   return null;
@@ -61,7 +62,7 @@ export function BusinessDirectoryMap({ pins }: BusinessDirectoryMapProps) {
   }
 
   return (
-    <div className="h-full min-h-[400px] overflow-hidden rounded-3xl shadow-xs ring-1 ring-ink-200">
+    <div className="relative isolate h-full min-h-[400px] overflow-hidden rounded-3xl shadow-xs ring-1 ring-ink-200">
       <MapContainer center={[pins[0].latitude, pins[0].longitude]} zoom={12} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -69,7 +70,7 @@ export function BusinessDirectoryMap({ pins }: BusinessDirectoryMapProps) {
         />
         <FitBounds pins={pins} />
         {pins.map((pin) => (
-          <Marker key={pin.businessId} position={[pin.latitude, pin.longitude]} icon={markerIcon}>
+          <Marker key={`${pin.businessId}-${pin.locationId ?? 'primary'}`} position={[pin.latitude, pin.longitude]} icon={markerIcon}>
             <Popup>
               <Link href={`/businesses/${pin.businessId}`} className="font-medium text-primary-600 hover:underline">
                 {pin.name}
