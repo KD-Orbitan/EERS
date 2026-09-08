@@ -38,7 +38,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex min-h-screen bg-ink-50">
       <AdminSidebar currentPath={pathname} />
-      <div className="flex-1 px-6 py-8 sm:px-10">{children}</div>
+      <div className="min-w-0 flex-1 px-6 py-8 sm:px-10">
+        <div className="mx-auto w-full max-w-6xl">{children}</div>
+      </div>
     </div>
   );
 }

@@ -1068,8 +1068,9 @@ domain/services/bayesian-score.calculator.ts
 Formula (from DECISIONS.md D-012):
 
 ```typescript
-score = (C * m + avgRating * n) / (m + n)
-// C = 3.5, m = 10
+score = 100 * (C * m + weightedNormalizedRating * eligibleReviewCount) / (m + eligibleReviewCount)
+// Defaults: C = 0.63, m = 10. See D-012 for fraud gating and trust inputs.
+// Exclude businesses with no positive-weight reviews from snapshots.
 ```
 
 ---
@@ -1134,10 +1135,10 @@ GET /rankings/businesses/:businessId
 
 ```
 bayesian calculator:
-  ✓ returns 3.5 for business with 0 reviews (n=0)
+  ✓ omits businesses with no positive-weight reviews from every scope
   ✓ returns correct score for business with 2 reviews
   ✓ returns correct score for business with 100 reviews
-  ✓ business with more reviews ranks higher than same avg, fewer reviews
+  ✓ more evidence moves the score toward its weighted mean (up above C, down below C)
 
 ranking job:
   ✓ only includes approved businesses

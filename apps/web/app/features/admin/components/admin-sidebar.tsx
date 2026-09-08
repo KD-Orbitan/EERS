@@ -20,9 +20,7 @@ const NAV_ITEMS = [
 // Sidebar nav adapted from Figma "Admin Command Center" / "Business
 // Verification" — dropped Industry Insights/Rating Analysis/Audit Logs/
 // Export Report/Support links since none have a backing feature or page.
-// Notifications links to the shared /notifications inbox (same page regular
-// users get) rather than a bespoke admin bell, since admin notifications use
-// the same personal-inbox model as every other role.
+// Notifications uses the shared personal inbox within the admin layout.
 export function AdminSidebar({ currentPath }: { currentPath: string }) {
   const { data: unreadCount = 0 } = useUnreadCountQuery(true);
 
@@ -33,9 +31,10 @@ export function AdminSidebar({ currentPath }: { currentPath: string }) {
         <p className="text-xs text-ink-500">EERS moderation &amp; config</p>
       </div>
       <Link
-        href="/notifications"
+        href="/admin/notifications"
+        aria-current={currentPath === '/admin/notifications' ? 'page' : undefined}
         className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-          currentPath === '/notifications' ? 'bg-primary-600 text-white' : 'text-ink-700 hover:bg-primary-50'
+          currentPath === '/admin/notifications' ? 'bg-primary-600 text-white' : 'text-ink-700 hover:bg-primary-50'
         }`}
       >
         <Bell className="h-4 w-4 shrink-0" />

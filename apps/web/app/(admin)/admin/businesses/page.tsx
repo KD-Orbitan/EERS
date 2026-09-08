@@ -4,7 +4,7 @@ import { BusinessVerificationPanel } from '@/features/admin/components/business-
 
 export default function AdminBusinessesPage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-sans text-3xl font-bold text-ink-900">Business Verification</h1>

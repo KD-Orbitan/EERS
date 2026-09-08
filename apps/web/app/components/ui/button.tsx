@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'default' | 'outline';
+  variant?: 'default' | 'outline' | 'surface';
 };
 
 export function Button({
@@ -12,7 +12,9 @@ export function Button({
   const variantClassName =
     variant === 'outline'
       ? 'border border-primary-600 bg-transparent text-primary-600 hover:bg-primary-600/5'
-      : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md';
+      : variant === 'surface'
+        ? 'bg-ink-50 text-primary-600 hover:bg-primary-50 hover:shadow-md'
+        : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md';
 
   return (
     <button

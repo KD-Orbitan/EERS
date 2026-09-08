@@ -28,21 +28,15 @@ export type ScoringConfig = {
 
 @Injectable()
 export class ScoringConfigService {
-  private cachedConfig: ScoringConfig | null = null
-
   constructor(private readonly prisma: PrismaService) {}
 
   async getConfig(): Promise<ScoringConfig> {
-    if (this.cachedConfig) {
-      return this.cachedConfig
-    }
-
     const config = await this.prisma.scoringConfig.findFirst()
     if (!config) {
       throw new Error('Scoring configuration not found')
     }
 
-    this.cachedConfig = {
+    return {
       configId: Number(config.configId),
       bayesianC: Number(config.bayesianC),
       bayesianM: config.bayesianM,
@@ -66,7 +60,5 @@ export class ScoringConfigService {
       weightGamma: Number(config.weightGamma),
       lMin: config.lMin,
     }
-
-    return this.cachedConfig
   }
 }

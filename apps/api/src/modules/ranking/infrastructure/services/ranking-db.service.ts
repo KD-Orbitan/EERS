@@ -128,9 +128,8 @@ export class RankingDbService {
     const groups = await this.prisma.review.groupBy({
       by: ['writerUserId'],
       where: {
-        status: 'approved',
+        status: 'rejected',
         deletedAt: null,
-        fraudScore: { fraudStatus: { in: ['REJECTED', 'SUSPICIOUS'] } },
       },
       _count: { reviewId: true },
     })

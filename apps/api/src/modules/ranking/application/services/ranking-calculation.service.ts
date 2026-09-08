@@ -37,8 +37,8 @@ export class RankingCalculationService {
     const businessIds = businesses.map((business) => business.businessId)
 
     const reviews = await this.rankingDbService.getApprovedReviewsByBusinessIds(businessIds)
-    await this.trustScoreService.computeAll()
-    await this.fraudDetectionService.computeForReviews(reviews)
+    await this.trustScoreService.computeAll(config)
+    await this.fraudDetectionService.computeForReviews(reviews, config)
 
     const categoryIdsByBusiness = new Map<number, number[]>()
     const provinceByBusiness = new Map<number, string | null>()
@@ -53,13 +53,10 @@ export class RankingCalculationService {
     })
     const fraudMap = new Map<number, string>(fraudScores.map((item) => [Number(item.reviewId), item.fraudStatus]))
 
-    const businessAggregates = new Map<number, { weightedSum: number; weightSum: number; reviewCount: number; avgRating: number }>()
+    const businessAggregates = new Map<number, { weightedSum: number; weightSum: number; reviewCount: number; eligibleCount: number; avgRating: number }>()
     for (const business of businesses) {
-      businessAggregates.set(business.businessId, { weightedSum: 0, weightSum: 0, reviewCount: 0, avgRating: 0 })
+      businessAggregates.set(business.businessId, { weightedSum: 0, weightSum: 0, reviewCount: 0, eligibleCount: 0, avgRating: 0 })
     }
-
-    const reviewScoreCache = new Map<number, number>()
-    const reviewWeightCache = new Map<number, number>()
 
     for (const review of reviews) {
       const business = businesses.find((b) => b.businessId === review.businessId)
@@ -69,15 +66,13 @@ export class RankingCalculationService {
 
       const categoryIds = categoryIdsByBusiness.get(review.businessId) ?? []
       const S_hat_i = await this.multiCriteriaScoringService.computeScore(review.reviewId, categoryIds)
-      reviewScoreCache.set(review.reviewId, S_hat_i)
 
       const fraudStatus = fraudMap.get(review.reviewId) ?? 'VALID'
       const W_i = await this.reviewWeightingService.computeWeight({
         writerUserId: review.writerUserId,
         fraudStatus,
         createdAt: review.createdAt,
-      })
-      reviewWeightCache.set(review.reviewId, W_i)
+      }, config)
 
       const businessSummary = businessAggregates.get(review.businessId)
       if (!businessSummary) continue
@@ -85,6 +80,7 @@ export class RankingCalculationService {
       businessSummary.weightedSum += W_i * S_hat_i
       businessSummary.weightSum += W_i
       businessSummary.reviewCount += 1
+      if (W_i > 0) businessSummary.eligibleCount += 1
       businessSummary.avgRating += review.overallRating
     }
 
@@ -101,9 +97,10 @@ export class RankingCalculationService {
 
     for (const business of businesses) {
       const aggregate = businessAggregates.get(business.businessId)!
+      if (aggregate.eligibleCount === 0) continue
       const R_j = aggregate.weightSum > 0 ? aggregate.weightedSum / aggregate.weightSum : config.bayesianC
       const avgRating = aggregate.reviewCount > 0 ? Number((aggregate.avgRating / aggregate.reviewCount).toFixed(2)) : business.avgRating
-      const finalScore = this.computeBayesianAdjustment(R_j, aggregate.reviewCount, config.bayesianC, config.bayesianM)
+      const finalScore = this.computeBayesianAdjustment(R_j, aggregate.eligibleCount, config.bayesianC, config.bayesianM)
       // DECISIONS.md D-012 Step 6b: FinalScore lives on [0, 1] (same scale as
       // R_j/bayesianC); persisted rankingScore is rescaled to [0, 100] so it
       // reads as a distinct composite index rather than a second star rating
@@ -113,9 +110,9 @@ export class RankingCalculationService {
         scope: 'GLOBAL',
         scopeId: null,
         rank: 0,
-        rankingScore: Number(displayScore.toFixed(2)),
+        rankingScore: displayScore,
         avgRating: Number(avgRating.toFixed(2)),
-        reviewCount: aggregate.reviewCount,
+        reviewCount: aggregate.eligibleCount,
         businessId: business.businessId,
         // R_j (pre-Bayesian weighted average) — kept only in-memory for the
         // Step 7 tiebreak below (DECISIONS.md D-012), not persisted to
@@ -129,7 +126,8 @@ export class RankingCalculationService {
       const sorted = [...items].sort((a, b) => {
         if (b.rankingScore !== a.rankingScore) return b.rankingScore - a.rankingScore
         if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount
-        return b.preBayesianScore - a.preBayesianScore
+        if (b.preBayesianScore !== a.preBayesianScore) return b.preBayesianScore - a.preBayesianScore
+        return a.businessId - b.businessId
       })
       let rank = 1
       return sorted.map((item) => ({ ...item, scope, scopeId, rank: rank++ }))
@@ -172,7 +170,7 @@ export class RankingCalculationService {
         scope: item.scope,
         scopeId: item.scopeId === null ? null : BigInt(item.scopeId),
         rank: item.rank,
-        rankingScore: item.rankingScore,
+        rankingScore: Number(item.rankingScore.toFixed(2)),
         avgRating: item.avgRating,
         reviewCount: item.reviewCount,
         businessId: BigInt(item.businessId),
@@ -182,7 +180,7 @@ export class RankingCalculationService {
       await tx.rankingSnapshotHistory.createMany({
         data: globalSnap.map((item) => ({
           rank: item.rank,
-          rankingScore: item.rankingScore,
+          rankingScore: Number(item.rankingScore.toFixed(2)),
           businessId: BigInt(item.businessId),
         })),
       })

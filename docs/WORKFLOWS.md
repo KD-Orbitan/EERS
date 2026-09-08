@@ -1217,19 +1217,24 @@ Steps:
    a. Load all reviews WHERE businessId=id
                         AND status='approved'
                         AND deletedAt IS NULL
-   b. Compute n = count of approved reviews
-   c. Compute avgRating = AVG(overallRating) — 0 if n=0
-   d. Compute Bayesian score:
-        score = (3.5 × 10 + avgRating × n) / (10 + n)
-        (see DECISIONS.md D-012 for formula and constants)
+   b. Use the fresh configuration loaded once for this run (D-012/D-014).
+      Recompute trust from moderation-approved/rejected counts, then fraud signals.
+   c. Compute avgRating from all approved reviews (raw public star statistic).
+   d. Compute normalized multi-criteria score S_i and gated review weight W_i.
+      Fraud REJECTED has W_i=0; SUSPICIOUS scales the whole weight by delta.
+   e. Compute v = count of reviews with W_i>0, R = sum(W_i*S_i)/sum(W_i).
+      If v=0, omit this business from ALL ranking scopes and new history rows.
+   f. Compute rankingScore = 100 * (v*R + m*C)/(v+m), C=0.63 and m=10 by default.
+      Keep full precision until sorting; persist scores rounded to two decimals.
+      (see DECISIONS.md D-012 for the authoritative pipeline)
 
-3. Sort businesses by score DESC → assign rank (1 = highest)
+3. Sort by score DESC, v DESC, R DESC, businessId ASC → assign rank (1 = highest)
 
 4. BEGIN TRANSACTION:
    a. Delete all existing ranking_snapshots (full replace strategy)
    b. Insert new ranking_snapshots for each business:
         - scope='GLOBAL', scopeId=NULL, rank, rankingScore=score,
-          avgRating, reviewCount=n, businessId
+          avgRating, reviewCount=v, businessId
    c. Insert category-scoped snapshots:
         - For each category, re-rank businesses in that category only
         - scope='CATEGORY', scopeId=categoryId

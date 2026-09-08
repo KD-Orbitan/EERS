@@ -3,7 +3,7 @@ import { ReplyRepository } from '../domain/repositories/reply.repository'
 import { ReviewRepository } from '../domain/repositories/review.repository'
 import { ReplyAlreadyExistsException } from '../domain/exceptions/review.exceptions'
 import { BusinessRepository } from '../../business/domain/repositories/business.repository'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { PrismaService } from '../../../infrastructure/database/prisma.service'
 import { CreateNotificationUseCase } from '../../notification/application/use-cases/create-notification.use-case'
 import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 

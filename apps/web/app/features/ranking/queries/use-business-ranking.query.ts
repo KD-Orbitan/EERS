@@ -8,9 +8,9 @@ import { BusinessRanking } from '@/features/ranking/types/ranking.type';
 export function useBusinessRankingQuery(businessId: number | undefined) {
   return useQuery({
     queryKey: QUERY_KEYS.BUSINESS_RANKING(businessId ?? 0),
-    queryFn: async (): Promise<BusinessRanking> => {
+    queryFn: async (): Promise<BusinessRanking | null> => {
       const response = await apiClient.get(`/rankings/businesses/${businessId}`);
-      return response.data.data as BusinessRanking;
+      return response.data.data as BusinessRanking | null;
     },
     enabled: typeof businessId === 'number' && Number.isFinite(businessId),
     staleTime: 10 * 60_000,

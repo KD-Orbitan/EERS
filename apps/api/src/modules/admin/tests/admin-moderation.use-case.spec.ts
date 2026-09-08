@@ -4,7 +4,7 @@ import { ApproveReviewUseCase } from '../application/use-cases/approve-review.us
 import { RejectReviewUseCase } from '../application/use-cases/reject-review.use-case'
 import { BusinessNotFoundException, BusinessNotPendingException } from '../../business/domain/exceptions/business.exceptions'
 import { ReviewNotFoundException, ReviewNotPendingException } from '../../review/domain/exceptions/review.exceptions'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { PrismaService } from '../../../infrastructure/database/prisma.service'
 import { CreateNotificationUseCase } from '../../notification/application/use-cases/create-notification.use-case'
 import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 

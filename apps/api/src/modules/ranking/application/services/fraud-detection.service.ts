@@ -13,7 +13,7 @@ export class FraudDetectionService {
     private readonly similarityService: SimilarityService,
   ) {}
 
-  private async computeDuplicateSignal(reviewContent: string, businessId: number, config: ScoringConfig) {
+  private async computeDuplicateSignal(reviewId: number, reviewContent: string, businessId: number, config: ScoringConfig) {
     if (reviewContent.length < config.lDup) {
       return 0
     }
@@ -21,6 +21,7 @@ export class FraudDetectionService {
     const approvedReviews = await this.prisma.review.findMany({
       where: {
         businessId: BigInt(businessId),
+        reviewId: { not: BigInt(reviewId) },
         status: 'approved',
         deletedAt: null,
       },
@@ -28,9 +29,10 @@ export class FraudDetectionService {
     })
 
     for (const other of approvedReviews) {
-      if (!other.content || other.content === reviewContent) {
+      if (!other.content || Number(other.reviewId) === reviewId) {
         continue
       }
+      if (other.content === reviewContent) return 1
       const similarity = await this.similarityService.computeSimilarity(reviewContent, other.content)
       if (similarity > config.thetaDup) {
         return 1
@@ -51,14 +53,14 @@ export class FraudDetectionService {
     return Math.min(1, count / config.thetaSpam)
   }
 
-  async computeForReviews(reviews: Array<{ reviewId: number; businessId: number; writerUserId: number; content: string; createdAt: Date }>) {
-    const config = await this.scoringConfigService.getConfig()
+  async computeForReviews(reviews: Array<{ reviewId: number; businessId: number; writerUserId: number; content: string; createdAt: Date }>, config?: ScoringConfig) {
+    config ??= await this.scoringConfigService.getConfig()
     const userIds = Array.from(new Set(reviews.map((review) => review.writerUserId)))
     const trustScores = await this.rankingDbService.getUserTrustScoresByUserIds(userIds)
     const trustScoreByUser = new Map(trustScores.map((item) => [item.userId, item.trustScore]))
 
     for (const review of reviews) {
-      const D_i = await this.computeDuplicateSignal(review.content, review.businessId, config)
+      const D_i = await this.computeDuplicateSignal(review.reviewId, review.content, review.businessId, config)
       const S_i = await this.computeSpamSignal(review.reviewId, review.writerUserId, review.createdAt, config)
       const trustValue = trustScoreByUser.get(review.writerUserId) ?? 0.5
       const trustSignal = 1 - trustValue

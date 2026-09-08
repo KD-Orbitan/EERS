@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { RankingDbService } from '../../infrastructure/services/ranking-db.service'
-import { ScoringConfigService } from '../../infrastructure/services/scoring-config.service'
+import { ScoringConfig, ScoringConfigService } from '../../infrastructure/services/scoring-config.service'
 
 @Injectable()
 export class ReviewWeightingService {
@@ -14,16 +14,17 @@ export class ReviewWeightingService {
 
   private getTimeDecay(createdAt: Date, lambda: number): number {
     const deltaMs = Date.now() - createdAt.getTime()
-    const deltaDays = deltaMs / (1000 * 60 * 60 * 24)
+    const deltaDays = Math.max(0, deltaMs / (1000 * 60 * 60 * 24))
     return Math.exp(-lambda * deltaDays)
   }
 
-  async computeWeight(review: { writerUserId: number; fraudStatus: string; createdAt: Date }): Promise<number> {
-    const config = await this.scoringConfigService.getConfig()
+  async computeWeight(review: { writerUserId: number; fraudStatus: string; createdAt: Date }, config?: ScoringConfig): Promise<number> {
+    config ??= await this.scoringConfigService.getConfig()
+    const Rs_i = this.getFraudStatusWeight(review.fraudStatus, config.suspiciousDelta)
+    if (Rs_i === 0) return 0
     const trustScores = await this.rankingDbService.getUserTrustScoresByUserIds([review.writerUserId])
     const trust = trustScores[0]?.trustScore ?? 0.5
-    const Rs_i = this.getFraudStatusWeight(review.fraudStatus, config.suspiciousDelta)
     const D_i = this.getTimeDecay(review.createdAt, config.timeDecayLambda)
-    return config.weightAlpha * trust + config.weightBeta * Rs_i + config.weightGamma * D_i
+    return Rs_i * (config.weightAlpha * trust + config.weightBeta + config.weightGamma * D_i)
   }
 }

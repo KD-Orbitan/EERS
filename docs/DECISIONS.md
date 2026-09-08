@@ -383,6 +383,10 @@ D_i =
 \end{cases}
 ```
 
+Only other reviews of the same business are compared: exclude the current
+review by `reviewId`, never by equal content. Identical text on another review
+is a duplicate signal of 1 (subject to `l_dup`), including when `theta_dup = 1`.
+
 Similarity implementation:
 
 - **MVP:** `pg_trgm`
@@ -404,9 +408,18 @@ Trust(u)=sigmoid(\alpha \cdot \log(1+n)+\beta \cdot \log(1+a)-\gamma \cdot f)
 
 Where:
 
-- `n` = valid review count
+- `n` = moderator-approved, non-deleted review count (moderation validity)
 - `a` = account age (days)
-- `f` = flagged review count
+- `f` = moderator-rejected, non-deleted review count
+
+Trust inputs come exclusively from moderation, not automatic `fraudStatus` labels.
+Neither `SUSPICIOUS` nor automatic `REJECTED` adds a trust penalty or changes `n`.
+This prevents a feedback loop from Trust -> FraudScore -> Trust. `validReviews`
+is the moderation-approved count, not the ranking-eligible count; `flaggedCount`
+is the current moderation-rejected count. Counts are recomputed, so correcting a
+moderation status or deleting a review removes its contribution on the next run.
+A moderation rejection is a quality penalty, not proof of fraud.
+Account age is clamped to at least zero.
 
 `a` is log-scaled the same way `n` is: raw days grow unbounded, so a linear
 term saturates `sigmoid` for almost any account past ~30 days old (at
@@ -480,10 +493,7 @@ Formula:
 ### Step 4 — Review Weighting
 
 ```math
-W_i=
-\alpha_w T_i
-+\beta_w R_{s_i}
-+\gamma_w D_i
+W_i=R_{s_i}\left(\alpha_w T_i+\beta_w+\gamma_w D_i\right)
 ```
 
 Where:
@@ -493,7 +503,13 @@ Where:
   - `1` if **VALID**
   - `δ` if **SUSPICIOUS**
   - `0` if **REJECTED**
-- `D_i = e^{-\lambda_{decay}\Delta t}` (time decay)
+- `D_i = e^{-\lambda_{decay}\max(0,\Delta t)}` (time decay, age in days)
+- `beta_w` is the baseline weight inside the status gate.
+- `alpha_w + beta_w + gamma_w = 1`; coefficients are nonnegative.
+- A rejected or unknown fraud status always has weight zero. Suspicion scales
+  the entire weight by delta. VALID review weights retain their previous values.
+- Time decay remains additive within the gate: it reduces the recency component,
+  not all influence of an old review.
 
 ---
 
@@ -530,11 +546,23 @@ FinalScore_j=
 
 Where:
 
-- `v_j` = number of eligible reviews
+- `v_j` = number of approved, non-deleted reviews with `W_i > 0`
 - `C` = `bayesian_c` (prior mean)
-- `m` = `bayesian_m` (minimum review threshold)
+- `m` = `bayesian_m` (positive prior strength, not a leaderboard entry threshold)
 
-Both `C` and `m` are configurable by administrators.
+Both `C` and `m` are configurable by administrators. Defaults remain `C=0.63`
+and `m=10`. `v_j` is a count, not a sum of weights: suspicious reviews with
+positive weight count once. Switching to weighted evidence requires separate
+calibration of `m` and is not part of this revision.
+
+Businesses with `v_j=0` have no snapshot in any scope and no new history row.
+Their ranking endpoint returns null; the UI explains that a contributing review
+and a ranking update are required. The internal prior fallback is never displayed
+as an earned score for an unranked business.
+
+`ranking_snapshot.reviewCount` stores `v_j`. Public business review counts and
+`avgRating` remain raw moderation-approved statistics and may differ from the
+ranking evidence count. Fraud classification does not change moderation status.
 
 ---
 
@@ -567,6 +595,9 @@ Businesses are sorted by:
 1. `FinalScore DESC` (equivalently, `DisplayScore DESC`)
 2. `v_j DESC`
 3. `R_j DESC`
+4. `businessId ASC` for deterministic ties
+
+Sort by full-precision scores; round to two decimals only when persisting snapshots and history.
 
 ---
 
@@ -592,6 +623,19 @@ Characteristics:
 Criterion weights (`w_k`) are stored in the `criterion_weights` table.
 
 Each record represents a `(category, criterion)` pair and can be updated independently through the Admin API.
+
+Scoring configuration is read fresh from the database at the start of each
+ranking run and passed to trust, fraud detection, and review weighting. No
+process-lifetime config cache is used. Updates apply to the next run (including
+manual recalculation); an in-flight run retains its original configuration.
+Standalone trust/fraud/weighting calls read fresh configuration when none is
+provided. Existing snapshots remain visible until recalculation completes.
+
+Validation: C, probability thresholds and weights are in [0,1]; m, thetaSpam and
+spamWindowHours are positive integers; length limits are nonnegative integers;
+decay/sentiment coefficients are nonnegative; thetaSus < thetaReject. Existing
+sum-to-one checks remain for fraud, trust and weighting coefficients. Invalid
+admin updates return HTTP 400.
 
 ---
 

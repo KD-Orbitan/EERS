@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard'
@@ -164,13 +164,17 @@ export class AdminController {
     const tolerance = 0.001
 
     if (Math.abs(fraudSum - 1) > tolerance) {
-      throw new Error('fraudLambda values must sum to 1')
+      throw new BadRequestException('fraudLambda values must sum to 1')
     }
     if (Math.abs(weightSum - 1) > tolerance) {
-      throw new Error('weightAlpha/weightBeta/weightGamma must sum to 1')
+      throw new BadRequestException('weightAlpha/weightBeta/weightGamma must sum to 1')
     }
     if (Math.abs(trustSum - 1) > tolerance) {
-      throw new Error('trustAlpha/trustBeta/trustGamma must sum to 1')
+      throw new BadRequestException('trustAlpha/trustBeta/trustGamma must sum to 1')
+    }
+
+    if (dto.thetaSus >= dto.thetaReject) {
+      throw new BadRequestException('thetaSus must be less than thetaReject')
     }
 
     await this.scoringConfigUseCase.updateConfig(dto)

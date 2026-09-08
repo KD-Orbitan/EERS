@@ -3,7 +3,7 @@ import { ReviewRepository } from '../domain/repositories/review.repository'
 import { ReviewAlreadyExistsException, InvalidRatingException, InvalidCriterionException } from '../domain/exceptions/review.exceptions'
 import { BusinessNotApprovedException } from '../../business/domain/exceptions/business.exceptions'
 import { BusinessRepository } from '../../business/domain/repositories/business.repository'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { PrismaService } from '../../../infrastructure/database/prisma.service'
 import { CreateNotificationUseCase } from '../../notification/application/use-cases/create-notification.use-case'
 import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 

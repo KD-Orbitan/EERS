@@ -723,7 +723,9 @@ Notes:
     GLOBAL   → NULL
     CATEGORY → categoryId
     PROVINCE → NULL (filter by province name via business join)
-- rankingScore: computed via Bayesian formula (see DECISIONS.md D-012)
+- rankingScore: composite Bayesian index on [0,100] (see DECISIONS.md D-012)
+- reviewCount: number of positive-weight reviews contributing to ranking; excludes automatic fraud REJECTED. Businesses with zero contributing reviews have no snapshot.
+- avgRating: raw mean of moderation-approved reviews, independent of fraud weighting.
 - Populated exclusively by RankingRecalculationJob, never by API handlers
 - Ranking APIs read from this table via Redis cache (see DECISIONS.md D-011)
 ```
@@ -797,6 +799,8 @@ model UserTrustScore {
   @@map("user_trust_scores")
 }
 ```
+
+User trust counter semantics (D-012): `validReviews` counts non-deleted moderation-approved reviews; `flaggedCount` counts non-deleted moderation-rejected reviews. Automatic fraud labels affect neither counter.
 
 ### Table: review_fraud_scores
 

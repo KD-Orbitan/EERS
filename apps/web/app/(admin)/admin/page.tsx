@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-sans text-3xl font-bold text-ink-900">Admin Dashboard</h1>
         <p className="mt-1 text-sm text-ink-700">Moderation and ranking configuration for EERS.</p>
@@ -155,8 +155,8 @@ export default function AdminDashboardPage() {
           <Button
             onClick={onRecalculate}
             disabled={recalcMutation.isPending}
-            variant="outline"
-            className="mt-4 gap-1.5 border-white bg-ink-50 text-primary-600 hover:bg-primary-50"
+            variant="surface"
+            className="mt-4 gap-1.5"
           >
             <RefreshCw className={`h-4 w-4 ${recalcMutation.isPending ? 'animate-spin' : ''}`} />
             {recalcMutation.isPending ? 'Triggering...' : 'Trigger Recalculation'}

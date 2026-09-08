@@ -22,7 +22,7 @@ import { ClaimBusinessDialog } from '@/features/business-claim/components/claim-
 
 interface BusinessDetailProps {
   business: BusinessDetailData;
-  ranking?: BusinessRanking;
+  ranking?: BusinessRanking | null;
   isOwner: boolean;
   onDelete: () => void;
   isDeleting?: boolean;

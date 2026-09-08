@@ -31,7 +31,7 @@ const GROUPS: { title: string; description: string; fields: FieldSpec[] }[] = [
     description: 'Smooths a business’s score toward a prior mean until it has enough reviews (D-012 Step 6).',
     fields: [
       { name: 'bayesianC', label: 'Prior mean (C)', step: 0.01 },
-      { name: 'bayesianM', label: 'Minimum review threshold (m)', step: 1, int: true },
+      { name: 'bayesianM', label: 'Prior strength (m)', step: 1, int: true },
     ],
   },
   {
@@ -64,19 +64,19 @@ const GROUPS: { title: string; description: string; fields: FieldSpec[] }[] = [
   },
   {
     title: 'Trust Score Weights',
-    description: 'Trust(u) = sigmoid(α·log(1+reviews) + β·accountAge − γ·flags). Must sum to 1.',
+    description: 'Trust uses log(1 + approved reviews), log(1 + account age), and moderator-rejected reviews. Automatic fraud labels do not penalize trust. Weights must sum to 1.',
     fields: [
       { name: 'trustAlpha', label: 'Review count weight (α)', step: 0.001 },
       { name: 'trustBeta', label: 'Account age weight (β)', step: 0.001 },
-      { name: 'trustGamma', label: 'Flagged review penalty (γ)', step: 0.001 },
+      { name: 'trustGamma', label: 'Moderation rejection penalty (γ)', step: 0.001 },
     ],
   },
   {
     title: 'Review Weighting',
-    description: 'W = α·Trust + β·Status + γ·TimeDecay, used before Bayesian aggregation. Must sum to 1.',
+    description: 'W = Status factor * (alpha * Trust + beta + gamma * TimeDecay). Rejected reviews have zero influence. Weights must sum to 1.',
     fields: [
       { name: 'weightAlpha', label: 'Trust weight (α)', step: 0.001 },
-      { name: 'weightBeta', label: 'Status weight (β)', step: 0.001 },
+      { name: 'weightBeta', label: 'Base weight (β)', step: 0.001 },
       { name: 'weightGamma', label: 'Time-decay weight (γ)', step: 0.001 },
     ],
   },

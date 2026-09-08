@@ -21,7 +21,7 @@ export default function RankingTrendConfigPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-sans text-3xl font-bold text-ink-900">Ranking Trend Configuration</h1>
         <p className="mt-1 text-sm text-ink-700">

@@ -1,7 +1,7 @@
 import { UpdateReviewUseCase } from '../application/use-cases/update-review.use-case'
 import { ReviewRepository } from '../domain/repositories/review.repository'
 import { ReviewNotFoundException, InvalidRatingException, InvalidCriterionException } from '../domain/exceptions/review.exceptions'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { PrismaService } from '../../../infrastructure/database/prisma.service'
 
 describe('UpdateReviewUseCase', () => {
   let reviewRepository: jest.Mocked<Pick<ReviewRepository, 'findById' | 'findBusinessCriteria' | 'updateReviewWithCriteria'>>

@@ -18,9 +18,9 @@ export function RankingMethodology() {
       <div className="rounded-3xl border border-ink-200 bg-ink-50/70 p-6 shadow-xs backdrop-blur-sm">
         <h2 className="font-sans text-lg font-bold text-ink-900">How rankings work</h2>
         <p className="mt-3 text-sm text-ink-700">
-          Scores are recalculated hourly from approved reviews only, combining weighted criteria ratings with a
-          Bayesian adjustment so businesses with few reviews aren&apos;t unfairly boosted or penalized. Rankings are
-          never computed on the fly &mdash; every score comes from the latest precomputed snapshot.
+          Scores are recalculated hourly from approved reviews and weighted criteria ratings. Reviews rejected
+          by fraud checks have no influence; suspicious reviews carry less weight. Bayesian adjustment moderates
+          scores based on how many reviews contribute. Businesses need at least one contributing review to be ranked.
         </p>
 
         <div className="mt-4 divide-y divide-ink-100 rounded-xl border border-ink-100">

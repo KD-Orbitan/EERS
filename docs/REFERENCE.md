@@ -423,22 +423,19 @@ maxAge:   604800  (7 days in seconds)
 
 # Section 12. Ranking Formula Constants
 
-From DECISIONS.md D-012. Do NOT change these values.
+Defaults from DECISIONS.md D-012; administrators may update them through scoring config.
 
 ```
-C = 3.5   // prior mean (global average assumption)
-m = 10    // minimum review weight
+C = 0.63  // prior mean on the normalized [0,1] scale
+m = 10    // positive prior strength
+score = 100 * (C * m + R * v) / (m + v)
 ```
 
-Formula:
-
-```
-score = (C × m + avgRating × n) / (m + n)
-```
-
-Where `n` = count of approved, non-deleted reviews for the business.
-
-Special case: if `n = 0`, score = C = 3.5.
+`R` is the weighted mean of normalized multi-criteria scores. `v` counts approved,
+non-deleted reviews with positive weight. Fraud REJECTED has zero weight;
+SUSPICIOUS scales the entire review weight by delta. Businesses with `v=0` are
+omitted from all ranking snapshots, rather than displaying the prior as a score.
+See D-012 for trust inputs, the status gate, and tie ordering.
 
 Cron schedule:
 
