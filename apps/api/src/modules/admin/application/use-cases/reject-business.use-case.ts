@@ -34,6 +34,7 @@ export class RejectBusinessUseCase {
       await this.createNotificationUseCase.execute({
         userId: Number(business.ownerUserId),
         type: NOTIFICATION_TYPE.BUSINESS_REJECTED,
+        targetPath: `/businesses/${businessId}/edit`,
         title: 'Business Rejected',
         content: `Your business "${business.name}" was rejected. Reason: ${reason}`,
       })

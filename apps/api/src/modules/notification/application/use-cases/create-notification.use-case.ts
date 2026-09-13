@@ -11,8 +11,8 @@ export class CreateNotificationUseCase {
     private readonly sseConnectionManager: SseConnectionManager,
   ) {}
 
-  async execute({ userId, type, title, content }: { userId: number; type: string; title: string; content: string }) {
-    const notification = await this.notificationRepository.create({ userId, type, title, content })
+  async execute({ userId, type, title, content, targetPath }: { userId: number; type: string; title: string; content: string; targetPath?: string }) {
+    const notification = await this.notificationRepository.create({ userId, type, title, content, targetPath })
 
     try {
       this.sseConnectionManager.push(userId, {

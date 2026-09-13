@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-sans text-lg font-bold text-ink-900">Needs Attention</h2>

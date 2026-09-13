@@ -22,6 +22,7 @@ export class ResolveReportUseCase {
     await this.createNotificationUseCase.execute({
       userId: report.userId,
       type: NOTIFICATION_TYPE.REPORT_RESOLVED,
+      targetPath: '/reports/my',
       title: 'Report Resolved',
       content: 'Your report has been reviewed and resolved.',
     })

@@ -44,6 +44,7 @@ export class CreateReplyUseCase {
     await this.createNotificationUseCase.execute({
       userId: review.writerUserId,
       type: NOTIFICATION_TYPE.NEW_REPLY,
+      targetPath: `/businesses/${review.businessId}/reviews?reviewId=${reviewId}`,
       title: 'New Reply',
       content: 'The business owner replied to your review.',
     })

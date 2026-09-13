@@ -16,7 +16,9 @@ export class MarkAsReadUseCase {
       throw new ForbiddenException('Forbidden')
     }
 
-    await this.notificationRepository.markAsRead(notificationId)
+    if (!notification.isRead) {
+      await this.notificationRepository.markAsRead(notificationId)
+    }
     return { notificationId, isRead: true as const }
   }
 }

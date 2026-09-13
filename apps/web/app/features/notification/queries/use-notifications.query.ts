@@ -18,13 +18,14 @@ interface NotificationsResult {
   meta: PaginationMeta;
 }
 
-export function useNotificationsQuery(params: NotificationsParams = {}) {
+export function useNotificationsQuery(params: NotificationsParams = {}, enabled = true) {
   return useQuery({
     queryKey: [...QUERY_KEYS.NOTIFICATIONS, params],
     queryFn: async (): Promise<NotificationsResult> => {
       const response = await apiClient.get('/notifications', { params });
       return { items: response.data.data as NotificationListItem[], meta: response.data.meta as PaginationMeta };
     },
+    enabled,
     staleTime: 30_000,
     retry: 1,
   });

@@ -26,6 +26,7 @@ export class ApproveClaimUseCase {
     await this.createNotificationUseCase.execute({
       userId: result.claimantUserId,
       type: NOTIFICATION_TYPE.CLAIM_APPROVED,
+      targetPath: `/businesses/${result.businessId}/dashboard`,
       title: 'Claim Approved',
       content: `Your claim on "${result.businessName}" has been approved. You are now the owner of this business.`,
     })
@@ -35,6 +36,7 @@ export class ApproveClaimUseCase {
         this.createNotificationUseCase.execute({
           userId,
           type: NOTIFICATION_TYPE.CLAIM_REJECTED,
+          targetPath: '/business-claims/my',
           title: 'Claim Rejected',
           content: `Your claim on "${result.businessName}" was rejected. Reason: Another user's claim for this business was approved.`,
         }),

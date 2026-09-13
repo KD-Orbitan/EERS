@@ -491,6 +491,7 @@ model Notification {
   type           String   @db.VarChar(100)
   title          String   @db.VarChar(255)
   content        String   @db.Text
+  targetPath     String?  @map("target_path") @db.Text
   isRead         Boolean  @default(false) @map("is_read")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
 

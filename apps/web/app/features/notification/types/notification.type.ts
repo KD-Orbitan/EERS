@@ -17,6 +17,7 @@ export interface NotificationListItem {
   type: NotificationType;
   title: string;
   content: string;
+  targetPath?: string | null;
   isRead: boolean;
   createdAt: string;
 }

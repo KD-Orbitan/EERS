@@ -8,13 +8,14 @@ export class PrismaNotificationRepository extends NotificationRepository {
     super()
   }
 
-  async create(params: { userId: number; type: string; title: string; content: string }) {
+  async create(params: { userId: number; type: string; title: string; content: string; targetPath?: string }) {
     const notification = await this.prisma.notification.create({
       data: {
         userId: BigInt(params.userId),
         type: params.type,
         title: params.title,
         content: params.content,
+        targetPath: params.targetPath,
       },
     })
 
@@ -23,6 +24,7 @@ export class PrismaNotificationRepository extends NotificationRepository {
       type: notification.type,
       title: notification.title,
       content: notification.content,
+      targetPath: notification.targetPath,
       isRead: notification.isRead,
       createdAt: notification.createdAt.toISOString(),
     }
@@ -53,6 +55,7 @@ export class PrismaNotificationRepository extends NotificationRepository {
         type: notification.type,
         title: notification.title,
         content: notification.content,
+        targetPath: notification.targetPath,
         isRead: notification.isRead,
         createdAt: notification.createdAt.toISOString(),
       })),
@@ -71,6 +74,7 @@ export class PrismaNotificationRepository extends NotificationRepository {
       type: notification.type,
       title: notification.title,
       content: notification.content,
+      targetPath: notification.targetPath,
       isRead: notification.isRead,
       createdAt: notification.createdAt.toISOString(),
       userId: Number(notification.userId),

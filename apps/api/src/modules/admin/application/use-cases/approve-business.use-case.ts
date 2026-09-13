@@ -48,6 +48,7 @@ export class ApproveBusinessUseCase {
       await this.createNotificationUseCase.execute({
         userId: Number(business.ownerUserId),
         type: NOTIFICATION_TYPE.BUSINESS_APPROVED,
+        targetPath: `/businesses/${businessId}/dashboard`,
         title: 'Business Approved',
         content: `Your business "${business.name}" has been approved.`,
       })

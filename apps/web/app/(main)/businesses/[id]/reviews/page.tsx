@@ -10,6 +10,7 @@ import { getErrorMessage } from '@/lib/get-error-message';
 import { useBusinessDetailQuery } from '@/features/business/queries/use-business-detail.query';
 import { useReviewStatisticsQuery } from '@/features/review/queries/use-review-statistics.query';
 import { useBusinessReviewsQuery } from '@/features/review/queries/use-business-reviews.query';
+import { useReviewDetailQuery } from '@/features/review/queries/use-review-detail.query';
 import { useDeleteReviewMutation } from '@/features/review/mutations/use-delete-review.mutation';
 import { useCreateReplyMutation } from '@/features/review/mutations/use-create-reply.mutation';
 import { ReviewList } from '@/features/review/components/review-list';
@@ -18,8 +19,14 @@ import { useCreateReportMutation } from '@/features/report/mutations/use-create-
 import { ReportReviewModal } from '@/features/report/components/report-review-modal';
 import { CreateReportInput } from '@/features/report/schemas/create-report.schema';
 
-export default function BusinessReviewsPage({ params }: { params: Promise<{ id: string }> }) {
+export default function BusinessReviewsPage({ params, searchParams }: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ reviewId?: string }>;
+}) {
   const { id } = use(params);
+  const { reviewId: requestedReviewId } = use(searchParams);
+  const parsedReviewId = Number(requestedReviewId);
+  const focusedReviewId = Number.isSafeInteger(parsedReviewId) && parsedReviewId > 0 ? parsedReviewId : undefined;
   const businessId = Number(id);
   const router = useRouter();
   const { user } = useAuth();
@@ -29,6 +36,8 @@ export default function BusinessReviewsPage({ params }: { params: Promise<{ id: 
   const { data: business } = useBusinessDetailQuery(businessId);
   const { data: stats } = useReviewStatisticsQuery(businessId);
   const { data, isLoading } = useBusinessReviewsQuery(businessId, { page });
+  const { data: focusedReview, isLoading: isFocusedLoading } = useReviewDetailQuery(focusedReviewId);
+  const hasFocusedReview = focusedReview?.business.businessId === businessId;
   const deleteReviewMutation = useDeleteReviewMutation();
   const createReplyMutation = useCreateReplyMutation(businessId);
   const createReportMutation = useCreateReportMutation();
@@ -95,10 +104,16 @@ export default function BusinessReviewsPage({ params }: { params: Promise<{ id: 
           ) : null}
         </div>
 
+        {focusedReviewId ? (
+          <div className="mb-4 text-sm text-ink-700">
+            {!isFocusedLoading && !hasFocusedReview ? <p>This review is no longer available.</p> : null}
+            <Link href={`/businesses/${businessId}/reviews`} className="font-medium text-primary-600 hover:underline">View all reviews</Link>
+          </div>
+        ) : null}
         <ReviewList
-          reviews={data?.items ?? []}
-          isLoading={isLoading}
-          pagination={data?.meta}
+          reviews={focusedReviewId ? (hasFocusedReview && focusedReview ? [focusedReview] : []) : data?.items ?? []}
+          isLoading={focusedReviewId ? isFocusedLoading : isLoading}
+          pagination={focusedReviewId ? undefined : data?.meta}
           onPageChange={setPage}
           businessId={businessId}
           currentUserId={user?.userId}

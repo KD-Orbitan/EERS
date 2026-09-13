@@ -1,4 +1,6 @@
 import { AlertTriangle, Bell, CheckCircle2, Flag, MessageSquareText, Star, XCircle } from 'lucide-react';
+import Link from 'next/link';
+import { notificationTarget } from '../lib/notification-target';
 import { NotificationListItem, NotificationType } from '@/features/notification/types/notification.type';
 
 const iconByType: Partial<Record<NotificationType, typeof Bell>> = {
@@ -33,20 +35,22 @@ interface NotificationItemProps {
   notification: NotificationListItem;
   onClick?: () => void;
   compact?: boolean;
+  isAdmin?: boolean;
 }
 
-export function NotificationItem({ notification, onClick, compact = false }: NotificationItemProps) {
+export function NotificationItem({ notification, onClick, compact = false, isAdmin = false }: NotificationItemProps) {
   const Icon = iconByType[notification.type] ?? Bell;
   const iconColor = iconColorByType[notification.type] ?? 'text-ink-700 bg-ink-100';
 
   return (
-    <button
-      type="button"
+    <Link
+      href={notificationTarget(notification, isAdmin)}
+      prefetch={false}
       onClick={onClick}
-      disabled={!onClick}
+      aria-label={`${notification.isRead ? 'Read' : 'Unread'}: ${notification.title}`}
       className={`flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition ${
-        notification.isRead ? 'bg-ink-50' : 'bg-primary-50'
-      } ${onClick ? 'hover:bg-ink-100 disabled:cursor-default' : 'cursor-default'}`}
+        notification.isRead ? 'bg-ink-50 hover:bg-ink-100' : 'bg-primary-100 hover:bg-primary-200'
+      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600`}
     >
       <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${iconColor}`}>
         <Icon className="h-4 w-4" />
@@ -54,11 +58,11 @@ export function NotificationItem({ notification, onClick, compact = false }: Not
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span className="truncate text-sm font-semibold text-ink-900">{notification.title}</span>
-          {!notification.isRead ? <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-600" /> : null}
+          {!notification.isRead ? <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-primary-600" /> : null}
         </span>
         <span className={`mt-0.5 block text-xs text-ink-700 ${compact ? 'line-clamp-2' : ''}`}>{notification.content}</span>
         <span className="mt-1 block text-xs text-ink-500">{new Date(notification.createdAt).toLocaleString()}</span>
       </span>
-    </button>
+    </Link>
   );
 }

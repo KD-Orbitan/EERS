@@ -14,7 +14,7 @@ export class RejectReviewUseCase {
   async execute({ reviewId, currentUserId, reason }: { reviewId: number; currentUserId: number; reason: string }) {
     const review = await this.prisma.review.findFirst({
       where: { reviewId, deletedAt: null },
-      select: { reviewId: true, status: true, writerUserId: true },
+      select: { reviewId: true, businessId: true, status: true, writerUserId: true },
     })
 
     if (!review) {
@@ -33,6 +33,7 @@ export class RejectReviewUseCase {
     await this.createNotificationUseCase.execute({
       userId: Number(review.writerUserId),
       type: NOTIFICATION_TYPE.REVIEW_REJECTED,
+      targetPath: '/reviews/my',
       title: 'Review Rejected',
       content: `Your review has been rejected. Reason: ${reason}`,
     })

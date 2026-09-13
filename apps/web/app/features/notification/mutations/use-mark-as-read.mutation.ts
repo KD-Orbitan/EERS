@@ -8,12 +8,20 @@ export function useMarkAsReadMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async () => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS }),
+        queryClient.cancelQueries({ queryKey: QUERY_KEYS.UNREAD_COUNT }),
+      ]);
+    },
     mutationFn: async (notificationId: number) => {
       await apiClient.patch(`/notifications/${notificationId}/read`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UNREAD_COUNT });
+    onSettled: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UNREAD_COUNT }),
+      ]);
     },
   });
 }

@@ -5,13 +5,15 @@ import { ListPagination, ListSearch } from '@/components/ui/list-controls';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/get-error-message';
 import { useNotificationsQuery } from '@/features/notification/queries/use-notifications.query';
-import { useMarkAsReadMutation } from '@/features/notification/mutations/use-mark-as-read.mutation';
+import { useOpenNotification } from '@/features/notification/hooks/use-open-notification';
+import { useAuth } from '@/hooks/use-auth';
 import { useMarkAllReadMutation } from '@/features/notification/mutations/use-mark-all-read.mutation';
 import { NotificationItem } from '@/features/notification/components/notification-item';
 
 const FILTERS = [
   { label: 'All', value: undefined },
   { label: 'Unread', value: false },
+  { label: 'Read', value: true },
 ] as const;
 
 export function NotificationsPanel() {
@@ -20,7 +22,8 @@ export function NotificationsPanel() {
   const [isRead, setIsRead] = useState<boolean | undefined>(undefined);
 
   const { data, isLoading } = useNotificationsQuery({ search: search.trim() || undefined, page, isRead });
-  const markAsReadMutation = useMarkAsReadMutation();
+  const openNotification = useOpenNotification();
+  const { user } = useAuth();
   const markAllReadMutation = useMarkAllReadMutation();
 
   const onMarkAllRead = async () => {
@@ -76,7 +79,7 @@ export function NotificationsPanel() {
       ) : !data || data.items.length === 0 ? (
         <div className="rounded-2xl bg-ink-50 p-10 text-center shadow-xs ring-1 ring-ink-200">
           <p className="text-sm text-ink-700">
-            {isRead === false ? 'No unread notifications.' : "You don't have any notifications yet."}
+            {isRead === false ? 'No unread notifications.' : isRead === true ? 'No read notifications.' : "You don't have any notifications yet."}
           </p>
         </div>
       ) : (
@@ -85,8 +88,9 @@ export function NotificationsPanel() {
             <NotificationItem
               key={notification.notificationId}
               notification={notification}
+              isAdmin={user?.role === 'ADMIN'}
               onClick={
-                notification.isRead ? undefined : () => markAsReadMutation.mutate(notification.notificationId)
+                () => openNotification(notification)
               }
             />
           ))}

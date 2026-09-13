@@ -8,7 +8,11 @@ export class NotificationListQueryDto {
   search?: string
 
   @IsOptional()
-  @Transform(({ value }) => (value === 'true' ? true : value === 'false' ? false : value))
+  // Read the original query value: implicit Boolean conversion turns "false" into true.
+  @Transform(({ obj, key }) => {
+    const value = obj[key]
+    return value === 'true' ? true : value === 'false' ? false : value
+  })
   @IsBoolean()
   isRead?: boolean
 

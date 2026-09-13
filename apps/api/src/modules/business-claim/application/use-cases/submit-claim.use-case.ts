@@ -47,6 +47,7 @@ export class SubmitClaimUseCase {
         this.createNotificationUseCase.execute({
           userId: adminUserId,
           type: NOTIFICATION_TYPE.CLAIM_SUBMITTED,
+          targetPath: '/admin/business-claims',
           title: 'New Business Claim',
           content: `A new claim was submitted for business "${business.name}".`,
         }),

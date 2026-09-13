@@ -26,6 +26,7 @@ export class RejectClaimUseCase {
     await this.createNotificationUseCase.execute({
       userId: claim.userId,
       type: NOTIFICATION_TYPE.CLAIM_REJECTED,
+      targetPath: '/business-claims/my',
       title: 'Claim Rejected',
       content: `Your claim on "${claim.businessName}" was rejected. Reason: ${reason}`,
     })

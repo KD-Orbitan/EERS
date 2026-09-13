@@ -57,6 +57,7 @@ export class CreateReviewUseCase {
       await this.createNotificationUseCase.execute({
         userId: business.ownerUserId,
         type: NOTIFICATION_TYPE.NEW_REVIEW,
+        targetPath: `/businesses/${dto.businessId}/dashboard/reviews`,
         title: 'New Review',
         content: `Your business "${business.name}" received a new review.`,
       })

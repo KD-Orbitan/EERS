@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Bell } from 'lucide-react';
 import { useUnreadCountQuery } from '@/features/notification/queries/use-unread-count.query';
 import { useNotificationsQuery } from '@/features/notification/queries/use-notifications.query';
-import { useMarkAsReadMutation } from '@/features/notification/mutations/use-mark-as-read.mutation';
+import { useOpenNotification } from '@/features/notification/hooks/use-open-notification';
+import { useAuth } from '@/hooks/use-auth';
 import { useMarkAllReadMutation } from '@/features/notification/mutations/use-mark-all-read.mutation';
 import { useNotificationStream } from '@/features/notification/hooks/use-notification-stream';
 import { NotificationItem } from '@/features/notification/components/notification-item';
@@ -18,8 +19,9 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
 
   useNotificationStream(enabled);
   const { data: unreadCount = 0 } = useUnreadCountQuery(enabled);
-  const { data, isLoading } = useNotificationsQuery({ limit: RECENT_LIMIT });
-  const markAsReadMutation = useMarkAsReadMutation();
+  const { data, isLoading } = useNotificationsQuery({ limit: RECENT_LIMIT }, enabled);
+  const openNotification = useOpenNotification();
+  const { user } = useAuth();
   const markAllReadMutation = useMarkAllReadMutation();
 
   useEffect(() => {
@@ -85,9 +87,10 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
                 <NotificationItem
                   key={notification.notificationId}
                   notification={notification}
+                  isAdmin={user?.role === 'ADMIN'}
                   compact
                   onClick={
-                    notification.isRead ? undefined : () => markAsReadMutation.mutate(notification.notificationId)
+                    () => { openNotification(notification); setOpen(false); }
                   }
                 />
               ))
@@ -95,7 +98,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
           </div>
 
           <Link
-            href="/notifications"
+            href={user?.role === 'ADMIN' ? '/admin/notifications' : '/notifications'}
             onClick={() => setOpen(false)}
             className="mt-1 block rounded-xl px-2 py-2 text-center text-sm font-medium text-primary-600 hover:bg-primary-50"
           >

@@ -45,6 +45,7 @@ export class CreateReportUseCase {
         this.createNotificationUseCase.execute({
           userId: adminUserId,
           type: NOTIFICATION_TYPE.REPORT_CREATED,
+          targetPath: '/admin/reports',
           title: 'New Report',
           content: `A new report was submitted for review #${dto.reviewId}.`,
         }),
