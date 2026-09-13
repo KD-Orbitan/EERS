@@ -23,7 +23,7 @@ export class ListAdminUsersUseCase {
       this.prisma.user.findMany({
         where,
         include: { role: true },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { userId: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),

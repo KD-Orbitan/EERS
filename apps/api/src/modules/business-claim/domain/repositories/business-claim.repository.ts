@@ -39,7 +39,7 @@ export abstract class BusinessClaimRepository {
   abstract createClaim(params: { userId: number; businessId: number; message: string }): Promise<{ claimId: number; status: string }>
   abstract findMyClaims(userId: number, page: number, limit: number): Promise<{ items: MyClaimListItem[]; total: number }>
   abstract findById(claimId: number): Promise<ClaimDetail | null>
-  abstract findAdminClaims(page: number, limit: number, status?: string): Promise<{ items: AdminClaimListItem[]; total: number }>
+  abstract findAdminClaims(page: number, limit: number, status?: string, search?: string): Promise<{ items: AdminClaimListItem[]; total: number }>
   abstract withdrawClaim(claimId: number): Promise<void>
   abstract rejectClaim(claimId: number, reviewerUserId: number): Promise<void>
   abstract approveClaimAndTransferOwnership(claimId: number, reviewerUserId: number): Promise<ApproveClaimResult>

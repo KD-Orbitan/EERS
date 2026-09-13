@@ -7,6 +7,7 @@ import { AdminReportListItem, ReportStatus } from '@/features/report/types/repor
 import { PaginationMeta } from '@/features/business/types/business.type';
 
 export interface AdminReportsParams {
+  search?: string;
   page?: number;
   limit?: number;
   status?: ReportStatus;

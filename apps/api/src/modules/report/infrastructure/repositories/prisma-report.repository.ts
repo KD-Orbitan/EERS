@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 import { ReportRepository } from '../../domain/repositories/report.repository'
@@ -46,7 +47,7 @@ export class PrismaReportRepository extends ReportRepository {
     const [reports, total] = await Promise.all([
       this.prisma.report.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { reportId: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
         include: { reason: true, review: true },
@@ -91,12 +92,22 @@ export class PrismaReportRepository extends ReportRepository {
     await this.prisma.report.delete({ where: { reportId: BigInt(reportId) } })
   }
 
-  async findAdminReports(page: number, limit: number, status?: string) {
-    const where = status ? { status: status as any } : {}
+  async findAdminReports(page: number, limit: number, status?: string, search?: string) {
+    const where: Prisma.ReportWhereInput = {
+      ...(status ? { status: status as Prisma.ReportWhereInput['status'] } : {}),
+      ...(search?.trim() ? { OR: [
+        { description: { contains: search.trim(), mode: 'insensitive' } },
+        { reason: { name: { contains: search.trim(), mode: 'insensitive' } } },
+        { review: { content: { contains: search.trim(), mode: 'insensitive' } } },
+        { review: { business: { name: { contains: search.trim(), mode: 'insensitive' } } } },
+        { user: { name: { contains: search.trim(), mode: 'insensitive' } } },
+        { user: { email: { contains: search.trim(), mode: 'insensitive' } } }
+      ] } : {}),
+    }
     const [reports, total] = await Promise.all([
       this.prisma.report.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { reportId: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
         include: { reason: true, review: true, user: true },

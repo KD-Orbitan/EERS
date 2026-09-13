@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ListPagination } from '@/components/ui/list-controls';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Search, CheckCircle2, XCircle } from 'lucide-react';
@@ -39,7 +40,7 @@ export function BusinessVerificationPanel() {
   const [isRejectOpen, setRejectOpen] = useState(false);
 
   const { data, isLoading } = useAdminBusinessesQuery({ status, search: search || undefined, page, limit: 20 });
-  const businessId = selectedId ?? data?.items[0]?.businessId;
+  const businessId = data?.items.find((item) => item.businessId === selectedId)?.businessId ?? data?.items[0]?.businessId;
   const { data: business, isLoading: isDetailLoading } = useBusinessDetailQuery(businessId);
   const approveMutation = useApproveBusinessMutation(businessId ?? 0);
   const rejectMutation = useRejectBusinessMutation(businessId ?? 0);
@@ -89,6 +90,8 @@ export function BusinessVerificationPanel() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
           <input
             type="text"
+            aria-label="Search businesses"
+            maxLength={200}
             placeholder="Search businesses..."
             value={search}
             onChange={(event) => {
@@ -127,28 +130,8 @@ export function BusinessVerificationPanel() {
           )}
         </div>
 
-        {data?.meta && data.meta.totalPages > 1 ? (
-          <div className="flex items-center justify-center gap-3 pt-1">
-            <button
-              type="button"
-              onClick={() => setPage((prev) => prev - 1)}
-              disabled={data.meta.page <= 1}
-              className="rounded-lg border border-ink-300 bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="text-xs text-ink-600">
-              {data.meta.page} / {data.meta.totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage((prev) => prev + 1)}
-              disabled={data.meta.page >= data.meta.totalPages}
-              className="rounded-lg border border-ink-300 bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+        {data?.meta ? (
+          <ListPagination page={page} limit={data.meta.limit} total={data.meta.total} onPageChange={(nextPage) => { setPage(nextPage); setSelectedId(undefined); }} />
         ) : null}
       </div>
 

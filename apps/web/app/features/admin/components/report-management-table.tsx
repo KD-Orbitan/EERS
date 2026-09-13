@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ListPagination, ListSearch } from '@/components/ui/list-controls';
 import { toast } from 'sonner';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -29,8 +30,9 @@ const STATUS_FILTERS: Array<{ value: ReportStatus | ''; label: string }> = [
 export function ReportManagementTable() {
   const [status, setStatus] = useState<ReportStatus | ''>('pending');
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
 
-  const { data, isLoading } = useAdminReportsQuery({ page, limit: 20, status: status || undefined });
+  const { data, isLoading } = useAdminReportsQuery({ search: search.trim() || undefined, page, limit: 20, status: status || undefined });
   const resolveMutation = useResolveReportMutation();
   const rejectMutation = useRejectReportMutation();
 
@@ -74,6 +76,9 @@ export function ReportManagementTable() {
           ))}
         </select>
       </div>
+
+      <ListSearch value={search} onChange={(value) => { setSearch(value); setPage(1); }}
+        placeholder="Reporter, reason, business or review..." />
 
       {isLoading ? (
         <div className="space-y-2">
@@ -129,28 +134,8 @@ export function ReportManagementTable() {
         </div>
       )}
 
-      {data?.meta && data.meta.totalPages > 1 ? (
-        <div className="flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev - 1)}
-            disabled={data.meta.page <= 1}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-ink-600">
-            Page {data.meta.page} of {data.meta.totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev + 1)}
-            disabled={data.meta.page >= data.meta.totalPages}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+      {data?.meta ? (
+        <ListPagination page={page} limit={data.meta.limit} total={data.meta.total} onPageChange={setPage} />
       ) : null}
     </div>
   );

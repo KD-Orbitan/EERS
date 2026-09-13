@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ListPagination, ListSearch } from '@/components/ui/list-controls';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { CheckCircle2, XCircle } from 'lucide-react';
@@ -34,9 +35,10 @@ const STATUS_TABS: Array<{ value: ReviewStatus; label: string }> = [
 export function ReviewModerationQueue() {
   const [status, setStatus] = useState<ReviewStatus>('pending');
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [rejectingReviewId, setRejectingReviewId] = useState<{ reviewId: number; businessId: number } | null>(null);
 
-  const { data, isLoading } = useAdminReviewsQuery({ status, page, limit: 20 });
+  const { data, isLoading } = useAdminReviewsQuery({ search: search.trim() || undefined, status, page, limit: 20 });
   const approveMutation = useApproveReviewMutation();
   const rejectMutation = useRejectReviewMutation();
 
@@ -79,6 +81,9 @@ export function ReviewModerationQueue() {
           </button>
         ))}
       </div>
+
+      <ListSearch value={search} onChange={(value) => { setSearch(value); setPage(1); }}
+        placeholder="Business, author or review content..." />
 
       {isLoading ? (
         <div className="space-y-2">
@@ -139,28 +144,8 @@ export function ReviewModerationQueue() {
         </div>
       )}
 
-      {data?.meta && data.meta.totalPages > 1 ? (
-        <div className="flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev - 1)}
-            disabled={data.meta.page <= 1}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-ink-600">
-            Page {data.meta.page} of {data.meta.totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev + 1)}
-            disabled={data.meta.page >= data.meta.totalPages}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+      {data?.meta ? (
+        <ListPagination page={page} limit={data.meta.limit} total={data.meta.total} onPageChange={setPage} />
       ) : null}
 
       <RejectModal

@@ -7,6 +7,7 @@ import { AdminClaimListItem, BusinessClaimStatus } from '@/features/business-cla
 import { PaginationMeta } from '@/features/business/types/business.type';
 
 export interface AdminClaimsParams {
+  search?: string;
   page?: number;
   limit?: number;
   status?: BusinessClaimStatus;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ListPagination } from '@/components/ui/list-controls';
 import { toast } from 'sonner';
 import { Search, ShieldBan, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -78,6 +79,8 @@ export function UserManagementTable() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
           <input
             type="text"
+            aria-label="Search users"
+            maxLength={200}
             placeholder="Search name or email..."
             value={search}
             onChange={(event) => {
@@ -155,28 +158,8 @@ export function UserManagementTable() {
         )}
       </div>
 
-      {data?.meta && data.meta.totalPages > 1 ? (
-        <div className="flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev - 1)}
-            disabled={data.meta.page <= 1}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-ink-600">
-            Page {data.meta.page} of {data.meta.totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev + 1)}
-            disabled={data.meta.page >= data.meta.totalPages}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+      {data?.meta ? (
+        <ListPagination page={page} limit={data.meta.limit} total={data.meta.total} onPageChange={setPage} />
       ) : null}
 
       <RejectModal

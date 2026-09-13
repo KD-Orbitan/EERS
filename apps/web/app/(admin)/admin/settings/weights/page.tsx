@@ -36,7 +36,7 @@ export default function CriterionWeightsPage() {
         </select>
       </div>
 
-      {categoryId ? <CriterionWeightsForm categoryId={categoryId} /> : null}
+      {categoryId ? <CriterionWeightsForm key={categoryId} categoryId={categoryId} /> : null}
     </div>
   );
 }

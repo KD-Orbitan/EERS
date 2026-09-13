@@ -231,7 +231,7 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async listReports(@Query() query: AdminReportQueryDto) {
-    const { items, total } = await this.listAdminReportsUseCase.execute({ page: query.page, limit: query.limit, status: query.status })
+    const { items, total } = await this.listAdminReportsUseCase.execute({ page: query.page, limit: query.limit, status: query.status, search: query.search })
     const page = query.page ?? 1
     const limit = query.limit ?? 20
     return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }
@@ -258,7 +258,7 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async listBusinessClaims(@Query() query: AdminClaimQueryDto) {
-    const { items, total } = await this.listAdminClaimsUseCase.execute({ page: query.page, limit: query.limit, status: query.status })
+    const { items, total } = await this.listAdminClaimsUseCase.execute({ page: query.page, limit: query.limit, status: query.status, search: query.search })
     const page = query.page ?? 1
     const limit = query.limit ?? 20
     return { success: true, data: items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }

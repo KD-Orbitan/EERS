@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 import { BusinessClaimRepository } from '../../domain/repositories/business-claim.repository'
@@ -32,7 +33,7 @@ export class PrismaBusinessClaimRepository extends BusinessClaimRepository {
     const [claims, total] = await Promise.all([
       this.prisma.businessClaim.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { claimId: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
         include: { business: true },
@@ -74,12 +75,20 @@ export class PrismaBusinessClaimRepository extends BusinessClaimRepository {
     }
   }
 
-  async findAdminClaims(page: number, limit: number, status?: string) {
-    const where = status ? { status: status as any } : {}
+  async findAdminClaims(page: number, limit: number, status?: string, search?: string) {
+    const where: Prisma.BusinessClaimWhereInput = {
+      ...(status ? { status: status as Prisma.BusinessClaimWhereInput['status'] } : {}),
+      ...(search?.trim() ? { OR: [
+        { message: { contains: search.trim(), mode: 'insensitive' } },
+        { business: { name: { contains: search.trim(), mode: 'insensitive' } } },
+        { user: { name: { contains: search.trim(), mode: 'insensitive' } } },
+        { user: { email: { contains: search.trim(), mode: 'insensitive' } } }
+      ] } : {}),
+    }
     const [claims, total] = await Promise.all([
       this.prisma.businessClaim.findMany({
         where,
-        orderBy: { createdAt: 'asc' },
+        orderBy: [{ createdAt: 'asc' }, { claimId: 'asc' }],
         skip: (page - 1) * limit,
         take: limit,
         include: { business: true, user: true },

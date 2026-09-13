@@ -39,6 +39,6 @@ export abstract class ReportRepository {
   abstract findMyReports(userId: number, page: number, limit: number): Promise<{ items: MyReportListItem[]; total: number }>
   abstract findById(reportId: number): Promise<ReportDetail | null>
   abstract deleteReport(reportId: number): Promise<void>
-  abstract findAdminReports(page: number, limit: number, status?: string): Promise<{ items: AdminReportListItem[]; total: number }>
+  abstract findAdminReports(page: number, limit: number, status?: string, search?: string): Promise<{ items: AdminReportListItem[]; total: number }>
   abstract updateStatus(reportId: number, status: 'resolved' | 'rejected'): Promise<void>
 }

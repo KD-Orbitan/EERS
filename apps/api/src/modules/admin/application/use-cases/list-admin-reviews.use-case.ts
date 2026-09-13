@@ -5,9 +5,15 @@ import { PrismaService } from '../../../../infrastructure/database/prisma.servic
 export class ListAdminReviewsUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute({ status = 'pending', page = 1, limit = 20 }: { status?: string; page?: number; limit?: number }) {
+  async execute({ status = 'pending', search, page = 1, limit = 20 }: { status?: string; search?: string; page?: number; limit?: number }) {
     const where = {
       deletedAt: null,
+      ...(search?.trim() ? { OR: [
+        { content: { contains: search.trim(), mode: 'insensitive' as const } },
+        { business: { name: { contains: search.trim(), mode: 'insensitive' as const } } },
+        { writer: { name: { contains: search.trim(), mode: 'insensitive' as const } } },
+        { writer: { email: { contains: search.trim(), mode: 'insensitive' as const } } },
+      ] } : {}),
       status: status as 'pending' | 'approved' | 'rejected' | 'hidden',
     }
 
@@ -15,7 +21,7 @@ export class ListAdminReviewsUseCase {
       this.prisma.review.findMany({
         where,
         include: { business: true, writer: true },
-        orderBy: { createdAt: 'asc' },
+        orderBy: [{ createdAt: 'asc' }, { reviewId: 'asc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),

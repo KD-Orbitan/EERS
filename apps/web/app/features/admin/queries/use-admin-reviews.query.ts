@@ -8,6 +8,7 @@ import { PaginationMeta } from '@/features/business/types/business.type';
 import { ReviewStatus } from '@/features/review/types/review.type';
 
 export interface AdminReviewsParams {
+  search?: string;
   page?: number;
   limit?: number;
   status?: ReviewStatus;

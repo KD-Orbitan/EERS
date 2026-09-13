@@ -41,6 +41,7 @@ export class NotificationController {
       page: query.page,
       limit: query.limit,
       isRead: query.isRead,
+      search: query.search,
     })
     const page = query.page ?? 1
     const limit = query.limit ?? 20

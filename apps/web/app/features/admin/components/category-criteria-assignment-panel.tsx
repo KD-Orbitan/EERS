@@ -1,5 +1,8 @@
 'use client';
 
+import { ListSearch, ListPagination } from '@/components/ui/list-controls';
+import { useListFilter } from '@/hooks/use-list-filter';
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/get-error-message';
@@ -15,6 +18,7 @@ export function CategoryCriteriaAssignmentPanel() {
 
   const { data: allCriteria, isLoading: isCriteriaLoading } = useAllCriteriaQuery();
   const { data: assignedCriteria, isLoading: isAssignedLoading } = useCategoryCriteriaQuery(categoryId);
+  const list = useListFilter(allCriteria, (item) => item.name + ' ' + (item.description ?? ''));
   const assignMutation = useAssignCriterionMutation(categoryId ?? 0);
   const removeMutation = useRemoveCriterionAssignmentMutation(categoryId ?? 0);
 
@@ -65,13 +69,14 @@ export function CategoryCriteriaAssignmentPanel() {
         </select>
       </div>
 
+      <ListSearch value={list.search} onChange={list.setSearch} placeholder="Search criteria..." />
       {!categoryId ? null : isLoading ? (
         <div className="mt-4 h-32 animate-pulse rounded-xl bg-ink-100" />
       ) : !allCriteria || allCriteria.length === 0 ? (
         <p className="mt-4 text-sm text-ink-500">No criteria exist yet — add one above first.</p>
       ) : (
         <ul className="mt-4 divide-y divide-ink-100 rounded-xl border border-ink-200">
-          {allCriteria.map((criterion) => {
+          {list.items.map((criterion) => {
             const isAssigned = assignedIds.has(criterion.criterionId);
             const isRowMutating = isMutating && pendingCriterionId === criterion.criterionId;
             return (
@@ -96,6 +101,8 @@ export function CategoryCriteriaAssignmentPanel() {
           })}
         </ul>
       )}
+      {!isLoading && categoryId && list.total === 0 && list.search ? <p className="mt-3 text-sm text-ink-500">No matching results.</p> : null}
+      {categoryId ? <ListPagination page={list.page} limit={list.limit} total={list.total} onPageChange={list.setPage} /> : null}
     </div>
   );
 }

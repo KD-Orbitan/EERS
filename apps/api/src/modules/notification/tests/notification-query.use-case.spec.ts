@@ -29,7 +29,7 @@ describe('Notification query/mutation use cases', () => {
 
       const result = await useCase.execute({ userId: 3, page: 1, limit: 20 })
 
-      expect(notificationRepository.findByUser).toHaveBeenCalledWith(3, 1, 20, undefined)
+      expect(notificationRepository.findByUser).toHaveBeenCalledWith(3, 1, 20, undefined, undefined)
       expect(result).toEqual({ items: [{ notificationId: 1 }], total: 1 })
     })
   })

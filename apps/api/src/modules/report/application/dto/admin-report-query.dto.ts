@@ -1,7 +1,12 @@
-import { IsIn, IsInt, IsOptional, Max, Min } from 'class-validator'
+import { IsIn, IsInt, IsOptional, IsString, MaxLength, Max, Min } from 'class-validator'
 import { Type } from 'class-transformer'
 
 export class AdminReportQueryDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  search?: string
+
   @IsOptional()
   @IsIn(['pending', 'reviewing', 'resolved', 'rejected'])
   status?: 'pending' | 'reviewing' | 'resolved' | 'rejected'

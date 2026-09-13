@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ListPagination, ListSearch } from '@/components/ui/list-controls';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/get-error-message';
 import { useNotificationsQuery } from '@/features/notification/queries/use-notifications.query';
@@ -15,9 +16,10 @@ const FILTERS = [
 
 export function NotificationsPanel() {
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [isRead, setIsRead] = useState<boolean | undefined>(undefined);
 
-  const { data, isLoading } = useNotificationsQuery({ page, isRead });
+  const { data, isLoading } = useNotificationsQuery({ search: search.trim() || undefined, page, isRead });
   const markAsReadMutation = useMarkAsReadMutation();
   const markAllReadMutation = useMarkAllReadMutation();
 
@@ -62,6 +64,9 @@ export function NotificationsPanel() {
         ))}
       </div>
 
+      <ListSearch value={search} onChange={(value) => { setSearch(value); setPage(1); }}
+        placeholder="Notification title or content..." />
+
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
@@ -88,28 +93,8 @@ export function NotificationsPanel() {
         </div>
       )}
 
-      {data?.meta && data.meta.totalPages > 1 ? (
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev - 1)}
-            disabled={data.meta.page <= 1}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-ink-600">
-            Page {data.meta.page} of {data.meta.totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((prev) => prev + 1)}
-            disabled={data.meta.page >= data.meta.totalPages}
-            className="rounded-lg border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+      {data?.meta ? (
+        <ListPagination page={page} limit={data.meta.limit} total={data.meta.total} onPageChange={setPage} />
       ) : null}
     </div>
   );

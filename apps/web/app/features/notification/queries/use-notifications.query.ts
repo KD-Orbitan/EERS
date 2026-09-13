@@ -7,6 +7,7 @@ import { NotificationListItem } from '@/features/notification/types/notification
 import { PaginationMeta } from '@/features/business/types/business.type';
 
 export interface NotificationsParams {
+  search?: string;
   page?: number;
   limit?: number;
   isRead?: boolean;

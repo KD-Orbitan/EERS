@@ -5,7 +5,7 @@ import { NotificationRepository } from '../../domain/repositories/notification.r
 export class GetNotificationsUseCase {
   constructor(private readonly notificationRepository: NotificationRepository) {}
 
-  async execute({ userId, page = 1, limit = 20, isRead }: { userId: number; page?: number; limit?: number; isRead?: boolean }) {
-    return this.notificationRepository.findByUser(userId, page, limit, isRead)
+  async execute({ userId, page = 1, limit = 20, isRead, search }: { userId: number; page?: number; limit?: number; isRead?: boolean; search?: string }) {
+    return this.notificationRepository.findByUser(userId, page, limit, isRead, search)
   }
 }

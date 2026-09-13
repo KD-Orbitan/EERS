@@ -1,7 +1,12 @@
-import { IsBoolean, IsInt, IsOptional, Max, Min } from 'class-validator'
+import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Max, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 
 export class NotificationListQueryDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  search?: string
+
   @IsOptional()
   @Transform(({ value }) => (value === 'true' ? true : value === 'false' ? false : value))
   @IsBoolean()

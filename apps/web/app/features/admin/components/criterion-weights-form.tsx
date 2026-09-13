@@ -1,5 +1,8 @@
 'use client';
 
+import { ListSearch, ListPagination } from '@/components/ui/list-controls';
+import { useListFilter } from '@/hooks/use-list-filter';
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Save } from 'lucide-react';
@@ -22,6 +25,7 @@ interface CriterionWeightsFormProps {
 export function CriterionWeightsForm({ categoryId }: CriterionWeightsFormProps) {
   const { data: criteria, isLoading: isCriteriaLoading } = useBusinessCriteriaQuery([categoryId]);
   const { data: weights, isLoading: isWeightsLoading } = useCriterionWeightsQuery(categoryId);
+  const list = useListFilter(criteria, (item) => item.name + ' ' + (item.description ?? ''));
   const updateMutation = useUpdateCriterionWeightMutation(categoryId);
 
   const [draft, setDraft] = useState<Record<number, number>>({});
@@ -65,8 +69,9 @@ export function CriterionWeightsForm({ categoryId }: CriterionWeightsFormProps) 
 
   return (
     <div className="space-y-3">
+      <ListSearch value={list.search} onChange={list.setSearch} placeholder="Search criteria..." />
       <div className="rounded-3xl bg-ink-50 shadow-xs ring-1 ring-ink-200">
-        {criteria.map((criterion) => (
+        {list.items.map((criterion) => (
           <div
             key={criterion.criterionId}
             className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 px-6 py-4 last:border-0"
@@ -102,6 +107,8 @@ export function CriterionWeightsForm({ categoryId }: CriterionWeightsFormProps) 
       <p className={`text-xs font-medium ${Math.abs(sum - 1) <= 0.01 ? 'text-emerald-600' : 'text-ink-500'}`}>
         Sum of weights: {sum.toFixed(2)}
       </p>
+      {!isLoading && list.total === 0 && list.search ? <p className="mt-3 text-sm text-ink-500">No matching results.</p> : null}
+      <ListPagination page={list.page} limit={list.limit} total={list.total} onPageChange={list.setPage} />
     </div>
   );
 }

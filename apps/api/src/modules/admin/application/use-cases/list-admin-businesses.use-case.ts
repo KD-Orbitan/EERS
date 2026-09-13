@@ -16,7 +16,7 @@ export class ListAdminBusinessesUseCase {
       this.prisma.business.findMany({
         where,
         include: { owner: true, businessCategories: { include: { category: true } } },
-        orderBy: { createdAt: 'asc' },
+        orderBy: [{ createdAt: 'asc' }, { businessId: 'asc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),

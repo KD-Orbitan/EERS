@@ -28,12 +28,19 @@ export class PrismaNotificationRepository extends NotificationRepository {
     }
   }
 
-  async findByUser(userId: number, page: number, limit: number, isRead?: boolean) {
-    const where = { userId: BigInt(userId), ...(isRead !== undefined ? { isRead } : {}) }
+  async findByUser(userId: number, page: number, limit: number, isRead?: boolean, search?: string) {
+    const where = {
+      userId: BigInt(userId),
+      ...(isRead !== undefined ? { isRead } : {}),
+      ...(search?.trim() ? { OR: [
+        { title: { contains: search.trim(), mode: 'insensitive' as const } },
+        { content: { contains: search.trim(), mode: 'insensitive' as const } },
+      ] } : {}),
+    }
     const [notifications, total] = await Promise.all([
       this.prisma.notification.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { notificationId: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),

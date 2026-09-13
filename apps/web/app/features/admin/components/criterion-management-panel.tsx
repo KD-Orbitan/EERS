@@ -1,5 +1,8 @@
 'use client';
 
+import { ListSearch, ListPagination } from '@/components/ui/list-controls';
+import { useListFilter } from '@/hooks/use-list-filter';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,6 +15,7 @@ import { createCriterionSchema, CreateCriterionInput } from '@/features/admin/sc
 
 export function CriterionManagementPanel() {
   const { data: criteria, isLoading } = useAllCriteriaQuery();
+  const list = useListFilter(criteria, (item) => item.name + ' ' + (item.description ?? ''));
   const createMutation = useCreateCriterionMutation();
 
   const {
@@ -70,6 +74,7 @@ export function CriterionManagementPanel() {
         </div>
       </form>
 
+      <ListSearch value={list.search} onChange={list.setSearch} placeholder="Search criteria..." />
       <div className="mt-4 space-y-1">
         {isLoading ? (
           <div className="h-20 animate-pulse rounded-xl bg-ink-100" />
@@ -77,7 +82,7 @@ export function CriterionManagementPanel() {
           <p className="text-sm text-ink-500">No criteria yet.</p>
         ) : (
           <ul className="divide-y divide-ink-100">
-            {criteria.map((criterion) => (
+            {list.items.map((criterion) => (
               <li key={criterion.criterionId} className="py-2">
                 <p className="text-sm font-medium text-ink-900">{criterion.name}</p>
                 {criterion.description ? <p className="text-xs text-ink-500">{criterion.description}</p> : null}
@@ -86,6 +91,8 @@ export function CriterionManagementPanel() {
           </ul>
         )}
       </div>
+      {!isLoading && list.total === 0 && list.search ? <p className="mt-3 text-sm text-ink-500">No matching results.</p> : null}
+      <ListPagination page={list.page} limit={list.limit} total={list.total} onPageChange={list.setPage} />
     </div>
   );
 }

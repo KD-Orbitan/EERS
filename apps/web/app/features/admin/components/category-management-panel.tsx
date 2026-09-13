@@ -1,5 +1,8 @@
 'use client';
 
+import { ListSearch, ListPagination } from '@/components/ui/list-controls';
+import { useListFilter } from '@/hooks/use-list-filter';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,6 +15,7 @@ import { createCategorySchema, CreateCategoryInput } from '@/features/admin/sche
 
 export function CategoryManagementPanel() {
   const { data: categories, isLoading } = useCategoriesQuery();
+  const list = useListFilter(categories, (item) => item.categoryName);
   const createMutation = useCreateCategoryMutation();
 
   const {
@@ -57,6 +61,7 @@ export function CategoryManagementPanel() {
         </Button>
       </form>
 
+      <ListSearch value={list.search} onChange={list.setSearch} placeholder="Search categories..." />
       <div className="mt-4 space-y-1">
         {isLoading ? (
           <div className="h-20 animate-pulse rounded-xl bg-ink-100" />
@@ -64,7 +69,7 @@ export function CategoryManagementPanel() {
           <p className="text-sm text-ink-500">No categories yet.</p>
         ) : (
           <ul className="flex flex-wrap gap-2">
-            {categories.map((category) => (
+            {list.items.map((category) => (
               <li
                 key={category.categoryId}
                 className="rounded-full bg-ink-100 px-3 py-1 text-xs font-medium text-ink-700"
@@ -75,6 +80,8 @@ export function CategoryManagementPanel() {
           </ul>
         )}
       </div>
+      {!isLoading && list.total === 0 && list.search ? <p className="mt-3 text-sm text-ink-500">No matching results.</p> : null}
+      <ListPagination page={list.page} limit={list.limit} total={list.total} onPageChange={list.setPage} />
     </div>
   );
 }
