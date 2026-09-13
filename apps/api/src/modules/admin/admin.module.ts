@@ -1,3 +1,4 @@
+import { ManageTaxonomyUseCase } from './application/use-cases/manage-taxonomy.use-case'
 import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -46,6 +47,7 @@ import { BusinessClaimModule } from '../business-claim/business-claim.module'
   ],
   controllers: [AdminController],
   providers: [
+    ManageTaxonomyUseCase,
     JwtAuthGuard,
     RolesGuard,
     ApproveBusinessUseCase,

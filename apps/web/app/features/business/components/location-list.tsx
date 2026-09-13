@@ -1,5 +1,7 @@
 'use client';
 
+import { ProvinceSelect } from './province-select';
+
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -97,9 +99,7 @@ export function LocationList({ businessId, locations, isOwner }: LocationListPro
                   {errors.ward?.message ? <p className="mt-1 text-xs text-red-600">{errors.ward.message}</p> : null}
                 </div>
                 <div>
-                  <input
-                    type="text"
-                    placeholder="Province"
+                  <ProvinceSelect
                     className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     {...register('province')}
                   />

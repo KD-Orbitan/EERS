@@ -1,5 +1,7 @@
 'use client';
 
+import { ProvinceSelect } from './province-select';
+
 import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useCategoriesQuery } from '@/features/business/queries/use-categories.query';
@@ -61,9 +63,8 @@ export function BusinessSearchBar({
         ))}
       </select>
 
-      <input
-        type="text"
-        placeholder="Province"
+      <ProvinceSelect
+        placeholder="All provinces / cities"
         value={province}
         onChange={(event) => onProvinceChange(event.target.value)}
         className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"

@@ -70,7 +70,8 @@ export class GetGlobalRankingUseCase {
     }
 
     if (query.province) {
-      items = items.filter((item) => item.province === query.province)
+      const normalize = (value: string) => value.trim().replace(/^(tỉnh|thành phố|tp\.?)\s*/iu, '').trim().toLocaleLowerCase('vi')
+      items = items.filter((item) => normalize(item.province ?? '') === normalize(query.province!))
     }
 
     return items
@@ -79,7 +80,8 @@ export class GetGlobalRankingUseCase {
   async execute(query: RankingListQuery) {
     const page = query.page && query.page > 0 ? query.page : 1
     const limit = query.limit && query.limit > 0 ? Math.min(query.limit, 100) : 20
-    const useCache = !query.search
+    // Province aliases and combined category/province filters need the full query.
+    const useCache = !query.search && !query.province
     let items: RankingSnapshotCacheItem[]
 
     if (useCache) {

@@ -1,5 +1,7 @@
 'use client';
 
+import { ProvinceSelect } from './province-select';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { Plus, Trash2 } from 'lucide-react';
@@ -245,9 +247,8 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
                     ) : null}
                   </div>
                   <div>
-                    <input
-                      type="text"
-                      placeholder="Province"
+                    <ProvinceSelect
+                      legacyValue={fields[index].province}
                       className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                       {...register(`locations.${index}.province` as const)}
                     />

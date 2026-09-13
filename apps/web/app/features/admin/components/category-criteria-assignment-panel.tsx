@@ -14,7 +14,8 @@ import { useRemoveCriterionAssignmentMutation } from '@/features/admin/mutations
 
 export function CategoryCriteriaAssignmentPanel() {
   const { data: categories } = useCategoriesQuery();
-  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [selectedCategoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const categoryId = categories?.some((category) => category.categoryId === selectedCategoryId) ? selectedCategoryId : undefined;
 
   const { data: allCriteria, isLoading: isCriteriaLoading } = useAllCriteriaQuery();
   const { data: assignedCriteria, isLoading: isAssignedLoading } = useCategoryCriteriaQuery(categoryId);

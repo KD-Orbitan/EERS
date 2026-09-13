@@ -227,9 +227,9 @@ export class PrismaBusinessRepository extends BusinessRepository {
       )
     }
     if (province) {
-      params.push(province)
+      params.push(province.replace(/^(tỉnh|thành phố|tp\.?)\s*/iu, '').trim().toLocaleLowerCase('vi'))
       whereClauses.push(
-        "EXISTS(SELECT 1 FROM business_locations bl JOIN locations l ON l.location_id = bl.location_id WHERE bl.business_id = b.business_id AND l.province = $" + params.length + ")",
+        "EXISTS(SELECT 1 FROM business_locations bl JOIN locations l ON l.location_id = bl.location_id WHERE bl.business_id = b.business_id AND regexp_replace(lower(trim(l.province)), '^(tỉnh|thành phố|tp[.]?)[[:space:]]*', '') = $" + params.length + ")",
       )
     }
 

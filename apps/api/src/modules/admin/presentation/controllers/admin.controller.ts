@@ -1,3 +1,4 @@
+import { ManageTaxonomyUseCase } from '../../application/use-cases/manage-taxonomy.use-case'
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator'
@@ -49,6 +50,7 @@ import { RejectClaimUseCase } from '../../../business-claim/application/use-case
 @Controller('admin')
 export class AdminController {
   constructor(
+    private readonly manageTaxonomyUseCase: ManageTaxonomyUseCase,
     private readonly approveBusinessUseCase: ApproveBusinessUseCase,
     private readonly rejectBusinessUseCase: RejectBusinessUseCase,
     private readonly listAdminBusinessesUseCase: ListAdminBusinessesUseCase,
@@ -348,5 +350,37 @@ export class AdminController {
     @Param('criterionId', ParseIntPipe) criterionId: number,
   ) {
     await this.removeCriterionUseCase.execute(categoryId, criterionId)
+  }
+
+  @Patch('categories/:categoryId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async updateCategory(@Param('categoryId', ParseIntPipe) categoryId: number, @Body() dto: CreateCategoryDto) {
+    return this.manageTaxonomyUseCase.updateCategory(categoryId, dto.categoryName)
+  }
+
+  @Delete('categories/:categoryId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async deleteCategory(@Param('categoryId', ParseIntPipe) categoryId: number) {
+    return this.manageTaxonomyUseCase.deleteCategory(categoryId)
+  }
+
+  @Patch('criteria/:criterionId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async updateCriterion(@Param('criterionId', ParseIntPipe) criterionId: number, @Body() dto: CreateCriterionDto) {
+    return this.manageTaxonomyUseCase.updateCriterion(criterionId, dto.name, dto.description)
+  }
+
+  @Delete('criteria/:criterionId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async deleteCriterion(@Param('criterionId', ParseIntPipe) criterionId: number) {
+    return this.manageTaxonomyUseCase.deleteCriterion(criterionId)
   }
 }

@@ -6,7 +6,8 @@ import { CriterionWeightsForm } from '@/features/admin/components/criterion-weig
 
 export default function CriterionWeightsPage() {
   const { data: categories } = useCategoriesQuery();
-  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [selectedCategoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const categoryId = categories?.some((category) => category.categoryId === selectedCategoryId) ? selectedCategoryId : undefined;
 
   return (
     <div className="space-y-6">

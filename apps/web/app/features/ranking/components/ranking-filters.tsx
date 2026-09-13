@@ -2,6 +2,7 @@
 
 import { ChevronDown, Clock, MapPin, Tag } from 'lucide-react';
 import { useCategoriesQuery } from '@/features/business/queries/use-categories.query';
+import { ProvinceSelect } from '@/features/business/components/province-select';
 
 interface RankingFiltersProps {
   categoryId?: number;
@@ -38,12 +39,11 @@ export function RankingFilters({ categoryId, province, onCategoryChange, onProvi
 
       <div className="flex items-center gap-2 rounded-xl border border-ink-200 bg-primary-50 px-4 py-2.5">
         <MapPin className="h-4 w-4 shrink-0 text-primary-600" />
-        <input
-          type="text"
-          placeholder="Province"
+        <ProvinceSelect
+          placeholder="All provinces / cities"
           value={province}
           onChange={(event) => onProvinceChange(event.target.value)}
-          className="w-28 bg-transparent text-sm text-ink-700 outline-none placeholder:text-ink-400"
+          className="max-w-56 bg-transparent text-sm text-ink-700 outline-none"
         />
       </div>
 
