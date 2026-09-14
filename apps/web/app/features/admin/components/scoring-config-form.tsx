@@ -1,7 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
+import { useState } from 'react';
+import { SCORING_PROFILES, matchingScoringProfile } from '../constants/scoring-profiles';
 import { Button } from '@/components/ui/button';
 import { scoringConfigSchema, ScoringConfigInput } from '@/features/admin/schemas/scoring-config.schema';
 import { ScoringConfig } from '@/features/admin/types/admin.type';
@@ -101,25 +103,49 @@ function SumIndicator({ label, value }: { label: string; value: number }) {
 }
 
 export function ScoringConfigForm({ config, onSubmit, isLoading }: ScoringConfigFormProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const {
     register,
     handleSubmit,
-    watch,
+    control,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ScoringConfigInput>({
     resolver: zodResolver(scoringConfigSchema),
     defaultValues: config,
   });
 
-  const values = watch();
+  const values = useWatch({ control });
   const pending = isLoading || isSubmitting;
+  const profile = matchingScoringProfile(values);
 
   const fraudSum = (values.fraudLambda1 ?? 0) + (values.fraudLambda2 ?? 0) + (values.fraudLambda3 ?? 0);
   const trustSum = (values.trustAlpha ?? 0) + (values.trustBeta ?? 0) + (values.trustGamma ?? 0);
   const weightSum = (values.weightAlpha ?? 0) + (values.weightBeta ?? 0) + (values.weightGamma ?? 0);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onInvalidCapture={() => setAdvancedOpen(true)} onSubmit={handleSubmit(onSubmit, () => setAdvancedOpen(true))} className="space-y-4">
+      <section className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200" aria-labelledby="scoring-profile-heading">
+        <h2 id="scoring-profile-heading" className="text-base font-bold text-ink-900">Scoring profile</h2>
+        <p className="mt-1 text-sm text-ink-600">Choose a level of moderation strictness. Selecting a profile fills all parameters below; you can fine-tune them before saving.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-3" role="group" aria-label="Moderation strictness profiles">
+          {SCORING_PROFILES.map((item) => (
+            <button key={item.id} type="button" disabled={pending} aria-pressed={profile?.id === item.id}
+              onClick={() => reset({ ...item.values }, { keepDefaultValues: true })}
+              className={`rounded-2xl border-2 p-4 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 ${profile?.id === item.id ? 'border-primary-600 bg-primary-50' : 'border-ink-200 hover:border-primary-400'}`}>
+              <span className="block font-bold text-ink-900">{item.label} {item.id === 'medium' ? <span className="text-xs font-medium text-primary-600">(Default)</span> : null}</span>
+              <span className="mt-1 block text-sm font-semibold text-ink-800">{item.title}</span>
+              <span className="mt-2 block text-xs leading-relaxed text-ink-600">{item.description}</span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-4 text-sm font-medium text-ink-800" role="status">Current form: {profile ? `${profile.label} — ${profile.title}` : 'Custom — manually adjusted parameters'}</p>
+        <p className="mt-1 text-xs text-ink-500">Save Config applies these settings for the next ranking recalculation.</p>
+        <button type="button" disabled={pending} onClick={() => reset(config)} className="mt-3 text-sm font-medium text-primary-600 underline disabled:opacity-50">Restore saved configuration</button>
+      </section>
+      <details open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)} className="rounded-3xl border border-ink-200 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-ink-800">Advanced settings — fine-tune parameters</summary>
+        <fieldset disabled={pending} className="mt-4 space-y-4">
       {GROUPS.map((group) => (
         <div key={group.title} className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
           <h2 className="font-sans text-base font-bold text-ink-900">{group.title}</h2>
@@ -150,6 +176,8 @@ export function ScoringConfigForm({ config, onSubmit, isLoading }: ScoringConfig
           {group.title === 'Review Weighting' ? <SumIndicator label="Sum" value={weightSum} /> : null}
         </div>
       ))}
+        </fieldset>
+      </details>
 
       {errors.root?.message ? <p className="text-sm text-red-600">{errors.root.message}</p> : null}
 
