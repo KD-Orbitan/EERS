@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { UploadApiResponse } from 'cloudinary'
-import { CloudinaryService } from '../../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../../common/ports/image-storage.port'
 import { UserImageRepository } from '../../domain/repositories/user-image.repository'
 import { assertValidImageFile } from '../../../../common/validators/image-file.validator'
 
@@ -8,7 +7,7 @@ import { assertValidImageFile } from '../../../../common/validators/image-file.v
 export class UploadAvatarUseCase {
   constructor(
     private readonly userImageRepository: UserImageRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageStorage: ImageStorage,
   ) {}
 
   async execute({ userId, file }: { userId: number; file: Express.Multer.File }) {
@@ -16,19 +15,19 @@ export class UploadAvatarUseCase {
 
     const existingAvatar = await this.userImageRepository.findAvatarByUserId(userId)
     if (existingAvatar) {
-      await this.cloudinaryService.deleteImage(existingAvatar.cloudinaryPublicId)
+      await this.imageStorage.deleteImage(existingAvatar.cloudinaryPublicId)
       await this.userImageRepository.deleteById(existingAvatar.imageId)
     }
 
-    const uploadResult = (await this.cloudinaryService.uploadImage(
+    const uploadResult = await this.imageStorage.uploadImage(
       file.buffer,
       `avatar-${userId}-${Date.now()}`,
-    )) as UploadApiResponse
+    )
 
     const created = await this.userImageRepository.createAvatar({
       userId,
-      cloudinaryPublicId: uploadResult.public_id,
-      secureUrl: uploadResult.secure_url,
+      cloudinaryPublicId: uploadResult.publicId,
+      secureUrl: uploadResult.secureUrl,
       width: uploadResult.width,
       height: uploadResult.height,
       format: uploadResult.format,

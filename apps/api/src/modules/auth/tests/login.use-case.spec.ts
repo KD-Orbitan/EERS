@@ -5,7 +5,7 @@ import { InvalidCredentialsException, UserBannedException } from '../domain/exce
 
 describe('LoginUseCase', () => {
   let userRepository: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'findById'>>
-  let refreshTokenRepository: jest.Mocked<Pick<RefreshTokenRepository, 'create'>>
+  let refreshTokenRepository: jest.Mocked<Pick<RefreshTokenRepository, 'createWithLoginAudit'>>
   let useCase: LoginUseCase
 
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe('LoginUseCase', () => {
       findById: jest.fn(),
     }
     refreshTokenRepository = {
-      create: jest.fn(),
+      createWithLoginAudit: jest.fn(),
     }
     useCase = new LoginUseCase(
       userRepository as unknown as UserRepository,
@@ -25,7 +25,6 @@ describe('LoginUseCase', () => {
         compare: jest.fn().mockResolvedValue(true),
         hash: jest.fn().mockResolvedValue('hashed-refresh'),
       } as any,
-      { create: jest.fn(), $transaction: undefined } as any,
     )
   })
 
@@ -38,12 +37,13 @@ describe('LoginUseCase', () => {
       role: { roleName: 'USER' },
       status: 'active',
     } as any)
-    refreshTokenRepository.create.mockResolvedValue({} as any)
+    refreshTokenRepository.createWithLoginAudit.mockResolvedValue(undefined)
 
     const result = await useCase.execute({ email: 'jane@test.com', password: 'secret1234' })
 
     expect(result.accessToken).toBe('token')
     expect(result.user.userId).toBe(1)
+    expect(refreshTokenRepository.createWithLoginAudit).toHaveBeenCalledWith({ userId: 1, token: 'hashed-refresh', expiresAt: expect.any(Date) })
   })
 
   it('throws INVALID_CREDENTIALS on wrong password', async () => {

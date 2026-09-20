@@ -108,6 +108,23 @@ export class PrismaReviewRepository extends ReviewRepository {
     return updated
   }
 
+  async softDeleteReviewWithAudit(reviewId: number, actorUserId: number): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.review.updateMany({
+        where: { reviewId: BigInt(reviewId), deletedAt: null },
+        data: { deletedAt: new Date() },
+      })
+      await tx.log.create({
+        data: {
+          action: 'REVIEW_DELETED',
+          entityType: 'Review',
+          entityId: BigInt(reviewId),
+          userId: BigInt(actorUserId),
+        },
+      })
+    })
+  }
+
   async softDeleteReview(reviewId: number) {
     await this.prisma.review.updateMany({
       where: { reviewId: BigInt(reviewId), deletedAt: null },

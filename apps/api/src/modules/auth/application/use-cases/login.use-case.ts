@@ -2,7 +2,6 @@ import { Injectable, Optional } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 import { InvalidCredentialsException, UserBannedException } from '../../domain/exceptions/auth.exceptions'
 import { RefreshTokenRepository } from '../../domain/repositories/refresh-token.repository'
 import { UserRepository } from '../../../user/domain/repositories/user.repository'
@@ -15,7 +14,6 @@ export class LoginUseCase {
     private readonly jwtService: JwtService,
     @Optional() private readonly configService?: ConfigService,
     @Optional() private readonly bcryptService: { compare: (...args: any[]) => Promise<boolean>; hash: (...args: any[]) => Promise<string> } | typeof bcrypt = bcrypt,
-    @Optional() private readonly prisma?: PrismaService,
   ) {}
 
   async execute(dto: { email: string; password: string }) {
@@ -40,31 +38,11 @@ export class LoginUseCase {
 
     const refreshTokenHash = await this.bcryptService.hash(refreshToken, 12)
 
-    if (this.prisma?.$transaction) {
-      await this.prisma.$transaction(async (tx: any) => {
-        await this.refreshTokenRepository.create({
-          userId: Number(user.userId),
-          token: refreshTokenHash,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        })
-        if (tx?.log?.create) {
-          await tx.log.create({
-            data: {
-              action: 'LOGIN_SUCCESS',
-              entityType: 'User',
-              entityId: Number(user.userId),
-              userId: Number(user.userId),
-            },
-          })
-        }
-      })
-    } else {
-      await this.refreshTokenRepository.create({
-        userId: Number(user.userId),
-        token: refreshTokenHash,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      })
-    }
+    await this.refreshTokenRepository.createWithLoginAudit({
+      userId: Number(user.userId),
+      token: refreshTokenHash,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    })
 
     return {
       accessToken,

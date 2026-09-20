@@ -5,6 +5,12 @@ export abstract class RefreshTokenRepository {
     expiresAt: Date
   }): Promise<unknown>
 
+  abstract createWithLoginAudit(data: {
+    userId: number
+    token: string
+    expiresAt: Date
+  }): Promise<void>
+
   abstract findActiveTokensByUserId(userId: number): Promise<unknown[]>
 
   abstract revoke(tokenId: number): Promise<void>

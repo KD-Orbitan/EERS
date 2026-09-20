@@ -3,14 +3,14 @@ import { ReviewRepository } from '../../domain/repositories/review.repository'
 import { ReviewImageRepository } from '../../domain/repositories/review-image.repository'
 import { ReviewNotFoundException } from '../../domain/exceptions/review.exceptions'
 import { ImageNotFoundException } from '../../../../common/exceptions/file.exceptions'
-import { CloudinaryService } from '../../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../../common/ports/image-storage.port'
 
 @Injectable()
 export class DeleteReviewPhotoUseCase {
   constructor(
     private readonly reviewRepository: ReviewRepository,
     private readonly reviewImageRepository: ReviewImageRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageStorage: ImageStorage,
   ) {}
 
   async execute({
@@ -35,7 +35,7 @@ export class DeleteReviewPhotoUseCase {
       throw new ImageNotFoundException()
     }
 
-    await this.cloudinaryService.deleteImage(photo.cloudinaryPublicId)
+    await this.imageStorage.deleteImage(photo.cloudinaryPublicId)
     await this.reviewImageRepository.deleteById(photo.imageId)
   }
 }

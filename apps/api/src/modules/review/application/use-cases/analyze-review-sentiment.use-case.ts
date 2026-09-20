@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { ReviewRepository } from '../../domain/repositories/review.repository'
 import { ReviewNotFoundException, SentimentAnalysisUnavailableException } from '../../domain/exceptions/review.exceptions'
-import { SentimentService } from '../../../../infrastructure/ml/sentiment.service'
+import { SentimentAnalyzer } from '../../../../common/ports/sentiment-analyzer.port'
 
 @Injectable()
 export class AnalyzeReviewSentimentUseCase {
   constructor(
     private readonly reviewRepository: ReviewRepository,
-    private readonly sentimentService: SentimentService,
+    private readonly sentimentService: SentimentAnalyzer,
   ) {}
 
   async execute({ reviewId }: { reviewId: number }) {

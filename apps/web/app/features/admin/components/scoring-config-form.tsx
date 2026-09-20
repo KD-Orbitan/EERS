@@ -30,7 +30,7 @@ interface FieldSpec {
 const GROUPS: { title: string; description: string; fields: FieldSpec[] }[] = [
   {
     title: 'Bayesian Adjustment',
-    description: 'Smooths a business’s score toward a prior mean until it has enough reviews (D-012 Step 6).',
+    description: 'Smooths scores toward a prior mean using total review weight as evidence. The prior strength m uses these same weight units.',
     fields: [
       { name: 'bayesianC', label: 'Prior mean (C)', step: 0.01 },
       { name: 'bayesianM', label: 'Prior strength (m)', step: 1, int: true },

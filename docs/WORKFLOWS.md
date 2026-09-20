@@ -1223,12 +1223,12 @@ Steps:
    d. Compute normalized multi-criteria score S_i and gated review weight W_i.
       Fraud REJECTED has W_i=0; SUSPICIOUS scales the whole weight by delta.
    e. Compute v = count of reviews with W_i>0, R = sum(W_i*S_i)/sum(W_i).
-      If v=0, omit this business from ALL ranking scopes and new history rows.
-   f. Compute rankingScore = 100 * (v*R + m*C)/(v+m), C=0.63 and m=10 by default.
+      If no positive-weight VALID review exists, omit this business from ALL scopes and new history rows.
+   f. Compute E=sum(W_i), rankingScore = 100 * (sum(W_i*S_i) + m*C)/(E+m), C=0.63 and m=10 by default.
       Keep full precision until sorting; persist scores rounded to two decimals.
       (see DECISIONS.md D-012 for the authoritative pipeline)
 
-3. Sort by score DESC, v DESC, R DESC, businessId ASC → assign rank (1 = highest)
+3. Sort by score DESC, E DESC, R DESC, businessId ASC → assign rank (1 = highest)
 
 4. BEGIN TRANSACTION:
    a. Delete all existing ranking_snapshots (full replace strategy)

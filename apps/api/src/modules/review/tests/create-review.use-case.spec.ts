@@ -2,16 +2,14 @@ import { CreateReviewUseCase } from '../application/use-cases/create-review.use-
 import { ReviewRepository } from '../domain/repositories/review.repository'
 import { ReviewAlreadyExistsException, InvalidRatingException, InvalidCriterionException } from '../domain/exceptions/review.exceptions'
 import { BusinessNotApprovedException } from '../../business/domain/exceptions/business.exceptions'
-import { BusinessRepository } from '../../business/domain/repositories/business.repository'
-import { PrismaService } from '../../../infrastructure/database/prisma.service'
+import { GetBusinessSummaryUseCase } from '../../business/application/use-cases/get-business-summary.use-case'
 import { CreateNotificationUseCase } from '../../notification/application/use-cases/create-notification.use-case'
 import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 
 describe('CreateReviewUseCase', () => {
   let reviewRepository: jest.Mocked<Pick<ReviewRepository, 'findByWriterAndBusiness' | 'createReviewWithCriteria' | 'findBusinessCriteria' | 'findBusinessById'>>
-  let businessRepository: jest.Mocked<Pick<BusinessRepository, 'findById'>>
+  let getBusinessSummaryUseCase: jest.Mocked<Pick<GetBusinessSummaryUseCase, 'execute'>>
   let createNotificationUseCase: jest.Mocked<Pick<CreateNotificationUseCase, 'execute'>>
-  let prisma: { $transaction: jest.Mock }
   let useCase: CreateReviewUseCase
 
   beforeEach(() => {
@@ -21,19 +19,17 @@ describe('CreateReviewUseCase', () => {
       findBusinessCriteria: jest.fn(),
       findBusinessById: jest.fn(),
     }
-    businessRepository = { findById: jest.fn() }
+    getBusinessSummaryUseCase = { execute: jest.fn() }
     createNotificationUseCase = { execute: jest.fn().mockResolvedValue(undefined) }
-    prisma = { $transaction: jest.fn((callback: any) => callback()) }
     useCase = new CreateReviewUseCase(
       reviewRepository as unknown as ReviewRepository,
-      businessRepository as unknown as BusinessRepository,
-      prisma as unknown as PrismaService,
+      getBusinessSummaryUseCase as unknown as GetBusinessSummaryUseCase,
       createNotificationUseCase as unknown as CreateNotificationUseCase,
     )
   })
 
   it('creates review with pending status and null sentiment, and notifies the business owner', async () => {
-    businessRepository.findById.mockResolvedValue({ businessId: 1, name: 'Acme', status: 'approved', ownerUserId: 2, deletedAt: null } as any)
+    getBusinessSummaryUseCase.execute.mockResolvedValue({ businessId: 1, name: 'Acme', status: 'approved', ownerUserId: 2, deletedAt: null } as any)
     reviewRepository.findByWriterAndBusiness.mockResolvedValue(null)
     reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }, { criterionId: 2 }])
     reviewRepository.createReviewWithCriteria.mockResolvedValue({ reviewId: 10, status: 'pending' })
@@ -46,20 +42,20 @@ describe('CreateReviewUseCase', () => {
   })
 
   it('throws REVIEW_ALREADY_EXISTS on duplicate review', async () => {
-    businessRepository.findById.mockResolvedValue({ businessId: 1, status: 'approved', ownerUserId: 2, deletedAt: null } as any)
+    getBusinessSummaryUseCase.execute.mockResolvedValue({ businessId: 1, status: 'approved', ownerUserId: 2, deletedAt: null } as any)
     reviewRepository.findByWriterAndBusiness.mockResolvedValue({ reviewId: 3 } as any)
 
     await expect(useCase.execute({ currentUserId: 5, dto: { businessId: 1, overallRating: 4, content: 'Great experience and service', criteriaRatings: [{ criterionId: 1, ratingValue: 4 }] } })).rejects.toBeInstanceOf(ReviewAlreadyExistsException)
   })
 
   it('throws BUSINESS_NOT_APPROVED for non-approved business', async () => {
-    businessRepository.findById.mockResolvedValue({ businessId: 1, status: 'pending', ownerUserId: 2, deletedAt: null } as any)
+    getBusinessSummaryUseCase.execute.mockResolvedValue({ businessId: 1, status: 'pending', ownerUserId: 2, deletedAt: null } as any)
 
     await expect(useCase.execute({ currentUserId: 5, dto: { businessId: 1, overallRating: 4, content: 'Great experience and service', criteriaRatings: [{ criterionId: 1, ratingValue: 4 }] } })).rejects.toBeInstanceOf(BusinessNotApprovedException)
   })
 
   it('throws INVALID_CRITERION when criterion does not belong to business', async () => {
-    businessRepository.findById.mockResolvedValue({ businessId: 1, status: 'approved', ownerUserId: 2, deletedAt: null } as any)
+    getBusinessSummaryUseCase.execute.mockResolvedValue({ businessId: 1, status: 'approved', ownerUserId: 2, deletedAt: null } as any)
     reviewRepository.findByWriterAndBusiness.mockResolvedValue(null)
     reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }])
 
@@ -67,7 +63,7 @@ describe('CreateReviewUseCase', () => {
   })
 
   it('throws INVALID_RATING for overall rating out of range', async () => {
-    businessRepository.findById.mockResolvedValue({ businessId: 1, status: 'approved', ownerUserId: 2, deletedAt: null } as any)
+    getBusinessSummaryUseCase.execute.mockResolvedValue({ businessId: 1, status: 'approved', ownerUserId: 2, deletedAt: null } as any)
     reviewRepository.findByWriterAndBusiness.mockResolvedValue(null)
     reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }])
 

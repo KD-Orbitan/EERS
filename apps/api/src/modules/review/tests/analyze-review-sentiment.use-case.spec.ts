@@ -1,11 +1,11 @@
 import { AnalyzeReviewSentimentUseCase } from '../application/use-cases/analyze-review-sentiment.use-case'
 import { ReviewRepository } from '../domain/repositories/review.repository'
 import { ReviewNotFoundException, SentimentAnalysisUnavailableException } from '../domain/exceptions/review.exceptions'
-import { SentimentService } from '../../../infrastructure/ml/sentiment.service'
+import { SentimentAnalyzer } from '../../../common/ports/sentiment-analyzer.port'
 
 describe('AnalyzeReviewSentimentUseCase', () => {
   let reviewRepository: jest.Mocked<Pick<ReviewRepository, 'findById' | 'updateSentiment'>>
-  let sentimentService: jest.Mocked<Pick<SentimentService, 'analyze'>>
+  let sentimentService: jest.Mocked<Pick<SentimentAnalyzer, 'analyze'>>
   let useCase: AnalyzeReviewSentimentUseCase
 
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('AnalyzeReviewSentimentUseCase', () => {
     }
     useCase = new AnalyzeReviewSentimentUseCase(
       reviewRepository as unknown as ReviewRepository,
-      sentimentService as unknown as SentimentService,
+      sentimentService as unknown as SentimentAnalyzer,
     )
   })
 

@@ -1,11 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 
-export type SentimentLabel = 'positive' | 'negative' | 'neutral'
-
-export interface SentimentAnalysisResult {
-  type: SentimentLabel
-  score: number
-}
+import { SentimentAnalyzer, type SentimentLabel, type SentimentAnalysisResult } from '../../common/ports/sentiment-analyzer.port'
+export type { SentimentLabel, SentimentAnalysisResult } from '../../common/ports/sentiment-analyzer.port'
 
 const MODEL_NAME = 'Xenova/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7'
 const LABELS: SentimentLabel[] = ['positive', 'negative', 'neutral']
@@ -13,7 +9,7 @@ const HYPOTHESIS_TEMPLATE = 'This review is {}'
 const SLOW_INFERENCE_THRESHOLD_MS = 5000
 
 @Injectable()
-export class SentimentService implements OnModuleInit {
+export class SentimentService extends SentimentAnalyzer implements OnModuleInit {
   private readonly logger = new Logger(SentimentService.name)
   private classifier: ((text: string, labels: string[], options: { hypothesis_template: string }) => Promise<{ labels: string[]; scores: number[] }>) | null = null
   private loadFailed = false

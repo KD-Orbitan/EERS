@@ -1,15 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
 
-export interface GeocodeResult {
-  latitude: number
-  longitude: number
-}
+import { Geocoder, type GeocodeResult } from '../../application/ports/geocoder.port'
+export type { GeocodeResult } from '../../application/ports/geocoder.port'
 
 // D-032: coordinates are best-effort and auto-geocoded server-side via
 // OpenStreetMap's free Nominatim API (no API key, no billing) — never
 // user-supplied, never block the caller on failure.
 @Injectable()
-export class GeocodingService {
+export class GeocodingService extends Geocoder {
   private readonly logger = new Logger(GeocodingService.name)
 
   async geocode(address: string): Promise<GeocodeResult | null> {

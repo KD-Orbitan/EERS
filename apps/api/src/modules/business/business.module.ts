@@ -34,6 +34,8 @@ import { UploadGalleryUseCase } from './application/use-cases/upload-gallery.use
 import { DeleteGalleryImageUseCase } from './application/use-cases/delete-gallery-image.use-case'
 import { ReorderGalleryUseCase } from './application/use-cases/reorder-gallery.use-case'
 
+import { Geocoder } from './application/ports/geocoder.port'
+
 @Module({
   imports: [
     ConfigModule,
@@ -63,6 +65,7 @@ import { ReorderGalleryUseCase } from './application/use-cases/reorder-gallery.u
       useClass: PrismaBusinessImageRepository,
     },
     GeocodingService,
+    { provide: Geocoder, useExisting: GeocodingService },
     CreateBusinessUseCase,
     CreateBusinessAsAdminUseCase,
     UpdateBusinessUseCase,

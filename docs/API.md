@@ -2033,12 +2033,13 @@ CLAIM_NOT_PENDING         400
 Base: `/rankings`
 
 Ranking eligibility (D-012): only businesses with at least one positive-weight
-review appear in GLOBAL, CATEGORY or PROVINCE lists. With no snapshot,
+VALID review appear in GLOBAL, CATEGORY or PROVINCE lists. With no snapshot,
 `GET /rankings/businesses/:businessId` returns `data: null`.
 `reviewCount` in ranking lists is the number of contributing reviews, excluding
 fraud REJECTED (and any other zero-weight review); public business review counts
 still count all moderation-approved reviews. `avgRating` remains the raw approved
 star average. `rankingScore` is the separate [0,100] composite index.
+Bayesian evidence uses total review weight, not the displayed integer reviewCount.
 Configuration changes take effect on the next recalculation, not immediately on
 existing snapshots. Scores are sorted before rounding to two decimals.
 

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { registerSchema, type RegisterInput } from '@/features/auth/schemas/auth.schema';
 import { useRegisterMutation } from '@/features/auth/mutations/use-register.mutation';
 import { PasswordInput } from '@/components/ui/password-input';
+import { GoogleAuthButton } from './google-auth-button';
 
 export function RegisterForm() {
   const router = useRouter();
@@ -98,6 +99,7 @@ export function RegisterForm() {
           {isSubmitting || registerMutation.isPending ? 'Creating account...' : 'Register'}
         </button>
       </form>
+      <GoogleAuthButton disabled={isSubmitting || registerMutation.isPending} />
 
       <p className="mt-5 text-center text-sm text-ink-600">
         Already have an account?{' '}

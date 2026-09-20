@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { v2 as cloudinary } from 'cloudinary'
+import { ImageStorage, type StoredImage } from '../../common/ports/image-storage.port'
 
 @Injectable()
-export class CloudinaryService {
+export class CloudinaryService extends ImageStorage {
   constructor(private configService: ConfigService) {
+    super()
     cloudinary.config({
       cloud_name: this.configService.get('cloudinary.cloudName'),
       api_key: this.configService.get('cloudinary.apiKey'),
@@ -13,7 +15,7 @@ export class CloudinaryService {
   }
 
   async uploadImage(fileBuffer: Buffer, fileName: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise<StoredImage>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: 'auto',
@@ -22,7 +24,8 @@ export class CloudinaryService {
         },
         (error, result) => {
           if (error) reject(error)
-          else resolve(result)
+          else if (result) resolve({ publicId: result.public_id, secureUrl: result.secure_url, width: result.width, height: result.height, format: result.format })
+          else reject(new Error('Image upload returned no result'))
         },
       )
 

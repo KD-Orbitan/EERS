@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { UploadApiResponse } from 'cloudinary'
-import { CloudinaryService } from '../../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../../common/ports/image-storage.port'
 import { BusinessImageRepository } from '../../domain/repositories/business-image.repository'
 import { ValidateBusinessOwnershipUseCase } from './validate-business-ownership.use-case'
 import { assertValidImageFile } from '../../../../common/validators/image-file.validator'
@@ -12,7 +11,7 @@ const MAX_GALLERY_IMAGES = 20
 export class UploadGalleryUseCase {
   constructor(
     private readonly businessImageRepository: BusinessImageRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageStorage: ImageStorage,
     private readonly validateBusinessOwnershipUseCase: ValidateBusinessOwnershipUseCase,
   ) {}
 
@@ -36,14 +35,14 @@ export class UploadGalleryUseCase {
     const maxDisplayOrder = await this.businessImageRepository.getMaxGalleryDisplayOrder(businessId)
 
     const uploadResults = (await Promise.all(
-      files.map((file, index) => this.cloudinaryService.uploadImage(file.buffer, `gallery-${businessId}-${Date.now()}-${index}`)),
-    )) as UploadApiResponse[]
+      files.map((file, index) => this.imageStorage.uploadImage(file.buffer, `gallery-${businessId}-${Date.now()}-${index}`)),
+    ))
 
     const created = await this.businessImageRepository.createGalleryImages(
       uploadResults.map((result, index) => ({
         businessId,
-        cloudinaryPublicId: result.public_id,
-        secureUrl: result.secure_url,
+        cloudinaryPublicId: result.publicId,
+        secureUrl: result.secureUrl,
         width: result.width,
         height: result.height,
         format: result.format,

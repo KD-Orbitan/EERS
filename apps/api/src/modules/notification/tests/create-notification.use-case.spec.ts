@@ -1,10 +1,10 @@
 import { CreateNotificationUseCase } from '../application/use-cases/create-notification.use-case'
 import { NotificationRepository } from '../domain/repositories/notification.repository'
-import { SseConnectionManager } from '../infrastructure/sse/sse-connection.manager'
+import { NotificationPublisher } from '../application/ports/notification-publisher.port'
 
 describe('CreateNotificationUseCase', () => {
   let notificationRepository: jest.Mocked<Pick<NotificationRepository, 'create'>>
-  let sseConnectionManager: jest.Mocked<Pick<SseConnectionManager, 'push'>>
+  let sseConnectionManager: jest.Mocked<Pick<NotificationPublisher, 'push'>>
   let useCase: CreateNotificationUseCase
 
   const savedNotification = {
@@ -19,7 +19,7 @@ describe('CreateNotificationUseCase', () => {
   beforeEach(() => {
     notificationRepository = { create: jest.fn().mockResolvedValue(savedNotification) }
     sseConnectionManager = { push: jest.fn() }
-    useCase = new CreateNotificationUseCase(notificationRepository as unknown as NotificationRepository, sseConnectionManager as unknown as SseConnectionManager)
+    useCase = new CreateNotificationUseCase(notificationRepository as unknown as NotificationRepository, sseConnectionManager as unknown as NotificationPublisher)
   })
 
   it('persists the notification before attempting an SSE push', async () => {

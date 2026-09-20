@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { UploadApiResponse } from 'cloudinary'
-import { CloudinaryService } from '../../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../../common/ports/image-storage.port'
 import { BusinessImageRepository } from '../../domain/repositories/business-image.repository'
 import { ValidateBusinessOwnershipUseCase } from './validate-business-ownership.use-case'
 import { assertValidImageFile } from '../../../../common/validators/image-file.validator'
@@ -9,7 +8,7 @@ import { assertValidImageFile } from '../../../../common/validators/image-file.v
 export class UploadCoverUseCase {
   constructor(
     private readonly businessImageRepository: BusinessImageRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageStorage: ImageStorage,
     private readonly validateBusinessOwnershipUseCase: ValidateBusinessOwnershipUseCase,
   ) {}
 
@@ -27,19 +26,19 @@ export class UploadCoverUseCase {
 
     const existingCover = await this.businessImageRepository.findCoverByBusinessId(businessId)
     if (existingCover) {
-      await this.cloudinaryService.deleteImage(existingCover.cloudinaryPublicId)
+      await this.imageStorage.deleteImage(existingCover.cloudinaryPublicId)
       await this.businessImageRepository.deleteById(existingCover.imageId)
     }
 
-    const uploadResult = (await this.cloudinaryService.uploadImage(
+    const uploadResult = await this.imageStorage.uploadImage(
       file.buffer,
       `cover-${businessId}-${Date.now()}`,
-    )) as UploadApiResponse
+    )
 
     const created = await this.businessImageRepository.createCover({
       businessId,
-      cloudinaryPublicId: uploadResult.public_id,
-      secureUrl: uploadResult.secure_url,
+      cloudinaryPublicId: uploadResult.publicId,
+      secureUrl: uploadResult.secureUrl,
       width: uploadResult.width,
       height: uploadResult.height,
       format: uploadResult.format,

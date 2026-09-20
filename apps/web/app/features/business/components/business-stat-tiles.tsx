@@ -38,7 +38,7 @@ export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: Busin
           <span className="font-sans text-4xl font-bold text-ink-900">{rank ? `#${rank}` : '—'}</span>
           <Trophy className="h-6 w-6 text-amber-500" />
         </div>
-        {!rank ? <p className="mt-2 text-sm text-ink-500">Not ranked yet. A contributing review and a ranking update are required.</p> : null}
+        {!rank ? <p className="mt-2 text-sm text-ink-500">Not ranked yet. A review classified as valid by fraud checks and a ranking update are required.</p> : null}
         <RankingTrendBadge trend={trend} variant="light" />
       </div>
     </>

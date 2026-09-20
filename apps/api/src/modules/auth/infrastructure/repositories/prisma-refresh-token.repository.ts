@@ -18,6 +18,20 @@ export class PrismaRefreshTokenRepository extends RefreshTokenRepository {
     })
   }
 
+  async createWithLoginAudit(data: { userId: number; token: string; expiresAt: Date }): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.refreshToken.create({ data })
+      await tx.log.create({
+        data: {
+          action: 'LOGIN_SUCCESS',
+          entityType: 'User',
+          entityId: data.userId,
+          userId: data.userId,
+        },
+      })
+    })
+  }
+
   async findActiveTokensByUserId(userId: number): Promise<unknown[]> {
     return this.prisma.refreshToken.findMany({
       where: {

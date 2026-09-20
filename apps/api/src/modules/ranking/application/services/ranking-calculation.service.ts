@@ -24,11 +24,8 @@ export class RankingCalculationService {
     private readonly reviewWeightingService: ReviewWeightingService,
   ) {}
 
-  private computeBayesianAdjustment(R_j: number, v_j: number, C: number, m: number) {
-    if (v_j === 0) {
-      return C
-    }
-    return (v_j / (v_j + m)) * R_j + (m / (v_j + m)) * C
+  private computeBayesianAdjustment(weightedSum: number, evidenceWeight: number, C: number, m: number) {
+    return (weightedSum + m * C) / (evidenceWeight + m)
   }
 
   async execute(): Promise<void> {
@@ -53,9 +50,9 @@ export class RankingCalculationService {
     })
     const fraudMap = new Map<number, string>(fraudScores.map((item) => [Number(item.reviewId), item.fraudStatus]))
 
-    const businessAggregates = new Map<number, { weightedSum: number; weightSum: number; reviewCount: number; eligibleCount: number; avgRating: number }>()
+    const businessAggregates = new Map<number, { weightedSum: number; weightSum: number; reviewCount: number; eligibleCount: number; validCount: number; avgRating: number }>()
     for (const business of businesses) {
-      businessAggregates.set(business.businessId, { weightedSum: 0, weightSum: 0, reviewCount: 0, eligibleCount: 0, avgRating: 0 })
+      businessAggregates.set(business.businessId, { weightedSum: 0, weightSum: 0, reviewCount: 0, eligibleCount: 0, validCount: 0, avgRating: 0 })
     }
 
     for (const review of reviews) {
@@ -67,7 +64,7 @@ export class RankingCalculationService {
       const categoryIds = categoryIdsByBusiness.get(review.businessId) ?? []
       const S_hat_i = await this.multiCriteriaScoringService.computeScore(review.reviewId, categoryIds)
 
-      const fraudStatus = fraudMap.get(review.reviewId) ?? 'VALID'
+      const fraudStatus = fraudMap.get(review.reviewId) ?? 'UNKNOWN'
       const W_i = await this.reviewWeightingService.computeWeight({
         writerUserId: review.writerUserId,
         fraudStatus,
@@ -81,6 +78,7 @@ export class RankingCalculationService {
       businessSummary.weightSum += W_i
       businessSummary.reviewCount += 1
       if (W_i > 0) businessSummary.eligibleCount += 1
+      if (W_i > 0 && fraudStatus === 'VALID') businessSummary.validCount += 1
       businessSummary.avgRating += review.overallRating
     }
 
@@ -93,14 +91,16 @@ export class RankingCalculationService {
       reviewCount: number
       businessId: number
       preBayesianScore: number
+      evidenceWeight: number
     }> = []
 
     for (const business of businesses) {
       const aggregate = businessAggregates.get(business.businessId)!
-      if (aggregate.eligibleCount === 0) continue
+      // Automatic suspicion alone is not enough evidence to enter a leaderboard.
+      if (aggregate.validCount === 0) continue
       const R_j = aggregate.weightSum > 0 ? aggregate.weightedSum / aggregate.weightSum : config.bayesianC
       const avgRating = aggregate.reviewCount > 0 ? Number((aggregate.avgRating / aggregate.reviewCount).toFixed(2)) : business.avgRating
-      const finalScore = this.computeBayesianAdjustment(R_j, aggregate.eligibleCount, config.bayesianC, config.bayesianM)
+      const finalScore = this.computeBayesianAdjustment(aggregate.weightedSum, aggregate.weightSum, config.bayesianC, config.bayesianM)
       // DECISIONS.md D-012 Step 6b: FinalScore lives on [0, 1] (same scale as
       // R_j/bayesianC); persisted rankingScore is rescaled to [0, 100] so it
       // reads as a distinct composite index rather than a second star rating
@@ -119,13 +119,14 @@ export class RankingCalculationService {
         // ranking_snapshot since only FinalScore/rankingScore is documented
         // there.
         preBayesianScore: R_j,
+        evidenceWeight: aggregate.weightSum,
       })
     }
 
     const rankSnapshots = (items: typeof snapshots, scope: string, scopeId: number | null) => {
       const sorted = [...items].sort((a, b) => {
         if (b.rankingScore !== a.rankingScore) return b.rankingScore - a.rankingScore
-        if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount
+        if (b.evidenceWeight !== a.evidenceWeight) return b.evidenceWeight - a.evidenceWeight
         if (b.preBayesianScore !== a.preBayesianScore) return b.preBayesianScore - a.preBayesianScore
         return a.businessId - b.businessId
       })

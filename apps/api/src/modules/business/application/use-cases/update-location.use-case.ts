@@ -2,14 +2,14 @@ import { Injectable, ForbiddenException } from '@nestjs/common'
 import { BusinessRepository } from '../../domain/repositories/business.repository'
 import { LocationRepository } from '../../domain/repositories/location.repository'
 import { BusinessNotFoundException, LocationNotFoundException } from '../../domain/exceptions/business.exceptions'
-import { GeocodingService } from '../../infrastructure/services/geocoding.service'
+import { Geocoder } from '../ports/geocoder.port'
 
 @Injectable()
 export class UpdateLocationUseCase {
   constructor(
     private readonly businessRepository: BusinessRepository,
     private readonly locationRepository: LocationRepository,
-    private readonly geocodingService: GeocodingService,
+    private readonly geocodingService: Geocoder,
   ) {}
 
   async execute({ businessId, user, locationId, dto }: { businessId: number; user: { userId: number; role: string }; locationId: number; dto: any }) {

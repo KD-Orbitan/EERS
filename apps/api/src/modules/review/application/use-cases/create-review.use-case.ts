@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { ReviewRepository } from '../../domain/repositories/review.repository'
 import { ReviewAlreadyExistsException, InvalidRatingException, InvalidCriterionException } from '../../domain/exceptions/review.exceptions'
 import { BusinessNotApprovedException, BusinessNotFoundException } from '../../../business/domain/exceptions/business.exceptions'
-import { BusinessRepository } from '../../../business/domain/repositories/business.repository'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { GetBusinessSummaryUseCase } from '../../../business/application/use-cases/get-business-summary.use-case'
 import { CreateNotificationUseCase } from '../../../notification/application/use-cases/create-notification.use-case'
 import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 
@@ -11,13 +10,12 @@ import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 export class CreateReviewUseCase {
   constructor(
     private readonly reviewRepository: ReviewRepository,
-    private readonly businessRepository: BusinessRepository,
-    private readonly prisma: PrismaService,
+    private readonly getBusinessSummaryUseCase: GetBusinessSummaryUseCase,
     private readonly createNotificationUseCase: CreateNotificationUseCase,
   ) {}
 
   async execute({ currentUserId, dto }: { currentUserId: number; dto: { businessId: number; overallRating: number; content: string; criteriaRatings: Array<{ criterionId: number; ratingValue: number }> } }) {
-    const business = await this.businessRepository.findById(dto.businessId)
+    const business = await this.getBusinessSummaryUseCase.execute(dto.businessId)
     if (!business) {
       throw new BusinessNotFoundException()
     }

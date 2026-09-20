@@ -1,13 +1,13 @@
 import { UploadGalleryUseCase } from '../application/use-cases/upload-gallery.use-case'
 import { BusinessImageRepository } from '../domain/repositories/business-image.repository'
 import { ValidateBusinessOwnershipUseCase } from '../application/use-cases/validate-business-ownership.use-case'
-import { CloudinaryService } from '../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../common/ports/image-storage.port'
 import { GalleryLimitExceededException } from '../domain/exceptions/business.exceptions'
 
 describe('UploadGalleryUseCase', () => {
   let useCase: UploadGalleryUseCase
   let businessImageRepository: jest.Mocked<BusinessImageRepository>
-  let cloudinaryService: jest.Mocked<Pick<CloudinaryService, 'uploadImage' | 'deleteImage'>>
+  let imageStorage: jest.Mocked<Pick<ImageStorage, 'uploadImage' | 'deleteImage'>>
   let validateBusinessOwnershipUseCase: jest.Mocked<Pick<ValidateBusinessOwnershipUseCase, 'execute'>>
 
   const makeFile = (name: string) => ({ mimetype: 'image/png', size: 1024, buffer: Buffer.from(name) } as Express.Multer.File)
@@ -26,12 +26,12 @@ describe('UploadGalleryUseCase', () => {
       findGalleryImagesByIds: jest.fn(),
       updateGalleryDisplayOrders: jest.fn(),
     }
-    cloudinaryService = { uploadImage: jest.fn(), deleteImage: jest.fn() }
+    imageStorage = { uploadImage: jest.fn(), deleteImage: jest.fn() }
     validateBusinessOwnershipUseCase = { execute: jest.fn().mockResolvedValue({ businessId: 1, ownerUserId: 5 }) }
 
     useCase = new UploadGalleryUseCase(
       businessImageRepository,
-      cloudinaryService as unknown as CloudinaryService,
+      imageStorage as unknown as ImageStorage,
       validateBusinessOwnershipUseCase as unknown as ValidateBusinessOwnershipUseCase,
     )
   })
@@ -39,9 +39,9 @@ describe('UploadGalleryUseCase', () => {
   it('creates multiple image records with imageType BUSINESS_GALLERY and sequential displayOrder', async () => {
     businessImageRepository.countGalleryImages.mockResolvedValue(2)
     businessImageRepository.getMaxGalleryDisplayOrder.mockResolvedValue(2)
-    cloudinaryService.uploadImage
-      .mockResolvedValueOnce({ public_id: 'g1', secure_url: 'https://cdn/g1.png' } as any)
-      .mockResolvedValueOnce({ public_id: 'g2', secure_url: 'https://cdn/g2.png' } as any)
+    imageStorage.uploadImage
+      .mockResolvedValueOnce({ publicId: 'g1', secureUrl: 'https://cdn/g1.png' } as any)
+      .mockResolvedValueOnce({ publicId: 'g2', secureUrl: 'https://cdn/g2.png' } as any)
     businessImageRepository.createGalleryImages.mockResolvedValue([
       { imageId: 30, cloudinaryPublicId: 'g1', secureUrl: 'https://cdn/g1.png', displayOrder: 3 },
       { imageId: 31, cloudinaryPublicId: 'g2', secureUrl: 'https://cdn/g2.png', displayOrder: 4 },
@@ -71,7 +71,7 @@ describe('UploadGalleryUseCase', () => {
     await expect(
       useCase.execute({ businessId: 1, user: { userId: 5, role: 'BUSINESS_OWNER' }, files: [makeFile('a'), makeFile('b')] }),
     ).rejects.toBeInstanceOf(GalleryLimitExceededException)
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled()
+    expect(imageStorage.uploadImage).not.toHaveBeenCalled()
   })
 
   it('throws whatever the ownership check throws if user is not owner', async () => {

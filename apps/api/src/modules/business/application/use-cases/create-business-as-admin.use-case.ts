@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { BusinessRepository } from '../../domain/repositories/business.repository'
 import { CategoryNotFoundException, EmailAlreadyExistsException, PhoneAlreadyExistsException } from '../../domain/exceptions/business.exceptions'
-import { GeocodingService } from '../../infrastructure/services/geocoding.service'
+import { Geocoder } from '../ports/geocoder.port'
 
 @Injectable()
 export class CreateBusinessAsAdminUseCase {
   constructor(
     private readonly businessRepository: BusinessRepository,
-    private readonly geocodingService: GeocodingService,
+    private readonly geocodingService: Geocoder,
   ) {}
 
   async execute({ currentUserId, dto }: { currentUserId: number; dto: any }) {

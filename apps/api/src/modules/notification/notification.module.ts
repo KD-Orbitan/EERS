@@ -14,6 +14,8 @@ import { GetNotificationByIdUseCase } from './application/use-cases/get-notifica
 import { MarkAsReadUseCase } from './application/use-cases/mark-as-read.use-case'
 import { MarkAllReadUseCase } from './application/use-cases/mark-all-read.use-case'
 
+import { NotificationPublisher } from './application/ports/notification-publisher.port'
+
 @Module({
   imports: [
     ConfigModule,
@@ -33,6 +35,7 @@ import { MarkAllReadUseCase } from './application/use-cases/mark-all-read.use-ca
       useClass: PrismaNotificationRepository,
     },
     SseConnectionManager,
+    { provide: NotificationPublisher, useExisting: SseConnectionManager },
     CreateNotificationUseCase,
     GetNotificationsUseCase,
     GetUnreadCountUseCase,

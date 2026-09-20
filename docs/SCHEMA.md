@@ -724,7 +724,7 @@ Notes:
     CATEGORY → categoryId
     PROVINCE → NULL (filter by province name via business join)
 - rankingScore: composite Bayesian index on [0,100] (see DECISIONS.md D-012)
-- reviewCount: number of positive-weight reviews contributing to ranking; excludes automatic fraud REJECTED. Businesses with zero contributing reviews have no snapshot.
+- reviewCount: number of positive-weight reviews contributing to ranking; excludes automatic fraud REJECTED. Businesses without a positive-weight VALID review have no snapshot. Bayesian evidence is the sum of weights computed in memory, not this integer count.
 - avgRating: raw mean of moderation-approved reviews, independent of fraud weighting.
 - Populated exclusively by RankingRecalculationJob, never by API handlers
 - Ranking APIs read from this table via Redis cache (see DECISIONS.md D-011)

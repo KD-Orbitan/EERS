@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { NotificationRepository } from '../../domain/repositories/notification.repository'
-import { SseConnectionManager } from '../../infrastructure/sse/sse-connection.manager'
+import { NotificationPublisher } from '../ports/notification-publisher.port'
 
 @Injectable()
 export class CreateNotificationUseCase {
@@ -8,7 +8,7 @@ export class CreateNotificationUseCase {
 
   constructor(
     private readonly notificationRepository: NotificationRepository,
-    private readonly sseConnectionManager: SseConnectionManager,
+    private readonly sseConnectionManager: NotificationPublisher,
   ) {}
 
   async execute({ userId, type, title, content, targetPath }: { userId: number; type: string; title: string; content: string; targetPath?: string }) {

@@ -428,14 +428,15 @@ Defaults from DECISIONS.md D-012; administrators may update them through scoring
 ```
 C = 0.63  // prior mean on the normalized [0,1] scale
 m = 10    // positive prior strength
-score = 100 * (C * m + R * v) / (m + v)
+E = sum(review weights)
+score = 100 * (C * m + R * E) / (m + E)
 ```
 
-`R` is the weighted mean of normalized multi-criteria scores. `v` counts approved,
-non-deleted reviews with positive weight. Fraud REJECTED has zero weight;
-SUSPICIOUS scales the entire review weight by delta. Businesses with `v=0` are
-omitted from all ranking snapshots, rather than displaying the prior as a score.
-See D-012 for trust inputs, the status gate, and tie ordering.
+R is the weighted mean of normalized multi-criteria scores; E is total
+review weight. Display reviewCount still counts positive-weight reviews.
+Fraud REJECTED/UNKNOWN has zero weight; SUSPICIOUS scales the entire weight by
+delta. At least one positive-weight VALID review is required for any ranking
+snapshot. See D-012 revision 2 for eligibility, evidence and tie ordering.
 
 Cron schedule:
 

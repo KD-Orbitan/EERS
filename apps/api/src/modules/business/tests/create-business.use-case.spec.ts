@@ -1,11 +1,11 @@
 import { CreateBusinessUseCase } from '../application/use-cases/create-business.use-case'
 import { BusinessRepository } from '../domain/repositories/business.repository'
-import { GeocodingService } from '../infrastructure/services/geocoding.service'
+import { Geocoder } from '../application/ports/geocoder.port'
 import { CategoryNotFoundException, EmailAlreadyExistsException, PhoneAlreadyExistsException } from '../domain/exceptions/business.exceptions'
 
 describe('CreateBusinessUseCase', () => {
   let businessRepository: jest.Mocked<Pick<BusinessRepository, 'findCategoriesExist' | 'findByPhone' | 'findByEmail' | 'createBusinessWithLocationsAndCategories'>>
-  let geocodingService: jest.Mocked<Pick<GeocodingService, 'geocode'>>
+  let geocodingService: jest.Mocked<Pick<Geocoder, 'geocode'>>
   let useCase: CreateBusinessUseCase
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('CreateBusinessUseCase', () => {
       createBusinessWithLocationsAndCategories: jest.fn(),
     }
     geocodingService = { geocode: jest.fn().mockResolvedValue(null) }
-    useCase = new CreateBusinessUseCase(businessRepository as unknown as BusinessRepository, geocodingService as unknown as GeocodingService)
+    useCase = new CreateBusinessUseCase(businessRepository as unknown as BusinessRepository, geocodingService as unknown as Geocoder)
   })
 
   it('creates business with pending status', async () => {

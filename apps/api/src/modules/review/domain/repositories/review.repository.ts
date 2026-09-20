@@ -88,6 +88,7 @@ export abstract class ReviewRepository {
     criteriaRatings?: ReviewCriteriaInput[]
   }): Promise<{ reviewId: number; status: string }>
   abstract softDeleteReview(reviewId: number): Promise<void>
+  abstract softDeleteReviewWithAudit(reviewId: number, actorUserId: number): Promise<void>
   abstract updateSentiment(reviewId: number, result: { sentiment: string; sentimentScore: number; sentimentAnalyzedAt: Date }): Promise<void>
   abstract findUnanalyzed(limit: number): Promise<Array<{ reviewId: number; content: string }>>
   abstract listByBusiness(businessId: number, options: { rating?: number; status?: string; page: number; limit: number; admin?: boolean }): Promise<{ items: ReviewListItem[]; total: number }>

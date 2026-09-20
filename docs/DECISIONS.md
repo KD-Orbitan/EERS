@@ -535,34 +535,40 @@ Where:
 
 ---
 
-### Step 6 — Bayesian Adjustment
+### Step 6 - Bayesian Adjustment (weighted evidence, revision 2)
 
 ```math
-FinalScore_j=
-\frac{v_j}{v_j+m}R_j
-+
-\frac{m}{v_j+m}C
+E_j=\sum_i W_i
+\qquad
+FinalScore_j=\frac{\sum_i W_i\hat S_i+mC}{E_j+m}
 ```
 
-Where:
+E_j is total review weight, not a raw review count. m is prior strength in the
+same evidence units. Defaults remain C=0.63 and m=10: a conservative reference
+configuration, not an empirically optimized calibration. A fresh VALID review
+with trust 0.5 contributes 0.8 units; m=10 corresponds to 12.5 such reviews.
 
-- `v_j` = number of approved, non-deleted reviews with `W_i > 0`
-- `C` = `bayesian_c` (prior mean)
-- `m` = `bayesian_m` (positive prior strength, not a leaderboard entry threshold)
+A business enters any ranking scope only if at least one review has both
+fraudStatus=VALID and W_i>0. Suspicious reviews may contribute weighted evidence
+once this condition is satisfied. Businesses with only suspicious, rejected,
+unknown or zero-weight reviews have no snapshot and no new history row.
+Missing fraud records are UNKNOWN with zero weight, never assumed VALID.
 
-Both `C` and `m` are configurable by administrators. Defaults remain `C=0.63`
-and `m=10`. `v_j` is a count, not a sum of weights: suspicious reviews with
-positive weight count once. Switching to weighted evidence requires separate
-calibration of `m` and is not part of this revision.
+ranking_snapshot.reviewCount remains the integer count of positive-weight reviews
+for display. It is NOT the Bayesian evidence amount. E_j is computed in memory;
+no database column or API field is added. Public business review counts and
+avgRating remain raw moderation-approved statistics.
 
-Businesses with `v_j=0` have no snapshot in any scope and no new history row.
-Their ranking endpoint returns null; the UI explains that a contributing review
-and a ranking update are required. The internal prior fallback is never displayed
-as an earned score for an unranked business.
+For fixed existing weights, adding score s with weight w changes normalized
+score F by w*(s-F)/(E+m+w). Adding a 1-star review (s=0) cannot raise F;
+adding a 5-star review (s=1) cannot lower it; w=0 has no effect. This guarantee
+does not cover recalculations that also change existing fraud labels, trust,
+criterion weights or review ages.
 
-`ranking_snapshot.reviewCount` stores `v_j`. Public business review counts and
-`avgRating` remain raw moderation-approved statistics and may differ from the
-ranking evidence count. Fraud classification does not change moderation status.
+Weighted evidence removes cancellation of a common weight at the Bayesian stage,
+but does not completely stop a large suspicious cohort mixed with VALID reviews.
+The VALID eligibility gate does not certify authenticity. See the before/after
+comparison in bao-cao-do-an/13-cai-tien-cong-thuc-tinh-diem.md.
 
 ---
 
@@ -593,7 +599,7 @@ preserves order.
 Businesses are sorted by:
 
 1. `FinalScore DESC` (equivalently, `DisplayScore DESC`)
-2. `v_j DESC`
+2. `E_j DESC` (total review weight, not display reviewCount)
 3. `R_j DESC`
 4. `businessId ASC` for deterministic ties
 

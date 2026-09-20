@@ -1,11 +1,9 @@
 import { UpdateReviewUseCase } from '../application/use-cases/update-review.use-case'
 import { ReviewRepository } from '../domain/repositories/review.repository'
 import { ReviewNotFoundException, InvalidRatingException, InvalidCriterionException } from '../domain/exceptions/review.exceptions'
-import { PrismaService } from '../../../infrastructure/database/prisma.service'
 
 describe('UpdateReviewUseCase', () => {
   let reviewRepository: jest.Mocked<Pick<ReviewRepository, 'findById' | 'findBusinessCriteria' | 'updateReviewWithCriteria'>>
-  let prisma: { $transaction: jest.Mock }
   let useCase: UpdateReviewUseCase
 
   beforeEach(() => {
@@ -14,8 +12,7 @@ describe('UpdateReviewUseCase', () => {
       findBusinessCriteria: jest.fn(),
       updateReviewWithCriteria: jest.fn(),
     }
-    prisma = { $transaction: jest.fn((callback: any) => callback()) }
-    useCase = new UpdateReviewUseCase(reviewRepository as unknown as ReviewRepository, prisma as unknown as PrismaService)
+    useCase = new UpdateReviewUseCase(reviewRepository as unknown as ReviewRepository)
   })
 
   it('resets status to pending after edit', async () => {

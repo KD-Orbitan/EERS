@@ -1,12 +1,12 @@
 import { UploadAvatarUseCase } from '../application/use-cases/upload-avatar.use-case'
 import { UserImageRepository } from '../domain/repositories/user-image.repository'
-import { CloudinaryService } from '../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../common/ports/image-storage.port'
 import { InvalidFileTypeException, FileTooLargeException } from '../../../common/exceptions/file.exceptions'
 
 describe('UploadAvatarUseCase', () => {
   let useCase: UploadAvatarUseCase
   let userImageRepository: jest.Mocked<UserImageRepository>
-  let cloudinaryService: jest.Mocked<Pick<CloudinaryService, 'uploadImage' | 'deleteImage'>>
+  let imageStorage: jest.Mocked<Pick<ImageStorage, 'uploadImage' | 'deleteImage'>>
 
   const validFile = {
     mimetype: 'image/png',
@@ -21,19 +21,19 @@ describe('UploadAvatarUseCase', () => {
       deleteById: jest.fn(),
     }
 
-    cloudinaryService = {
+    imageStorage = {
       uploadImage: jest.fn(),
       deleteImage: jest.fn(),
     }
 
-    useCase = new UploadAvatarUseCase(userImageRepository, cloudinaryService as unknown as CloudinaryService)
+    useCase = new UploadAvatarUseCase(userImageRepository, imageStorage as unknown as ImageStorage)
   })
 
   it('saves image record with imageType AVATAR', async () => {
     userImageRepository.findAvatarByUserId.mockResolvedValue(null)
-    cloudinaryService.uploadImage.mockResolvedValue({
-      public_id: 'eers/avatar-1',
-      secure_url: 'https://cdn.example.com/avatar-1.png',
+    imageStorage.uploadImage.mockResolvedValue({
+      publicId: 'eers/avatar-1',
+      secureUrl: 'https://cdn.example.com/avatar-1.png',
       width: 200,
       height: 200,
       format: 'png',
@@ -58,9 +58,9 @@ describe('UploadAvatarUseCase', () => {
       cloudinaryPublicId: 'eers/old-avatar',
       secureUrl: 'https://cdn.example.com/old-avatar.png',
     })
-    cloudinaryService.uploadImage.mockResolvedValue({
-      public_id: 'eers/new-avatar',
-      secure_url: 'https://cdn.example.com/new-avatar.png',
+    imageStorage.uploadImage.mockResolvedValue({
+      publicId: 'eers/new-avatar',
+      secureUrl: 'https://cdn.example.com/new-avatar.png',
       width: 100,
       height: 100,
       format: 'jpg',
@@ -73,10 +73,10 @@ describe('UploadAvatarUseCase', () => {
 
     await useCase.execute({ userId: 1, file: validFile })
 
-    expect(cloudinaryService.deleteImage).toHaveBeenCalledWith('eers/old-avatar')
+    expect(imageStorage.deleteImage).toHaveBeenCalledWith('eers/old-avatar')
     expect(userImageRepository.deleteById).toHaveBeenCalledWith(5)
-    expect(cloudinaryService.deleteImage.mock.invocationCallOrder[0]).toBeLessThan(
-      cloudinaryService.uploadImage.mock.invocationCallOrder[0],
+    expect(imageStorage.deleteImage.mock.invocationCallOrder[0]).toBeLessThan(
+      imageStorage.uploadImage.mock.invocationCallOrder[0],
     )
   })
 
@@ -85,13 +85,13 @@ describe('UploadAvatarUseCase', () => {
 
     await expect(useCase.execute({ userId: 1, file: badFile })).rejects.toBeInstanceOf(InvalidFileTypeException)
     expect(userImageRepository.findAvatarByUserId).not.toHaveBeenCalled()
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled()
+    expect(imageStorage.uploadImage).not.toHaveBeenCalled()
   })
 
   it('throws FileTooLargeException when file exceeds 10MB', async () => {
     const bigFile = { ...validFile, size: 11 * 1024 * 1024 } as Express.Multer.File
 
     await expect(useCase.execute({ userId: 1, file: bigFile })).rejects.toBeInstanceOf(FileTooLargeException)
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled()
+    expect(imageStorage.uploadImage).not.toHaveBeenCalled()
   })
 })

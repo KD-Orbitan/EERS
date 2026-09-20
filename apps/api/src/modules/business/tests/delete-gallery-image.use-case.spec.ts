@@ -1,23 +1,23 @@
 import { DeleteGalleryImageUseCase } from '../application/use-cases/delete-gallery-image.use-case'
 import { BusinessImageRepository } from '../domain/repositories/business-image.repository'
 import { ValidateBusinessOwnershipUseCase } from '../application/use-cases/validate-business-ownership.use-case'
-import { CloudinaryService } from '../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../common/ports/image-storage.port'
 import { ImageNotFoundException } from '../../../common/exceptions/file.exceptions'
 
 describe('DeleteGalleryImageUseCase', () => {
   let useCase: DeleteGalleryImageUseCase
   let businessImageRepository: jest.Mocked<Pick<BusinessImageRepository, 'findGalleryImage' | 'deleteById'>>
-  let cloudinaryService: jest.Mocked<Pick<CloudinaryService, 'deleteImage'>>
+  let imageStorage: jest.Mocked<Pick<ImageStorage, 'deleteImage'>>
   let validateBusinessOwnershipUseCase: jest.Mocked<Pick<ValidateBusinessOwnershipUseCase, 'execute'>>
 
   beforeEach(() => {
     businessImageRepository = { findGalleryImage: jest.fn(), deleteById: jest.fn() }
-    cloudinaryService = { deleteImage: jest.fn() }
+    imageStorage = { deleteImage: jest.fn() }
     validateBusinessOwnershipUseCase = { execute: jest.fn().mockResolvedValue({ businessId: 1, ownerUserId: 5 }) }
 
     useCase = new DeleteGalleryImageUseCase(
       businessImageRepository as unknown as BusinessImageRepository,
-      cloudinaryService as unknown as CloudinaryService,
+      imageStorage as unknown as ImageStorage,
       validateBusinessOwnershipUseCase as unknown as ValidateBusinessOwnershipUseCase,
     )
   })
@@ -33,7 +33,7 @@ describe('DeleteGalleryImageUseCase', () => {
     await useCase.execute({ businessId: 1, user: { userId: 5, role: 'BUSINESS_OWNER' }, imageId: 40 })
 
     expect(businessImageRepository.findGalleryImage).toHaveBeenCalledWith(1, 40)
-    expect(cloudinaryService.deleteImage).toHaveBeenCalledWith('eers/gallery-40')
+    expect(imageStorage.deleteImage).toHaveBeenCalledWith('eers/gallery-40')
     expect(businessImageRepository.deleteById).toHaveBeenCalledWith(40)
   })
 
@@ -43,6 +43,6 @@ describe('DeleteGalleryImageUseCase', () => {
     await expect(useCase.execute({ businessId: 1, user: { userId: 5, role: 'BUSINESS_OWNER' }, imageId: 999 })).rejects.toBeInstanceOf(
       ImageNotFoundException,
     )
-    expect(cloudinaryService.deleteImage).not.toHaveBeenCalled()
+    expect(imageStorage.deleteImage).not.toHaveBeenCalled()
   })
 })

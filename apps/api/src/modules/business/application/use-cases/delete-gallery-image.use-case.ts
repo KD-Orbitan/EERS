@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CloudinaryService } from '../../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../../common/ports/image-storage.port'
 import { BusinessImageRepository } from '../../domain/repositories/business-image.repository'
 import { ValidateBusinessOwnershipUseCase } from './validate-business-ownership.use-case'
 import { ImageNotFoundException } from '../../../../common/exceptions/file.exceptions'
@@ -8,7 +8,7 @@ import { ImageNotFoundException } from '../../../../common/exceptions/file.excep
 export class DeleteGalleryImageUseCase {
   constructor(
     private readonly businessImageRepository: BusinessImageRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly imageStorage: ImageStorage,
     private readonly validateBusinessOwnershipUseCase: ValidateBusinessOwnershipUseCase,
   ) {}
 
@@ -28,7 +28,7 @@ export class DeleteGalleryImageUseCase {
       throw new ImageNotFoundException()
     }
 
-    await this.cloudinaryService.deleteImage(image.cloudinaryPublicId)
+    await this.imageStorage.deleteImage(image.cloudinaryPublicId)
     await this.businessImageRepository.deleteById(image.imageId)
   }
 }

@@ -2,8 +2,7 @@ import { Injectable, ForbiddenException } from '@nestjs/common'
 import { ReviewRepository } from '../../domain/repositories/review.repository'
 import { ReplyRepository } from '../../domain/repositories/reply.repository'
 import { ReviewNotFoundException, ReplyAlreadyExistsException } from '../../domain/exceptions/review.exceptions'
-import { BusinessRepository } from '../../../business/domain/repositories/business.repository'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { GetBusinessSummaryUseCase } from '../../../business/application/use-cases/get-business-summary.use-case'
 import { CreateNotificationUseCase } from '../../../notification/application/use-cases/create-notification.use-case'
 import { NOTIFICATION_TYPE } from '@eers/shared-constants'
 
@@ -12,8 +11,7 @@ export class CreateReplyUseCase {
   constructor(
     private readonly reviewRepository: ReviewRepository,
     private readonly replyRepository: ReplyRepository,
-    private readonly businessRepository: BusinessRepository,
-    private readonly prisma: PrismaService,
+    private readonly getBusinessSummaryUseCase: GetBusinessSummaryUseCase,
     private readonly createNotificationUseCase: CreateNotificationUseCase,
   ) {}
 
@@ -27,7 +25,7 @@ export class CreateReplyUseCase {
       throw new ForbiddenException('Forbidden')
     }
 
-    const business = await this.businessRepository.findById(review.businessId)
+    const business = await this.getBusinessSummaryUseCase.execute(review.businessId)
     if (!business || business.ownerUserId !== currentUserId) {
       throw new ForbiddenException('Forbidden')
     }
@@ -37,9 +35,7 @@ export class CreateReplyUseCase {
       throw new ReplyAlreadyExistsException()
     }
 
-    const reply = await this.prisma.$transaction(async () => {
-      return this.replyRepository.createReply({ reviewId, userId: currentUserId, content: dto.content })
-    })
+    const reply = await this.replyRepository.createReply({ reviewId, userId: currentUserId, content: dto.content })
 
     await this.createNotificationUseCase.execute({
       userId: review.writerUserId,

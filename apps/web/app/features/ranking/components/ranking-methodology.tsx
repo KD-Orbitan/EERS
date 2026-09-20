@@ -20,7 +20,8 @@ export function RankingMethodology() {
         <p className="mt-3 text-sm text-ink-700">
           Scores are recalculated hourly from approved reviews and weighted criteria ratings. Reviews rejected
           by fraud checks have no influence; suspicious reviews carry less weight. Bayesian adjustment moderates
-          scores based on how many reviews contribute. Businesses need at least one contributing review to be ranked.
+          scores using the total weight of contributing reviews. Businesses need at least one contributing review
+          classified as valid by fraud checks to be ranked.
         </p>
 
         <div className="mt-4 divide-y divide-ink-100 rounded-xl border border-ink-100">

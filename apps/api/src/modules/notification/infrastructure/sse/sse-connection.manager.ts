@@ -2,16 +2,11 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Subject } from 'rxjs'
 import { MessageEvent } from '@nestjs/common'
 
-export interface NotificationSseEvent {
-  event: 'notification'
-  notificationId: number
-  type: string
-  title: string
-  content: string
-}
+import { NotificationPublisher, type NotificationEvent } from '../../application/ports/notification-publisher.port'
+export type NotificationSseEvent = NotificationEvent
 
 @Injectable()
-export class SseConnectionManager {
+export class SseConnectionManager extends NotificationPublisher {
   private readonly logger = new Logger(SseConnectionManager.name)
   private readonly connections = new Map<number, Subject<MessageEvent>>()
 

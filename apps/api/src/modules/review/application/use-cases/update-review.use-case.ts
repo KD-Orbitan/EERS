@@ -1,13 +1,11 @@
 import { Injectable, ForbiddenException } from '@nestjs/common'
 import { ReviewRepository } from '../../domain/repositories/review.repository'
 import { ReviewNotFoundException, InvalidRatingException, InvalidCriterionException } from '../../domain/exceptions/review.exceptions'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 
 @Injectable()
 export class UpdateReviewUseCase {
   constructor(
     private readonly reviewRepository: ReviewRepository,
-    private readonly prisma: PrismaService,
   ) {}
 
   async execute({ reviewId, currentUserId, currentUserRole, dto }: { reviewId: number; currentUserId: number; currentUserRole: string; dto: { overallRating?: number; content?: string; criteriaRatings?: Array<{ criterionId: number; ratingValue: number }> } }) {

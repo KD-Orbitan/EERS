@@ -10,6 +10,7 @@ import { loginSchema, type LoginInput } from '@/features/auth/schemas/auth.schem
 import { useLoginMutation } from '@/features/auth/mutations/use-login.mutation';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { PasswordInput } from '@/components/ui/password-input';
+import { GoogleAuthButton } from './google-auth-button';
 
 export function LoginForm() {
   const router = useRouter();
@@ -77,6 +78,7 @@ export function LoginForm() {
           {isSubmitting || loginMutation.isPending ? 'Signing in...' : 'Login'}
         </button>
       </form>
+      <GoogleAuthButton disabled={isSubmitting || loginMutation.isPending} />
 
       <p className="mt-5 text-center text-sm text-ink-600">
         Don&apos;t have an account?{' '}

@@ -1,14 +1,14 @@
 import { UploadCoverUseCase } from '../application/use-cases/upload-cover.use-case'
 import { BusinessImageRepository } from '../domain/repositories/business-image.repository'
 import { ValidateBusinessOwnershipUseCase } from '../application/use-cases/validate-business-ownership.use-case'
-import { CloudinaryService } from '../../../infrastructure/storage/cloudinary.service'
+import { ImageStorage } from '../../../common/ports/image-storage.port'
 import { InvalidFileTypeException } from '../../../common/exceptions/file.exceptions'
 import { BusinessNotFoundException } from '../domain/exceptions/business.exceptions'
 
 describe('UploadCoverUseCase', () => {
   let useCase: UploadCoverUseCase
   let businessImageRepository: jest.Mocked<BusinessImageRepository>
-  let cloudinaryService: jest.Mocked<Pick<CloudinaryService, 'uploadImage' | 'deleteImage'>>
+  let imageStorage: jest.Mocked<Pick<ImageStorage, 'uploadImage' | 'deleteImage'>>
   let validateBusinessOwnershipUseCase: jest.Mocked<Pick<ValidateBusinessOwnershipUseCase, 'execute'>>
 
   const validFile = { mimetype: 'image/png', size: 1024, buffer: Buffer.from('data') } as Express.Multer.File
@@ -27,21 +27,21 @@ describe('UploadCoverUseCase', () => {
       findGalleryImagesByIds: jest.fn(),
       updateGalleryDisplayOrders: jest.fn(),
     }
-    cloudinaryService = { uploadImage: jest.fn(), deleteImage: jest.fn() }
+    imageStorage = { uploadImage: jest.fn(), deleteImage: jest.fn() }
     validateBusinessOwnershipUseCase = { execute: jest.fn().mockResolvedValue({ businessId: 1, ownerUserId: 5 }) }
 
     useCase = new UploadCoverUseCase(
       businessImageRepository,
-      cloudinaryService as unknown as CloudinaryService,
+      imageStorage as unknown as ImageStorage,
       validateBusinessOwnershipUseCase as unknown as ValidateBusinessOwnershipUseCase,
     )
   })
 
   it('saves image with imageType BUSINESS_COVER and correct businessId', async () => {
     businessImageRepository.findCoverByBusinessId.mockResolvedValue(null)
-    cloudinaryService.uploadImage.mockResolvedValue({
-      public_id: 'eers/cover-1',
-      secure_url: 'https://cdn.example.com/cover-1.png',
+    imageStorage.uploadImage.mockResolvedValue({
+      publicId: 'eers/cover-1',
+      secureUrl: 'https://cdn.example.com/cover-1.png',
       width: 800,
       height: 400,
       format: 'png',
@@ -65,9 +65,9 @@ describe('UploadCoverUseCase', () => {
       cloudinaryPublicId: 'eers/old-cover',
       secureUrl: 'https://cdn.example.com/old-cover.png',
     })
-    cloudinaryService.uploadImage.mockResolvedValue({
-      public_id: 'eers/new-cover',
-      secure_url: 'https://cdn.example.com/new-cover.png',
+    imageStorage.uploadImage.mockResolvedValue({
+      publicId: 'eers/new-cover',
+      secureUrl: 'https://cdn.example.com/new-cover.png',
     } as any)
     businessImageRepository.createCover.mockResolvedValue({
       imageId: 21,
@@ -77,7 +77,7 @@ describe('UploadCoverUseCase', () => {
 
     await useCase.execute({ businessId: 1, user: { userId: 5, role: 'BUSINESS_OWNER' }, file: validFile })
 
-    expect(cloudinaryService.deleteImage).toHaveBeenCalledWith('eers/old-cover')
+    expect(imageStorage.deleteImage).toHaveBeenCalledWith('eers/old-cover')
     expect(businessImageRepository.deleteById).toHaveBeenCalledWith(9)
   })
 
@@ -86,7 +86,7 @@ describe('UploadCoverUseCase', () => {
     validateBusinessOwnershipUseCase.execute.mockRejectedValue(forbiddenError)
 
     await expect(useCase.execute({ businessId: 1, user: { userId: 99, role: 'USER' }, file: validFile })).rejects.toBe(forbiddenError)
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled()
+    expect(imageStorage.uploadImage).not.toHaveBeenCalled()
   })
 
   it('throws BUSINESS_NOT_FOUND for invalid businessId', async () => {
@@ -103,6 +103,6 @@ describe('UploadCoverUseCase', () => {
     await expect(useCase.execute({ businessId: 1, user: { userId: 5, role: 'BUSINESS_OWNER' }, file: badFile })).rejects.toBeInstanceOf(
       InvalidFileTypeException,
     )
-    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled()
+    expect(imageStorage.uploadImage).not.toHaveBeenCalled()
   })
 })

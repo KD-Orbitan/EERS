@@ -1,13 +1,13 @@
 import { AddLocationUseCase } from '../application/use-cases/add-location.use-case'
 import { BusinessRepository } from '../domain/repositories/business.repository'
 import { LocationRepository } from '../domain/repositories/location.repository'
-import { GeocodingService } from '../infrastructure/services/geocoding.service'
+import { Geocoder } from '../application/ports/geocoder.port'
 import { BusinessNotFoundException } from '../domain/exceptions/business.exceptions'
 
 describe('AddLocationUseCase', () => {
   let businessRepository: jest.Mocked<Pick<BusinessRepository, 'findById'>>
   let locationRepository: jest.Mocked<Pick<LocationRepository, 'create' | 'createBusinessLocation'>>
-  let geocodingService: jest.Mocked<Pick<GeocodingService, 'geocode'>>
+  let geocodingService: jest.Mocked<Pick<Geocoder, 'geocode'>>
   let useCase: AddLocationUseCase
 
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('AddLocationUseCase', () => {
     useCase = new AddLocationUseCase(
       businessRepository as unknown as BusinessRepository,
       locationRepository as unknown as LocationRepository,
-      geocodingService as unknown as GeocodingService,
+      geocodingService as unknown as Geocoder,
     )
   })
 
