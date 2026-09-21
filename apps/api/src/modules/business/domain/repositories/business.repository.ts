@@ -41,6 +41,12 @@ export interface MyBusinessListItem {
 }
 
 export interface BusinessDetail {
+  website?: string | null;
+  openingHours?: string | null;
+  services?: string | null;
+  priceRange?: string | null;
+  amenities?: string | null;
+
   businessId: number
   name: string
   description: string | null
@@ -83,6 +89,11 @@ export abstract class BusinessRepository {
   abstract findCategoriesExist(categoryIds: number[]): Promise<boolean>
   abstract createBusinessWithLocationsAndCategories(params: {
     name: string
+    website?: string | null
+    openingHours?: string | null
+    services?: string | null
+    priceRange?: string | null
+    amenities?: string | null
     description?: string | null
     phone: string
     email?: string | null
@@ -92,6 +103,11 @@ export abstract class BusinessRepository {
   }): Promise<{ businessId: number; status: string }>
   abstract createUnclaimedBusinessWithLocationsAndCategories(params: {
     name: string
+    website?: string | null
+    openingHours?: string | null
+    services?: string | null
+    priceRange?: string | null
+    amenities?: string | null
     description?: string | null
     phone: string
     email?: string | null
@@ -99,7 +115,7 @@ export abstract class BusinessRepository {
     categoryIds: number[]
     locations: CreateBusinessLocation[]
   }): Promise<{ businessId: number; status: string }>
-  abstract updateBusiness(businessId: number, data: { name?: string; description?: string; phone?: string; email?: string }): Promise<{ businessId: number }>
+  abstract updateBusiness(businessId: number, data: { website?: string; openingHours?: string; services?: string; priceRange?: string; amenities?: string; name?: string; description?: string; phone?: string; email?: string }): Promise<{ businessId: number }>
   abstract softDeleteBusiness(businessId: number, actionUserId: number): Promise<void>
   abstract getApprovedBusinessList(query: BusinessListQuery): Promise<{ items: BusinessListItem[]; total: number }>
   abstract getMyBusinesses(userId: number, page: number, limit: number): Promise<{ items: MyBusinessListItem[]; total: number }>

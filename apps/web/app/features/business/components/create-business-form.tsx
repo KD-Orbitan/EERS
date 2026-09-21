@@ -1,5 +1,6 @@
 'use client';
 
+import { DescriptionEditor } from './description-editor';
 import { ProvinceSelect } from './province-select';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +15,12 @@ import { BusinessDetail } from '@/features/business/types/business.type';
 interface BusinessFormValues {
   name: string;
   description?: string;
+  website?: string;
+  openingHours?: string;
+  services?: string;
+  priceRange?: string;
+  amenities?: string;
+
   phone: string;
   email?: string;
   categoryIds: number[];
@@ -60,6 +67,12 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
     defaultValues: {
       name: initialData?.name ?? '',
       description: initialData?.description ?? '',
+      website: initialData?.website ?? '',
+      openingHours: initialData?.openingHours ?? '',
+      services: initialData?.services ?? '',
+      priceRange: initialData?.priceRange ?? '',
+      amenities: initialData?.amenities ?? '',
+
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
       categoryIds: initialData?.categories.map((category) => category.categoryId) ?? [],
@@ -78,6 +91,12 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
       const payload: UpdateBusinessInput = {
         name: values.name,
         description: values.description,
+      website: values.website,
+      openingHours: values.openingHours,
+      services: values.services,
+      priceRange: values.priceRange,
+      amenities: values.amenities,
+
         phone: values.phone,
         email: values.email,
       };
@@ -87,6 +106,12 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
     const payload: CreateBusinessInput = {
       name: values.name,
       description: values.description,
+      website: values.website,
+      openingHours: values.openingHours,
+      services: values.services,
+      priceRange: values.priceRange,
+      amenities: values.amenities,
+
       phone: values.phone,
       email: values.email,
       categoryIds: values.categoryIds,
@@ -117,12 +142,11 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
           <label className="mb-1 block text-sm font-medium text-ink-700" htmlFor="description">
             Description
           </label>
-          <textarea
-            id="description"
-            rows={4}
-            className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
-            {...register('description')}
-          />
+          <p id="description-help" className="mb-2 text-sm text-ink-500">Write your business story with headings, lists and links. It appears in the About section below your cover.</p>
+          <Controller control={control} name="description" render={({ field }) => (
+            <DescriptionEditor value={field.value ?? ''} onChange={field.onChange} onBlur={field.onBlur} disabled={busy} invalid={Boolean(errors.description)} />
+          )} />
+          <p id="description-error" role={errors.description ? 'alert' : undefined} className="mt-1 text-sm text-red-600">{errors.description?.message}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -153,6 +177,36 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
           </div>
         </div>
       </div>
+
+      <section className="space-y-4 rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
+        <h2 className="font-semibold text-ink-900">More about your business</h2>
+        <p className="text-sm text-ink-700">Optional details that help customers plan their visit.</p>
+        <div>
+          <label htmlFor="website" className="mb-1 block text-sm font-medium text-ink-700">Website</label>
+          <textarea id="website" rows={1} maxLength={500} placeholder="https://example.com" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('website')} />
+          {errors.website?.message ? <p className="mt-1 text-sm text-red-600">{errors.website.message}</p> : null}
+        </div>
+        <div>
+          <label htmlFor="openingHours" className="mb-1 block text-sm font-medium text-ink-700">Opening hours</label>
+          <textarea id="openingHours" rows={3} maxLength={1000} placeholder="Mon-Fri: 08:00-18:00; Sat-Sun: closed" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('openingHours')} />
+          {errors.openingHours?.message ? <p className="mt-1 text-sm text-red-600">{errors.openingHours.message}</p> : null}
+        </div>
+        <div>
+          <label htmlFor="services" className="mb-1 block text-sm font-medium text-ink-700">Products and services</label>
+          <textarea id="services" rows={3} maxLength={2000} placeholder="Describe your main products or services" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('services')} />
+          {errors.services?.message ? <p className="mt-1 text-sm text-red-600">{errors.services.message}</p> : null}
+        </div>
+        <div>
+          <label htmlFor="priceRange" className="mb-1 block text-sm font-medium text-ink-700">Price range</label>
+          <textarea id="priceRange" rows={1} maxLength={200} placeholder="50,000-200,000 VND per person" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('priceRange')} />
+          {errors.priceRange?.message ? <p className="mt-1 text-sm text-red-600">{errors.priceRange.message}</p> : null}
+        </div>
+        <div>
+          <label htmlFor="amenities" className="mb-1 block text-sm font-medium text-ink-700">Amenities and payment options</label>
+          <textarea id="amenities" rows={3} maxLength={1000} placeholder="Parking, Wi-Fi, wheelchair access, card payments" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('amenities')} />
+          {errors.amenities?.message ? <p className="mt-1 text-sm text-red-600">{errors.amenities.message}</p> : null}
+        </div>
+      </section>
 
       {!isEditMode ? (
         <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
@@ -271,7 +325,7 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
           </Button>
         ) : null}
         <Button type="submit" disabled={busy}>
-          {busy ? 'Saving...' : isEditMode ? 'Save changes' : isAdminCreate ? 'Add business' : 'Create business'}
+          {busy ? 'Saving...' : isEditMode ? 'Save changes' : isAdminCreate ? 'Add business' : 'Save and add photos'}
         </Button>
       </div>
     </form>

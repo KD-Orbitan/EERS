@@ -132,6 +132,11 @@ model Business {
   businessId  BigInt         @id @default(autoincrement()) @map("business_id")
   name        String         @db.VarChar(150)
   description String?        @db.Text
+  website String? @map("website") @db.VarChar(500)
+  openingHours String? @map("opening_hours") @db.VarChar(1000)
+  services String? @map("services") @db.VarChar(2000)
+  priceRange String? @map("price_range") @db.VarChar(200)
+  amenities String? @map("amenities") @db.VarChar(1000)
   phone       String         @unique @db.VarChar(20)
   email       String?        @unique @db.VarChar(255)
   status      BusinessStatus @default(pending)

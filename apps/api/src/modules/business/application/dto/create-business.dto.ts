@@ -1,4 +1,4 @@
-import { IsArray, IsEmail, IsOptional, IsString, Length, MinLength, ValidateNested, ArrayMinSize } from 'class-validator'
+import { Matches, MaxLength, IsArray, IsEmail, IsOptional, IsString, Length, MinLength, ValidateNested, ArrayMinSize } from 'class-validator'
 import { Type } from 'class-transformer'
 
 class CreateLocationDto {
@@ -25,6 +25,33 @@ export class CreateBusinessDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
+  @Matches(/^$|^https?:\/\/[^\s/]+(?:[^\s]*)$/i, { message: 'website must be an HTTP or HTTPS URL' })
+  website?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  openingHours?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  services?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  priceRange?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  amenities?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50000)
   description?: string
 
   @IsString()

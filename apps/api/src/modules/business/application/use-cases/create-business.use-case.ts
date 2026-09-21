@@ -38,6 +38,12 @@ export class CreateBusinessUseCase {
     return this.businessRepository.createBusinessWithLocationsAndCategories({
       name: dto.name,
       description: dto.description ?? null,
+      website: dto.website ?? null,
+      openingHours: dto.openingHours ?? null,
+      services: dto.services ?? null,
+      priceRange: dto.priceRange ?? null,
+      amenities: dto.amenities ?? null,
+
       phone: dto.phone,
       email: dto.email ?? null,
       ownerUserId: userId,

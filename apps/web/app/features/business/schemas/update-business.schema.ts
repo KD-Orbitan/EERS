@@ -2,7 +2,12 @@ import { z } from 'zod';
 
 export const updateBusinessSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(150, 'Name must be 150 characters or fewer.'),
-  description: z.string().optional(),
+  website: z.string().trim().max(500).refine((value) => !value || /^https?:\/\/[^\s/]+[^\s]*$/i.test(value), 'Enter an HTTP or HTTPS URL.').optional(),
+  openingHours: z.string().trim().max(1000).optional(),
+  services: z.string().trim().max(2000).optional(),
+  priceRange: z.string().trim().max(200).optional(),
+  amenities: z.string().trim().max(1000).optional(),
+  description: z.string().max(50000, 'Description is too long. Please shorten your article.').optional(),
   phone: z.string().min(1, 'Phone is required.').max(20, 'Phone must be 20 characters or fewer.'),
   email: z.string().email('Please enter a valid email address.').optional().or(z.literal('')),
 });

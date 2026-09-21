@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { descriptionExcerpt } from '@/lib/business-description';
 import { ArrowRight, MapPin, Star, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BusinessLogoBadge } from '@/features/business/components/business-logo-badge';
@@ -38,7 +39,7 @@ export function BusinessSpotlightCard({ business }: BusinessSpotlightCardProps) 
             Top Pick
           </span>
           <h2 className="mt-2 font-sans text-2xl font-bold text-ink-900">{business.name}</h2>
-          {business.description ? <p className="mt-1 max-w-xl text-sm text-ink-700">{business.description}</p> : null}
+          {business.description ? <p className="mt-1 max-w-xl line-clamp-2 break-words text-sm text-ink-700" dangerouslySetInnerHTML={{ __html: descriptionExcerpt(business.description) }} /> : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-ink-700">
             <span className="flex items-center gap-1 font-bold text-ink-900">

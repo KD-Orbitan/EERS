@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { descriptionExcerpt } from '@/lib/business-description';
 import { ArrowRight, Building2, MapPin, Star, Trophy } from 'lucide-react';
 import { BusinessLogoBadge } from '@/features/business/components/business-logo-badge';
 import { useTopBusinessesQuery } from '@/features/ranking/queries/use-top-businesses.query';
@@ -43,7 +44,7 @@ function FeaturedCard({ item, detail }: { item: TopRankingItem; detail?: Busines
         </div>
         <h3 className="mt-4 text-3xl font-medium tracking-tight">{item.businessName}</h3>
         {detail?.description ? (
-          <p className="mt-2 line-clamp-2 text-sm text-white/80">{detail.description}</p>
+          <p className="mt-2 line-clamp-2 text-sm text-white/80" dangerouslySetInnerHTML={{ __html: descriptionExcerpt(detail.description) }} />
         ) : null}
 
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-white/90">

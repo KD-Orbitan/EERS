@@ -43,6 +43,12 @@ export interface BusinessGalleryImage {
 }
 
 export interface BusinessDetail {
+  website?: string | null;
+  openingHours?: string | null;
+  services?: string | null;
+  priceRange?: string | null;
+  amenities?: string | null;
+
   businessId: number;
   name: string;
   description: string | null;

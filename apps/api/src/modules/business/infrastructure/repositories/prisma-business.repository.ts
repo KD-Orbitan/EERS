@@ -38,6 +38,11 @@ export class PrismaBusinessRepository extends BusinessRepository {
 
   async createBusinessWithLocationsAndCategories(params: {
     name: string
+    website?: string | null
+    openingHours?: string | null
+    services?: string | null
+    priceRange?: string | null
+    amenities?: string | null
     description?: string | null
     phone: string
     email?: string | null
@@ -50,6 +55,12 @@ export class PrismaBusinessRepository extends BusinessRepository {
         data: {
           name: params.name,
           description: params.description,
+          website: params.website,
+          openingHours: params.openingHours,
+          services: params.services,
+          priceRange: params.priceRange,
+          amenities: params.amenities,
+
           phone: params.phone,
           email: params.email,
           ownerUserId: BigInt(params.ownerUserId),
@@ -105,6 +116,11 @@ export class PrismaBusinessRepository extends BusinessRepository {
 
   async createUnclaimedBusinessWithLocationsAndCategories(params: {
     name: string
+    website?: string | null
+    openingHours?: string | null
+    services?: string | null
+    priceRange?: string | null
+    amenities?: string | null
     description?: string | null
     phone: string
     email?: string | null
@@ -117,6 +133,12 @@ export class PrismaBusinessRepository extends BusinessRepository {
         data: {
           name: params.name,
           description: params.description,
+          website: params.website,
+          openingHours: params.openingHours,
+          services: params.services,
+          priceRange: params.priceRange,
+          amenities: params.amenities,
+
           phone: params.phone,
           email: params.email,
           ownerUserId: null,
@@ -171,12 +193,18 @@ export class PrismaBusinessRepository extends BusinessRepository {
     }
   }
 
-  async updateBusiness(businessId: number, data: { name?: string; description?: string; phone?: string; email?: string }) {
+  async updateBusiness(businessId: number, data: { website?: string; openingHours?: string; services?: string; priceRange?: string; amenities?: string; name?: string; description?: string; phone?: string; email?: string }) {
     const updated = await this.prisma.business.updateMany({
       where: { businessId, deletedAt: null },
       data: {
         name: data.name,
         description: data.description,
+        website: data.website,
+        openingHours: data.openingHours,
+        services: data.services,
+        priceRange: data.priceRange,
+        amenities: data.amenities,
+
         phone: data.phone,
         email: data.email,
       },
@@ -365,6 +393,12 @@ export class PrismaBusinessRepository extends BusinessRepository {
       businessId: Number(business.businessId),
       name: business.name,
       description: business.description,
+      website: business.website,
+      openingHours: business.openingHours,
+      services: business.services,
+      priceRange: business.priceRange,
+      amenities: business.amenities,
+
       phone: business.phone,
       email: business.email,
       avgRating: Number(business.avgRating),
@@ -490,6 +524,12 @@ export class PrismaBusinessRepository extends BusinessRepository {
       businessId: Number(business.businessId),
       name: business.name,
       description: business.description,
+      website: business.website,
+      openingHours: business.openingHours,
+      services: business.services,
+      priceRange: business.priceRange,
+      amenities: business.amenities,
+
       phone: business.phone,
       email: business.email,
       status: business.status,

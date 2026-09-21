@@ -30,6 +30,11 @@ describe('CreateBusinessUseCase', () => {
       dto: {
         name: 'Test Business',
         description: 'Description',
+        website: 'https://example.com',
+        openingHours: 'Mon-Fri 08:00-18:00',
+        services: 'Coffee',
+        priceRange: '30,000 VND',
+        amenities: 'Wi-Fi',
         phone: '123456',
         email: 'test@biz.com',
         categoryIds: [1],
@@ -42,6 +47,11 @@ describe('CreateBusinessUseCase', () => {
     expect(businessRepository.createBusinessWithLocationsAndCategories).toHaveBeenCalledWith(
       expect.objectContaining({
         ownerUserId: 5,
+        website: 'https://example.com',
+        openingHours: 'Mon-Fri 08:00-18:00',
+        services: 'Coffee',
+        priceRange: '30,000 VND',
+        amenities: 'Wi-Fi',
         name: 'Test Business',
         locations: [{ addressLine: 'Line', ward: 'Ward', province: 'Province', latitude: null, longitude: null }],
       }),
