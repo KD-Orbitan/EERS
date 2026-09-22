@@ -87,6 +87,9 @@ export class PrismaReviewRepository extends ReviewRepository {
           ...(params.overallRating !== undefined ? { overallRating: params.overallRating } : {}),
           ...(params.content !== undefined ? { content: params.content } : {}),
           status: 'pending',
+          managedByUserId: null,
+          moderatedAt: null,
+          moderationReason: null,
         },
       })
       if (params.criteriaRatings) {

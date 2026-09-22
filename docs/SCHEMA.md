@@ -414,6 +414,8 @@ model Review {
 
   managedByUserId BigInt?  @map("managed_by_user_id")
   managedBy       User?    @relation("ReviewManager", fields: [managedByUserId], references: [userId])
+  moderatedAt     DateTime? @map("moderated_at") @db.Timestamptz
+  moderationReason String? @map("moderation_reason") @db.Text
 
   images          Image[]
   reviewCriteria  ReviewCriterion[]

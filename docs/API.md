@@ -2678,6 +2678,9 @@ interface AdminReviewListItem {
   businessName:  string
   authorName:    string
   createdAt:     string
+  managedBy: { userId: number; name: string } | null
+  moderatedAt: string | null  // ISO 8601; legacy records may be null
+  moderationReason: string | null
 }
 ```
 
@@ -2697,6 +2700,9 @@ Notes:
 ```
 Purpose: Approve a pending review
 ```
+
+Optional request body: `{ reason?: string }` (trimmed, max 500 characters).
+Omitted or blank notes are stored as null. Requests without a body remain supported.
 
 Response `200`:
 
@@ -2735,7 +2741,7 @@ Request:
 
 ```typescript
 interface RejectReviewDto {
-  reason: string  // required, min 10 chars
+  reason: string  // required, 10-500 chars after trimming
 }
 ```
 
@@ -3490,3 +3496,7 @@ Notifications:
 ---
 
 End of API.md — v1.0
+
+### Review moderation metadata (2026-09-21)
+
+`GET /admin/reviews` returns the current decision metadata only to admins. Legacy missing metadata stays null; do not derive moderation time from `updatedAt`. Editing a review resets its current metadata and status to pending. Each new decision is retained in `logs` with actor, reason and timestamp. The queue displays the current decision; a history viewer is not included. See [update note](notes/2026-09-21-review-moderation-details.md).

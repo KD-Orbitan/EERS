@@ -1,5 +1,7 @@
 'use client';
 
+import { type ListingPhotos, emptyListingPhotos } from '@/features/business/components/listing-photo-picker';
+import { uploadListingPhotos, hasListingPhotos } from '@/features/business/mutations/upload-listing-photos';
 import { useState } from 'react';
 import { BusinessPhotosStep } from '@/features/business/components/business-photos-step';
 import { useRouter } from 'next/navigation';
@@ -11,18 +13,24 @@ import { CreateBusinessInput } from '@/features/business/schemas/create-business
 
 export default function AdminCreateBusinessPage() {
   const router = useRouter();
+  const [failedPhotos, setFailedPhotos] = useState<ListingPhotos>(emptyListingPhotos);
+  const [saving, setSaving] = useState(false);
   const [createdBusinessId, setCreatedBusinessId] = useState<number>();
   const adminCreateBusinessMutation = useAdminCreateBusinessMutation();
 
-  const onSubmit = async (data: CreateBusinessInput) => {
+  const onSubmit = async (data: CreateBusinessInput, photos: ListingPhotos) => {
+    setSaving(true);
     try {
       const business = await adminCreateBusinessMutation.mutateAsync(data);
+      const failed = await uploadListingPhotos(business.businessId, photos);
+      setFailedPhotos(failed);
       setCreatedBusinessId(business.businessId);
-      toast.success('Business created and approved.');
+      if (hasListingPhotos(failed)) toast.error('Business saved, but some photos could not be uploaded. Retry them below.');
+      else toast.success('Business created and approved.');
 
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Unable to create business. Please try again.'));
-    }
+    } finally { setSaving(false); }
   };
 
   return (
@@ -33,10 +41,10 @@ export default function AdminCreateBusinessPage() {
           Creates an auto-approved, unclaimed business. Its real owner can later submit a claim to take it over.
         </p>
       </div>
-      {createdBusinessId ? <BusinessPhotosStep businessId={createdBusinessId} onDone={() => router.push('/admin/businesses')} /> : <CreateBusinessForm
+      {createdBusinessId ? <BusinessPhotosStep initialFailedPhotos={failedPhotos} businessId={createdBusinessId} onDone={() => router.push('/admin/businesses')} /> : <CreateBusinessForm
         mode="admin-create"
         onSubmit={onSubmit}
-        isLoading={adminCreateBusinessMutation.isPending}
+        isLoading={saving || adminCreateBusinessMutation.isPending}
         onCancel={() => router.push('/admin/businesses')}
       />}
     </div>

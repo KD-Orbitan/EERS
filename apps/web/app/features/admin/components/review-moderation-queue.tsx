@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { StarRating } from '@/features/review/components/star-rating';
 import { getErrorMessage } from '@/lib/get-error-message';
 import { useAdminReviewsQuery } from '@/features/admin/queries/use-admin-reviews.query';
@@ -36,6 +37,8 @@ export function ReviewModerationQueue() {
   const [status, setStatus] = useState<ReviewStatus>('pending');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [approvingReview, setApprovingReview] = useState<{ reviewId: number; businessId: number } | null>(null);
+  const [approvalReason, setApprovalReason] = useState('');
   const [rejectingReviewId, setRejectingReviewId] = useState<{ reviewId: number; businessId: number } | null>(null);
 
   const { data, isLoading } = useAdminReviewsQuery({ search: search.trim() || undefined, status, page, limit: 20 });
@@ -44,7 +47,9 @@ export function ReviewModerationQueue() {
 
   const onApprove = async (reviewId: number, businessId: number) => {
     try {
-      await approveMutation.mutateAsync({ reviewId, businessId });
+      await approveMutation.mutateAsync({ reviewId, businessId, reason: approvalReason.trim() || undefined });
+      setApprovingReview(null);
+      setApprovalReason('');
       toast.success('Review approved.');
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Unable to approve review.'));
@@ -118,10 +123,21 @@ export function ReviewModerationQueue() {
 
               <p className="mt-3 whitespace-pre-wrap text-sm text-ink-700">{review.content}</p>
 
+              {review.status === 'approved' || review.status === 'rejected' ? (
+                <dl className="mt-3 space-y-1 border-t border-ink-100 pt-3 text-xs text-ink-600">
+                  <div><dt className="inline font-semibold">{review.status === 'approved' ? 'Approved by' : 'Rejected by'}: </dt>
+                    <dd className="inline">{review.managedBy ? `${review.managedBy.name} (#${review.managedBy.userId})` : 'No recorded admin'}</dd></div>
+                  <div><dt className="inline font-semibold">Moderated at: </dt>
+                    <dd className="inline">{review.moderatedAt ? new Date(review.moderatedAt).toLocaleString() : 'No recorded date'}</dd></div>
+                  <div><dt className="font-semibold">{review.status === 'approved' ? 'Approval note' : 'Rejection reason'}:</dt>
+                    <dd className="whitespace-pre-wrap break-words">{review.moderationReason || (review.status === 'approved' && review.moderatedAt ? 'No note provided' : 'No recorded reason')}</dd></div>
+                </dl>
+              ) : null}
+
               {review.status === 'pending' ? (
                 <div className="mt-3 flex items-center gap-3 border-t border-ink-100 pt-3">
                   <Button
-                    onClick={() => onApprove(review.reviewId, review.businessId)}
+                    onClick={() => { setApprovalReason(''); setApprovingReview({ reviewId: review.reviewId, businessId: review.businessId }); }}
                     disabled={approveMutation.isPending}
                     className="gap-1.5 bg-emerald-600 py-1.5 text-xs hover:bg-emerald-700"
                   >
@@ -147,6 +163,21 @@ export function ReviewModerationQueue() {
       {data?.meta ? (
         <ListPagination page={page} limit={data.meta.limit} total={data.meta.total} onPageChange={setPage} />
       ) : null}
+
+      <Dialog open={approvingReview !== null} onOpenChange={(open) => { if (!open && !approveMutation.isPending) setApprovingReview(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Approve review</DialogTitle></DialogHeader>
+          <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); if (approvingReview && !approveMutation.isPending) void onApprove(approvingReview.reviewId, approvingReview.businessId); }}>
+            <label htmlFor="approval-reason" className="block text-sm font-medium">Approval note (optional)</label>
+            <textarea id="approval-reason" rows={4} maxLength={500} value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} disabled={approveMutation.isPending} className="w-full rounded-lg border border-ink-300 px-3 py-2 text-sm" />
+            <p className="text-right text-xs text-ink-500">{approvalReason.length}/500</p>
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" disabled={approveMutation.isPending} onClick={() => setApprovingReview(null)}>Cancel</Button>
+              <Button type="submit" disabled={approveMutation.isPending}>{approveMutation.isPending ? 'Approving...' : 'Approve'}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <RejectModal
         isOpen={rejectingReviewId !== null}

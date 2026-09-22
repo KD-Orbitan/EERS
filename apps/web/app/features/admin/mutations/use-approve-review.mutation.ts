@@ -11,8 +11,8 @@ export function useApproveReviewMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ reviewId }: { reviewId: number; businessId: number }) => {
-      const response = await apiClient.post(`/admin/reviews/${reviewId}/approve`);
+    mutationFn: async ({ reviewId, reason }: { reviewId: number; businessId: number; reason?: string }) => {
+      const response = await apiClient.post(`/admin/reviews/${reviewId}/approve`, { reason });
       return response.data.data as { reviewId: number; status: 'approved' };
     },
     onSuccess: (_data, variables) => {

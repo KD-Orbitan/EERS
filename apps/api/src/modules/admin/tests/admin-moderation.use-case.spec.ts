@@ -25,7 +25,9 @@ describe('Admin moderation use cases', () => {
       role: {
         findFirst: jest.fn(),
       },
+      log: { create: jest.fn() },
       review: {
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
         findFirst: jest.fn(),
         update: jest.fn(),
       },
@@ -90,7 +92,7 @@ describe('Admin moderation use cases', () => {
       const result = await useCase.execute({ reviewId: 11, currentUserId: 5 })
 
       expect(result).toEqual({ reviewId: 11, status: 'approved' })
-      expect(prisma.review.update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'approved', managedByUserId: 5 } }))
+      expect(prisma.review.updateMany).toHaveBeenCalledWith({ where: { reviewId: 11, status: 'pending', deletedAt: null }, data: { status: 'approved', managedByUserId: 5, moderatedAt: expect.any(Date), moderationReason: null } })
       expect(createNotificationUseCase.execute).toHaveBeenCalledWith(expect.objectContaining({ userId: 9, type: NOTIFICATION_TYPE.REVIEW_APPROVED }))
     })
 
@@ -117,7 +119,8 @@ describe('Admin moderation use cases', () => {
       const result = await useCase.execute({ reviewId: 11, currentUserId: 5, reason: 'This is clearly unacceptable and too long' })
 
       expect(result).toEqual({ reviewId: 11, status: 'rejected' })
-      expect(prisma.review.update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'rejected', managedByUserId: 5 } }))
+      expect(prisma.review.updateMany).toHaveBeenCalledWith({ where: { reviewId: 11, status: 'pending', deletedAt: null }, data: { status: 'rejected', managedByUserId: 5, moderatedAt: expect.any(Date), moderationReason: 'This is clearly unacceptable and too long' } })
+      expect(prisma.log.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId: 5n, action: 'REVIEW_REJECTED', newData: expect.objectContaining({ moderationReason: 'This is clearly unacceptable and too long' }) }) }))
       expect(createNotificationUseCase.execute).toHaveBeenCalledWith(expect.objectContaining({ userId: 9, type: NOTIFICATION_TYPE.REVIEW_REJECTED }))
     })
 

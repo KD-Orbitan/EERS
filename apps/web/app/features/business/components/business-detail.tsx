@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { OpeningHoursDetails, PriceRangeDetails, AmenitiesDetails } from './business-profile-details';
 import { BusinessDescription } from './business-description';
 import { LayoutDashboard, Mail, Phone, Pencil, PenLine, Tag, Trash2, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -136,10 +137,10 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
 
         <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
           {business.website ? <div><dt className="font-medium text-ink-900">Website</dt><dd className="whitespace-pre-line break-words text-ink-700">{/^https?:\/\//i.test(business.website) ? <a href={business.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">{business.website}</a> : business.website}</dd></div> : null}
-          {business.openingHours ? <div><dt className="font-medium text-ink-900">Opening hours</dt><dd className="whitespace-pre-line break-words text-ink-700">{business.openingHours}</dd></div> : null}
+          {business.openingHours ? <div><dt className="font-medium text-ink-900">Opening hours</dt><dd className="whitespace-pre-line break-words text-ink-700"><OpeningHoursDetails value={business.openingHours} /></dd></div> : null}
           {business.services ? <div><dt className="font-medium text-ink-900">Products and services</dt><dd className="whitespace-pre-line break-words text-ink-700">{business.services}</dd></div> : null}
-          {business.priceRange ? <div><dt className="font-medium text-ink-900">Price range</dt><dd className="whitespace-pre-line break-words text-ink-700">{business.priceRange}</dd></div> : null}
-          {business.amenities ? <div><dt className="font-medium text-ink-900">Amenities and payment options</dt><dd className="whitespace-pre-line break-words text-ink-700">{business.amenities}</dd></div> : null}
+          {business.priceRange ? <div><dt className="font-medium text-ink-900">Price range</dt><dd className="whitespace-pre-line break-words text-ink-700"><PriceRangeDetails value={business.priceRange} /></dd></div> : null}
+          {business.amenities ? <div><dt className="font-medium text-ink-900">Amenities and payment options</dt><dd className="whitespace-pre-line break-words text-ink-700"><AmenitiesDetails value={business.amenities} /></dd></div> : null}
         </dl>
         <div className="mt-4 flex items-center gap-2">
           {business.owner ? (

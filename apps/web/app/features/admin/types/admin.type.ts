@@ -43,6 +43,9 @@ export interface AdminBusinessListItem {
 }
 
 export interface AdminReviewListItem {
+  managedBy: { userId: number; name: string } | null;
+  moderatedAt: string | null;
+  moderationReason: string | null;
   reviewId: number;
   overallRating: number;
   content: string;

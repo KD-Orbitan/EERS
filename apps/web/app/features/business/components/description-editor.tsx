@@ -1,5 +1,6 @@
 'use client';
 
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useEffect, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -8,6 +9,9 @@ import { descriptionHtml } from '@/lib/business-description';
 export function DescriptionEditor({ value, onChange, onBlur, disabled, invalid }: {
   value: string; onChange: (value: string) => void; onBlur: () => void; disabled?: boolean; invalid?: boolean;
 }) {
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkText, setLinkText] = useState('');
+  const [linkRange, setLinkRange] = useState({ from: 1, to: 1 });
   const [linkUrl, setLinkUrl] = useState('');
   const [linkError, setLinkError] = useState('');
   const editor = useEditor({
@@ -41,11 +45,25 @@ export function DescriptionEditor({ value, onChange, onBlur, disabled, invalid }
     { label: 'Undo', run: () => editor.chain().focus().undo().run(), unavailable: !editor.can().undo() },
     { label: 'Redo', run: () => editor.chain().focus().redo().run(), unavailable: !editor.can().redo() },
   ];
+  const openLink = () => {
+    if (editor.isActive('link')) editor.commands.extendMarkRange('link');
+    const { from, to } = editor.state.selection;
+    setLinkRange({ from, to });
+    setLinkText(editor.state.doc.textBetween(from, to, ' '));
+    setLinkUrl(editor.getAttributes('link').href ?? '');
+    setLinkError('');
+    setLinkOpen(true);
+  };
   const addLink = () => {
     try {
-      const url = new URL(linkUrl.trim());
+      const input = linkUrl.trim();
+      const url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(input) ? input : `https://${input}`);
       if (!['https:', 'http:', 'mailto:'].includes(url.protocol)) throw new Error();
-      editor.chain().focus().extendMarkRange('link').setLink({ href: url.href }).run();
+      editor.chain().focus().insertContentAt(linkRange, {
+        type: 'text', text: linkText.trim() || url.href,
+        marks: [{ type: 'link', attrs: { href: url.href } }],
+      }).unsetLink().run();
+      setLinkOpen(false);
       setLinkError(''); setLinkUrl('');
     } catch { setLinkError('Enter a valid https://, http:// or mailto: link.'); }
   };
@@ -54,11 +72,24 @@ export function DescriptionEditor({ value, onChange, onBlur, disabled, invalid }
       {actions.map(action => <button key={action.label} type="button" aria-pressed={action.active} disabled={disabled || action.unavailable} onClick={action.run} className={`rounded px-2 py-1 text-sm disabled:opacity-40 ${action.active ? 'bg-primary-600 text-white' : 'text-ink-700 hover:bg-ink-200'}`}>{action.label}</button>)}
     </div>
     <EditorContent editor={editor} />
-    <div className="flex flex-wrap items-center gap-2 border-t border-ink-200 p-2">
-      <input aria-label="Link URL" placeholder="https://example.com" value={linkUrl} disabled={disabled} onChange={event => setLinkUrl(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); addLink(); } }} className="min-w-0 flex-1 rounded border border-ink-200 px-2 py-1 text-sm" />
-      <button type="button" onClick={addLink} disabled={disabled || !linkUrl.trim()} className="text-sm text-primary-600 disabled:opacity-40">Add link</button>
-      <button type="button" onClick={() => editor.chain().focus().extendMarkRange('link').unsetLink().run()} disabled={disabled || !editor.isActive('link')} className="text-sm text-ink-700 disabled:opacity-40">Remove link</button>
+    <div className="border-t border-ink-200 p-3">
+      <button type="button" disabled={disabled} onClick={openLink} className="rounded border border-ink-200 px-3 py-2 text-sm text-primary-600">{editor.isActive('link') ? 'Edit link' : 'Insert link'}</button>
+      <p className="mt-2 text-xs text-ink-500">Select words to turn them into a link, or insert a new link with its own display text.</p>
     </div>
-    {linkError ? <p role="alert" className="px-3 pb-2 text-sm text-red-600">{linkError}</p> : null}
+    <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
+      <DialogContent aria-describedby="link-instructions">
+        <DialogTitle className="text-lg font-semibold">Insert or edit link</DialogTitle>
+        <p id="link-instructions" className="my-3 text-sm text-ink-700">Enter the words readers will see and the page they should open.</p>
+        <label className="block text-sm">Display text<input autoFocus value={linkText} onChange={event => setLinkText(event.target.value)} placeholder="View our menu" className="mb-3 mt-1 w-full rounded border border-ink-200 p-2" /></label>
+        <label className="block text-sm">Website address<input value={linkUrl} onChange={event => setLinkUrl(event.target.value)} placeholder="https://example.com/menu" onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); addLink(); } }} className="mt-1 w-full rounded border border-ink-200 p-2" /></label>
+        <p className="mt-2 text-xs text-ink-500">Example: ?View our menu? opens example.com/menu. Leave display text empty to show the address.</p>
+        {linkError ? <p role="alert" className="mt-2 text-sm text-red-600">{linkError}</p> : null}
+        <div className="mt-4 flex justify-end gap-3">
+          {editor.isActive('link') ? <button type="button" onClick={() => { editor.chain().focus().setTextSelection(linkRange).unsetLink().run(); setLinkOpen(false); }} className="text-sm text-red-600">Remove link</button> : null}
+          <button type="button" onClick={() => setLinkOpen(false)} className="text-sm">Cancel</button>
+          <button type="button" disabled={disabled || !linkUrl.trim()} onClick={addLink} className="rounded bg-primary-600 px-3 py-2 text-sm text-white disabled:opacity-40">Save link</button>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>;
 }

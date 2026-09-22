@@ -25,9 +25,22 @@ export class RejectReviewUseCase {
       throw new ReviewNotPendingException()
     }
 
-    await this.prisma.review.update({
-      where: { reviewId },
-      data: { status: 'rejected', managedByUserId: currentUserId },
+    const moderatedAt = new Date()
+    const moderationReason = reason.trim()
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.review.updateMany({
+        where: { reviewId, status: 'pending', deletedAt: null },
+        data: { status: 'rejected', managedByUserId: currentUserId, moderatedAt, moderationReason },
+      })
+      if (updated.count === 0) throw new ReviewNotPendingException()
+      await tx.log.create({
+        data: {
+          action: 'REVIEW_REJECTED', entityType: 'Review',
+          entityId: BigInt(reviewId), userId: BigInt(currentUserId),
+          oldData: { status: 'pending' },
+          newData: { status: 'rejected', moderationReason, moderatedAt: moderatedAt.toISOString() },
+        },
+      })
     })
 
     await this.createNotificationUseCase.execute({
@@ -35,9 +48,8 @@ export class RejectReviewUseCase {
       type: NOTIFICATION_TYPE.REVIEW_REJECTED,
       targetPath: '/reviews/my',
       title: 'Review Rejected',
-      content: `Your review has been rejected. Reason: ${reason}`,
+      content: `Your review has been rejected. Reason: ${moderationReason}`,
     })
-
     return { reviewId, status: 'rejected' as const }
   }
 }

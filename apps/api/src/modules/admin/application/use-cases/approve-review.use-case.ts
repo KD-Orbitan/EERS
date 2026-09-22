@@ -11,7 +11,7 @@ export class ApproveReviewUseCase {
     private readonly createNotificationUseCase: CreateNotificationUseCase,
   ) {}
 
-  async execute({ reviewId, currentUserId }: { reviewId: number; currentUserId: number }) {
+  async execute({ reviewId, currentUserId, reason }: { reviewId: number; currentUserId: number; reason?: string }) {
     const review = await this.prisma.review.findFirst({
       where: { reviewId, deletedAt: null },
       select: { reviewId: true, businessId: true, status: true, writerUserId: true },
@@ -25,9 +25,22 @@ export class ApproveReviewUseCase {
       throw new ReviewNotPendingException()
     }
 
-    await this.prisma.review.update({
-      where: { reviewId },
-      data: { status: 'approved', managedByUserId: currentUserId },
+    const moderatedAt = new Date()
+    const moderationReason = reason?.trim() || null
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.review.updateMany({
+        where: { reviewId, status: 'pending', deletedAt: null },
+        data: { status: 'approved', managedByUserId: currentUserId, moderatedAt, moderationReason },
+      })
+      if (updated.count === 0) throw new ReviewNotPendingException()
+      await tx.log.create({
+        data: {
+          action: 'REVIEW_APPROVED', entityType: 'Review',
+          entityId: BigInt(reviewId), userId: BigInt(currentUserId),
+          oldData: { status: 'pending' },
+          newData: { status: 'approved', moderationReason, moderatedAt: moderatedAt.toISOString() },
+        },
+      })
     })
 
     await this.createNotificationUseCase.execute({
@@ -37,7 +50,6 @@ export class ApproveReviewUseCase {
       title: 'Review Approved',
       content: 'Your review has been approved.',
     })
-
     return { reviewId, status: 'approved' as const }
   }
 }

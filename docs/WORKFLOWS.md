@@ -972,37 +972,12 @@ Transaction: wraps step 3a-3c.
 **UseCase:** `ApproveReviewUseCase`
 **Trigger:** `POST /admin/reviews/:reviewId/approve`
 
-Preconditions:
-
-```
-- Review exists (deletedAt IS NULL)
-- Review status = 'pending'
-```
-
-Steps:
-
-```
-1. Load review WHERE deletedAt IS NULL → throw REVIEW_NOT_FOUND
-2. If review.status != 'pending' → throw REVIEW_NOT_PENDING
-3. BEGIN TRANSACTION:
-   a. Update review:
-        status='approved', managedByUserId=currentUserId
-   b. Create notification:
-        userId=review.writerUserId,
-        type='REVIEW_APPROVED',
-        title='Review Approved',
-        content='Your review has been approved.'
-   c. Create audit log:
-        action='REVIEW_APPROVED', entityType='Review',
-        entityId=reviewId, userId=currentUserId
-4. Push SSE event to review.writerUserId
-5. Return { reviewId, status: 'approved' }
-```
-
-Transaction: wraps step 3a-3c.
-
-Note: Review becomes eligible for ranking in the NEXT cron run.
-Do NOT trigger immediate ranking recalculation here.
+1. Require ADMIN. Accept an optional trimmed note, maximum 500 characters.
+2. Load non-deleted review; throw REVIEW_NOT_FOUND if absent and REVIEW_NOT_PENDING unless pending.
+3. In one transaction, conditionally update the non-deleted pending review to approved, setting managedByUserId from the authenticated admin, moderatedAt to now and moderationReason to the note (null if omitted/blank). If no row is updated, reject the competing decision with REVIEW_NOT_PENDING.
+4. In the same transaction, create REVIEW_APPROVED in logs with actor, review ID, old status and new status/reason/time.
+5. After commit, create the author notification and publish through the existing notification flow. Notification delivery is outside the moderation transaction; a notification failure does not undo the decision or audit record.
+6. Return { reviewId, status: 'approved' }. Ranking eligibility takes effect on the next cron run.
 
 ---
 
@@ -1011,27 +986,11 @@ Do NOT trigger immediate ranking recalculation here.
 **UseCase:** `RejectReviewUseCase`
 **Trigger:** `POST /admin/reviews/:reviewId/reject`
 
-Steps:
+Follow the same guarded transaction as approval, with status rejected and action REVIEW_REJECTED. Require a reason of 10–500 characters after trimming. Persist the reason on the review and in the audit log; also include it in the author notification after commit. Return { reviewId, status: 'rejected' }.
 
-```
-1. Load review WHERE deletedAt IS NULL → throw REVIEW_NOT_FOUND
-2. If review.status != 'pending' → throw REVIEW_NOT_PENDING
-3. BEGIN TRANSACTION:
-   a. Update review:
-        status='rejected', managedByUserId=currentUserId
-   b. Create notification:
-        userId=review.writerUserId,
-        type='REVIEW_REJECTED',
-        title='Review Rejected',
-        content='Your review has been rejected. Reason: {reason}'
-   c. Create audit log:
-        action='REVIEW_REJECTED', entityType='Review',
-        entityId=reviewId, userId=currentUserId
-4. Push SSE event to review.writerUserId
-5. Return { reviewId, status: 'rejected' }
-```
+When WF-REV-002 edits a review, reset managedByUserId, moderatedAt and moderationReason to null along with status pending. Existing decision logs remain intact. Approved/Rejected queue cards show the current admin, local date/time and reason/note. Old records with absent metadata show explicit missing-data text; no timestamps or reasons are fabricated.
 
-Transaction: wraps step 3a-3c.
+See [2026-09-21 update note](notes/2026-09-21-review-moderation-details.md).
 
 ---
 

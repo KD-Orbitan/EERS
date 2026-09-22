@@ -20,7 +20,7 @@ export class ListAdminReviewsUseCase {
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
         where,
-        include: { business: true, writer: true },
+        include: { business: true, writer: true, managedBy: { select: { userId: true, name: true } } },
         orderBy: [{ createdAt: 'asc' }, { reviewId: 'asc' }],
         skip: (page - 1) * limit,
         take: limit,
@@ -37,6 +37,9 @@ export class ListAdminReviewsUseCase {
       businessName: review.business.name,
       authorName: review.writer.name,
       createdAt: review.createdAt.toISOString(),
+      managedBy: review.managedBy ? { userId: Number(review.managedBy.userId), name: review.managedBy.name } : null,
+      moderatedAt: review.moderatedAt?.toISOString() ?? null,
+      moderationReason: review.moderationReason,
     }))
 
     return { items, total }

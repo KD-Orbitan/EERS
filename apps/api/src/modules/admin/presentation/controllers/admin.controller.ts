@@ -7,6 +7,7 @@ import { RolesGuard } from '../../../../common/guards/roles.guard'
 import { Roles } from '../../../../common/decorators/roles.decorator'
 import { RejectBusinessDto } from '../../application/dto/reject-business.dto'
 import { RejectReviewDto } from '../../application/dto/reject-review.dto'
+import { ApproveReviewDto } from '../../application/dto/approve-review.dto'
 import { UpdateScoringConfigDto } from '../../application/dto/update-scoring-config.dto'
 import { UpdateCriterionWeightDto } from '../../application/dto/update-criterion-weight.dto'
 import { UpdateRankingTrendConfigDto } from '../../application/dto/update-ranking-trend-config.dto'
@@ -131,8 +132,8 @@ export class AdminController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  async approveReview(@CurrentUser() user: { userId: number }, @Param('reviewId', ParseIntPipe) reviewId: number) {
-    return this.approveReviewUseCase.execute({ reviewId, currentUserId: user.userId })
+  async approveReview(@CurrentUser() user: { userId: number }, @Param('reviewId', ParseIntPipe) reviewId: number, @Body() dto: ApproveReviewDto = {}) {
+    return this.approveReviewUseCase.execute({ reviewId, currentUserId: user.userId, reason: dto.reason })
   }
 
   @Post('reviews/:reviewId/reject')

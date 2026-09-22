@@ -1,5 +1,8 @@
 'use client';
 
+import { useState } from 'react';
+import { ListingPhotoPicker, emptyListingPhotos, type ListingPhotos } from './listing-photo-picker';
+import { OpeningHoursInput, PriceRangeInput, AmenitiesInput } from './business-profile-inputs';
 import { DescriptionEditor } from './description-editor';
 import { ProvinceSelect } from './province-select';
 
@@ -39,7 +42,7 @@ type CreateBusinessFormProps =
       mode?: 'create' | 'admin-create';
       initialData?: undefined;
       isLoading?: boolean;
-      onSubmit: (data: CreateBusinessInput) => void | Promise<void>;
+      onSubmit: (data: CreateBusinessInput, photos: ListingPhotos) => void | Promise<void>;
       onCancel?: () => void;
     }
   | {
@@ -51,6 +54,7 @@ type CreateBusinessFormProps =
     };
 
 export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onCancel }: CreateBusinessFormProps) {
+  const [photos, setPhotos] = useState<ListingPhotos>(emptyListingPhotos);
   const isEditMode = Boolean(initialData);
   const isAdminCreate = mode === 'admin-create';
   const { data: categories } = useCategoriesQuery();
@@ -117,7 +121,7 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
       categoryIds: values.categoryIds,
       locations: values.locations,
     };
-    return (onSubmit as (data: CreateBusinessInput) => void | Promise<void>)(payload);
+    return (onSubmit as (data: CreateBusinessInput, photos: ListingPhotos) => void | Promise<void>)(payload, photos);
   });
 
   const busy = isSubmitting || isLoading;
@@ -187,8 +191,7 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
           {errors.website?.message ? <p className="mt-1 text-sm text-red-600">{errors.website.message}</p> : null}
         </div>
         <div>
-          <label htmlFor="openingHours" className="mb-1 block text-sm font-medium text-ink-700">Opening hours</label>
-          <textarea id="openingHours" rows={3} maxLength={1000} placeholder="Mon-Fri: 08:00-18:00; Sat-Sun: closed" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('openingHours')} />
+          <Controller control={control} name="openingHours" render={({ field }) => <OpeningHoursInput value={field.value ?? ''} onChange={field.onChange} disabled={busy} />} />
           {errors.openingHours?.message ? <p className="mt-1 text-sm text-red-600">{errors.openingHours.message}</p> : null}
         </div>
         <div>
@@ -197,13 +200,11 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
           {errors.services?.message ? <p className="mt-1 text-sm text-red-600">{errors.services.message}</p> : null}
         </div>
         <div>
-          <label htmlFor="priceRange" className="mb-1 block text-sm font-medium text-ink-700">Price range</label>
-          <textarea id="priceRange" rows={1} maxLength={200} placeholder="50,000-200,000 VND per person" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('priceRange')} />
+          <Controller control={control} name="priceRange" render={({ field }) => <PriceRangeInput value={field.value ?? ''} onChange={field.onChange} disabled={busy} />} />
           {errors.priceRange?.message ? <p className="mt-1 text-sm text-red-600">{errors.priceRange.message}</p> : null}
         </div>
         <div>
-          <label htmlFor="amenities" className="mb-1 block text-sm font-medium text-ink-700">Amenities and payment options</label>
-          <textarea id="amenities" rows={3} maxLength={1000} placeholder="Parking, Wi-Fi, wheelchair access, card payments" className="w-full rounded-xl border border-ink-200 bg-primary-50 px-3 py-2 text-sm" {...register('amenities')} />
+          <Controller control={control} name="amenities" render={({ field }) => <AmenitiesInput value={field.value ?? ''} onChange={field.onChange} disabled={busy} />} />
           {errors.amenities?.message ? <p className="mt-1 text-sm text-red-600">{errors.amenities.message}</p> : null}
         </div>
       </section>
@@ -318,6 +319,8 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
         </div>
       ) : null}
 
+      {!isEditMode ? <ListingPhotoPicker value={photos} onChange={setPhotos} disabled={busy} /> : null}
+
       <div className="flex justify-end gap-3">
         {onCancel ? (
           <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
@@ -325,7 +328,7 @@ export function CreateBusinessForm({ mode, initialData, isLoading, onSubmit, onC
           </Button>
         ) : null}
         <Button type="submit" disabled={busy}>
-          {busy ? 'Saving...' : isEditMode ? 'Save changes' : isAdminCreate ? 'Add business' : 'Save and add photos'}
+          {busy ? 'Saving...' : isEditMode ? 'Save changes' : isAdminCreate ? 'Add business' : 'Submit business'}
         </Button>
       </div>
     </form>
