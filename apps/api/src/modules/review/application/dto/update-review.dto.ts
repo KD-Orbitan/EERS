@@ -1,4 +1,5 @@
-import { ArrayMinSize, IsArray, IsInt, IsOptional, IsString, Length, Min, Max } from 'class-validator'
+import { IsArray, IsInt, IsOptional, IsString, Length, Min, Max, ValidateNested } from 'class-validator'
+import { Type } from 'class-transformer'
 
 class CriterionRatingDto {
   @IsInt()
@@ -24,6 +25,7 @@ export class UpdateReviewDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CriterionRatingDto)
   criteriaRatings?: CriterionRatingDto[]
 }

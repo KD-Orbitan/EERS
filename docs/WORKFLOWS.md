@@ -572,7 +572,7 @@ Steps:
    → throw REVIEW_ALREADY_EXISTS if exists
 5. Validate overallRating 1-5 → throw INVALID_RATING
 6. Load criteria for this business via category_criteria join
-7. Validate each criterionId in criteriaRatings belongs to business criteria
+7. Allow criteriaRatings=[] for an overall-only review; otherwise require every distinct business criterion exactly once with an integer score of 1-5
    → throw INVALID_CRITERION if any invalid
 8. Validate each ratingValue 1-5 → throw INVALID_RATING
 9. BEGIN TRANSACTION:
@@ -612,7 +612,7 @@ Steps:
 3. If currentUser.role != 'ADMIN' AND review.writerUserId != currentUserId
    → throw FORBIDDEN
 4. If overallRating provided → validate 1-5 → throw INVALID_RATING
-5. If criteriaRatings provided:
+5. If criteriaRatings provided, allow [] to switch to overall-only; otherwise require all distinct business criteria exactly once:
    a. Validate each criterionId belongs to business criteria
       → throw INVALID_CRITERION
    b. Validate each ratingValue 1-5 → throw INVALID_RATING

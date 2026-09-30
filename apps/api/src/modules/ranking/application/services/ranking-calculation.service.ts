@@ -62,7 +62,7 @@ export class RankingCalculationService {
       }
 
       const categoryIds = categoryIdsByBusiness.get(review.businessId) ?? []
-      const S_hat_i = await this.multiCriteriaScoringService.computeScore(review.reviewId, categoryIds)
+      const S_hat_i = await this.multiCriteriaScoringService.computeScore(review.reviewId, categoryIds, review.overallRating)
 
       const fraudStatus = fraudMap.get(review.reviewId) ?? 'UNKNOWN'
       const W_i = await this.reviewWeightingService.computeWeight({

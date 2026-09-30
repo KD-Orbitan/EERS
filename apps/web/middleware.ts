@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_HINT_COOKIE } from './app/lib/constants';
 
 const protectedRoutes = ['/profile', '/reviews', '/reports', '/notifications', '/admin', '/bookmarks'];
-const authRoutes = ['/login', '/register'];
 
 function isProtectedBusinessRoute(pathname: string) {
   return (
@@ -33,15 +32,12 @@ export function middleware(request: NextRequest) {
       return pathname === route || pathname.startsWith(`${route}/`);
     });
 
-  const isAuthRoute = authRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
-
   if (isProtectedRoute && !authHint) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (isAuthRoute && authHint) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
+  // A hint can outlive the real session. Always allow login/register so a
+  // stale cookie cannot prevent the user from signing in again.
 
   return NextResponse.next();
 }

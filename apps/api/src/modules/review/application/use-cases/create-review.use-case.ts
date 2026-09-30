@@ -1,6 +1,7 @@
+import { validateCriteriaRatings } from '../validate-criteria-ratings'
 import { Injectable } from '@nestjs/common'
 import { ReviewRepository } from '../../domain/repositories/review.repository'
-import { ReviewAlreadyExistsException, InvalidRatingException, InvalidCriterionException } from '../../domain/exceptions/review.exceptions'
+import { ReviewAlreadyExistsException, InvalidRatingException } from '../../domain/exceptions/review.exceptions'
 import { BusinessNotApprovedException, BusinessNotFoundException } from '../../../business/domain/exceptions/business.exceptions'
 import { GetBusinessSummaryUseCase } from '../../../business/application/use-cases/get-business-summary.use-case'
 import { CreateNotificationUseCase } from '../../../notification/application/use-cases/create-notification.use-case'
@@ -33,15 +34,7 @@ export class CreateReviewUseCase {
     }
 
     const validCriteria = await this.reviewRepository.findBusinessCriteria(dto.businessId)
-    const validCriterionIds = new Set(validCriteria.map((item) => item.criterionId))
-    for (const criterion of dto.criteriaRatings) {
-      if (!validCriterionIds.has(criterion.criterionId)) {
-        throw new InvalidCriterionException()
-      }
-      if (!Number.isInteger(criterion.ratingValue) || criterion.ratingValue < 1 || criterion.ratingValue > 5) {
-        throw new InvalidRatingException()
-      }
-    }
+    validateCriteriaRatings(dto.criteriaRatings, validCriteria)
 
     const review = await this.reviewRepository.createReviewWithCriteria({
       writerUserId: currentUserId,

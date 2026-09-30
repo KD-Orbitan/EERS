@@ -35,9 +35,10 @@ interface PhotoDraft {
 }
 
 export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubmit, onCancel, isLoading }: WriteReviewFormProps) {
-  const { data: criteria, isLoading: isLoadingCriteria } = useBusinessCriteriaQuery(categoryIds);
+  const { data: criteria, isLoading: isLoadingCriteria, isError: isCriteriaError, refetch: refetchCriteria } = useBusinessCriteriaQuery(categoryIds);
   const isEditMode = Boolean(initialValues);
 
+  const [ratingMode, setRatingMode] = useState<'overall' | 'criteria'>(initialValues?.criteriaRatings.length ? 'criteria' : 'overall');
   const [overallRating, setOverallRating] = useState(initialValues?.overallRating ?? 0);
   const [content, setContent] = useState(initialValues?.content ?? '');
   const [criteriaRatings, setCriteriaRatings] = useState<Record<number, number>>(() =>
@@ -88,8 +89,12 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
       setFormError('Please write at least 10 characters.');
       return;
     }
+    if (ratingMode === 'criteria' && (isLoadingCriteria || isCriteriaError || !criteria?.length)) {
+      setFormError('Criteria are unavailable. Please retry or choose an overall rating only.');
+      return;
+    }
     const unratedCriterion = (criteria ?? []).find((criterion) => !criteriaRatings[criterion.criterionId]);
-    if (unratedCriterion) {
+    if (ratingMode === 'criteria' && unratedCriterion) {
       setFormError(`Please rate "${unratedCriterion.name}".`);
       return;
     }
@@ -98,7 +103,7 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
       businessId,
       overallRating,
       content: content.trim(),
-      criteriaRatings: (criteria ?? []).map((criterion) => ({
+      criteriaRatings: (ratingMode === 'criteria' ? criteria ?? [] : []).map((criterion) => ({
         criterionId: criterion.criterionId,
         ratingValue: criteriaRatings[criterion.criterionId],
       })),
@@ -113,31 +118,57 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
   };
 
   const busy = isSubmitting || isLoading;
+  const incompleteCriteria = ratingMode === 'criteria' && (
+    isLoadingCriteria || isCriteriaError || !criteria?.length ||
+    criteria.some((criterion) => !criteriaRatings[criterion.criterionId])
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <fieldset disabled={busy} className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
+        <legend className="text-sm font-medium text-ink-700">Rating type</legend>
+        <div className="flex flex-wrap gap-4">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="radio" name="ratingMode" value="overall" checked={ratingMode === 'overall'} onChange={() => { setRatingMode('overall'); setFormError(null); }} />
+            Overall rating only
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="radio" name="ratingMode" value="criteria" checked={ratingMode === 'criteria'} onChange={() => { setRatingMode('criteria'); setFormError(null); }} />
+            Multi-criteria rating
+          </label>
+        </div>
+        <p className="mt-2 text-sm text-ink-500">{ratingMode === 'overall' ? 'Give one overall score for your experience.' : 'Give an overall score and rate every criterion before submitting.'}</p>
+      </fieldset>
       <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <p className="mb-2 text-sm font-medium text-ink-700">Overall rating</p>
         <StarRating value={overallRating} onChange={setOverallRating} size="lg" />
       </div>
 
-      <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
-        <p className="mb-1 text-sm font-medium text-ink-700">Criteria ratings</p>
+      {ratingMode === 'criteria' ? <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
+        <p className="mb-1 text-sm font-medium text-ink-700">Criteria ratings (all required)</p>
         {isLoadingCriteria ? (
           <p className="text-sm text-ink-500">Loading criteria...</p>
+        ) : isCriteriaError ? (
+          <div role="alert" className="text-sm text-red-600">
+            Unable to load criteria. <button type="button" onClick={() => void refetchCriteria()} className="underline">Retry</button>
+          </div>
+        ) : !criteria?.length ? (
+          <p className="text-sm text-ink-500">No criteria are available. Please choose an overall rating only.</p>
         ) : (
           <div className="divide-y divide-ink-100">
             {(criteria ?? []).map((criterion) => (
               <CriteriaRatingInput
                 key={criterion.criterionId}
                 criterionName={criterion.name}
+                disabled={busy}
                 value={criteriaRatings[criterion.criterionId] ?? 0}
                 onChange={(value) => setCriteriaRatings((prev) => ({ ...prev, [criterion.criterionId]: value }))}
               />
             ))}
           </div>
         )}
-      </div>
+        {criteria?.length ? <p className="mt-2 text-sm text-ink-500">{criteria.filter((criterion) => criteriaRatings[criterion.criterionId]).length}/{criteria.length} criteria rated. Rate every criterion to submit.</p> : null}
+      </div> : null}
 
       <div className="rounded-2xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
         <div className="mb-1 flex items-center justify-between">
@@ -210,7 +241,7 @@ export function WriteReviewForm({ businessId, categoryIds, initialValues, onSubm
             Cancel
           </Button>
         ) : null}
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy || incompleteCriteria}>
           {busy ? 'Saving...' : initialValues ? 'Save changes' : 'Post Review'}
         </Button>
       </div>

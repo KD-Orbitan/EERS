@@ -1,6 +1,7 @@
+import { validateCriteriaRatings } from '../validate-criteria-ratings'
 import { Injectable, ForbiddenException } from '@nestjs/common'
 import { ReviewRepository } from '../../domain/repositories/review.repository'
-import { ReviewNotFoundException, InvalidRatingException, InvalidCriterionException } from '../../domain/exceptions/review.exceptions'
+import { ReviewNotFoundException, InvalidRatingException } from '../../domain/exceptions/review.exceptions'
 
 @Injectable()
 export class UpdateReviewUseCase {
@@ -26,15 +27,7 @@ export class UpdateReviewUseCase {
 
     if (dto.criteriaRatings) {
       const validCriteria = await this.reviewRepository.findBusinessCriteria(review.businessId)
-      const validCriterionIds = new Set(validCriteria.map((item) => item.criterionId))
-      for (const criterion of dto.criteriaRatings) {
-        if (!validCriterionIds.has(criterion.criterionId)) {
-          throw new InvalidCriterionException()
-        }
-        if (!Number.isInteger(criterion.ratingValue) || criterion.ratingValue < 1 || criterion.ratingValue > 5) {
-          throw new InvalidRatingException()
-        }
-      }
+      validateCriteriaRatings(dto.criteriaRatings, validCriteria)
     }
 
     return this.reviewRepository.updateReviewWithCriteria(reviewId, {

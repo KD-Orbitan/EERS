@@ -1182,7 +1182,10 @@ Behavior:
 
 ```
 - status starts as 'pending'
-- criteriaRatings must cover criteria from business's categories
+- criteriaRatings: [] submits an overall-only review.
+- A non-empty criteriaRatings array must rate every distinct criterion from all of the business's categories exactly once (integer 1-5); partial, duplicate, and unrelated criteria are rejected.
+- Overall-only reviews use their normalized overallRating for ranking; multi-criteria reviews keep weighted criterion scoring.
+- Both modes require overallRating. On update, [] removes existing criterion ratings; omitting criteriaRatings preserves them.
 ```
 
 Errors:

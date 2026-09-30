@@ -9,8 +9,11 @@ export class MultiCriteriaScoringService {
     return (ratingValue - 1) / (5 - 1)
   }
 
-  async computeScore(reviewId: number, categoryIds: number[]): Promise<number> {
+  async computeScore(reviewId: number, categoryIds: number[], overallRating?: number): Promise<number> {
     const criteria = await this.rankingDbService.getReviewCriteriaByReviewIds([reviewId])
+    if (criteria.length === 0 && overallRating !== undefined) {
+      return this.normalizeRating(overallRating)
+    }
     const weights = await this.rankingDbService.getCriterionWeightsByCategoryIds(categoryIds)
 
     const weightMap = new Map<number, number[]>()

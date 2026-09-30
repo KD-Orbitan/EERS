@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Flag, Pencil, Trash2 } from 'lucide-react';
+import { Flag, MessageSquareReply, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/features/review/components/star-rating';
 import { ReplyForm } from '@/features/review/components/reply-form';
@@ -133,10 +133,17 @@ export function ReviewCard({ review, businessId, isAuthor, canReply, onEdit, onD
       ) : null}
 
       {review.reply ? (
-        <div className="mt-3 rounded-xl bg-info-100 p-3">
-          <Badge variant="info">Company Response</Badge>
-          <p className="mt-2 text-sm text-ink-700">{review.reply.content}</p>
-          <p className="mt-1 text-xs text-ink-500">{new Date(review.reply.createdAt).toLocaleDateString()}</p>
+        <div className="mt-4 rounded-xl border border-ink-200/50 bg-primary-50/40 p-4 sm:ml-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <p className="inline-flex items-center gap-2 text-xs font-semibold text-ink-700">
+              <MessageSquareReply aria-hidden="true" className="h-4 w-4 shrink-0 text-primary-600" />
+              Company Response
+            </p>
+            <time dateTime={review.reply.createdAt} className="text-xs text-ink-500">
+              {new Date(review.reply.createdAt).toLocaleDateString()}
+            </time>
+          </div>
+          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-ink-700">{review.reply.content}</p>
         </div>
       ) : null}
     </div>

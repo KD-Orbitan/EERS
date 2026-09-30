@@ -50,4 +50,18 @@ describe('UpdateReviewUseCase', () => {
 
     await expect(useCase.execute({ reviewId: 1, currentUserId: 5, currentUserRole: 'USER', dto: { overallRating: 6 } })).rejects.toBeInstanceOf(InvalidRatingException)
   })
+  it.each([[[]], [[{ criterionId: 1, ratingValue: 4 }, { criterionId: 2, ratingValue: 5 }]]])('allows switching rating mode: %j', async (criteriaRatings) => {
+    reviewRepository.findById.mockResolvedValue({ reviewId: 1, writerUserId: 5, businessId: 2 } as any)
+    reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }, { criterionId: 2 }])
+    await useCase.execute({ reviewId: 1, currentUserId: 5, currentUserRole: 'USER', dto: { criteriaRatings } })
+    expect(reviewRepository.updateReviewWithCriteria).toHaveBeenCalledWith(1, expect.objectContaining({ criteriaRatings }))
+  })
+
+  it('rejects an edit with partial criteria before persisting it', async () => {
+    reviewRepository.findById.mockResolvedValue({ reviewId: 1, writerUserId: 5, businessId: 2 } as any)
+    reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }, { criterionId: 2 }])
+    await expect(useCase.execute({ reviewId: 1, currentUserId: 5, currentUserRole: 'USER', dto: { criteriaRatings: [{ criterionId: 1, ratingValue: 4 }] } })).rejects.toBeInstanceOf(InvalidCriterionException)
+    expect(reviewRepository.updateReviewWithCriteria).not.toHaveBeenCalled()
+  })
+
 })

@@ -87,6 +87,14 @@ export function ReviewModerationQueue() {
         ))}
       </div>
 
+      <p className="text-sm text-ink-500">
+        {status === 'pending'
+          ? 'Reviews awaiting a decision. Open Approved or Rejected to see who moderated each review, when, and why.'
+          : status === 'approved' || status === 'rejected'
+            ? 'Moderation details appear below each review. Older reviews may have no recorded date or reason.'
+            : 'Hidden reviews are not publicly visible.'}
+      </p>
+
       <ListSearch value={search} onChange={(value) => { setSearch(value); setPage(1); }}
         placeholder="Business, author or review content..." />
 

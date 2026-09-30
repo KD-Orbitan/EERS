@@ -34,7 +34,7 @@ describe('CreateReviewUseCase', () => {
     reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }, { criterionId: 2 }])
     reviewRepository.createReviewWithCriteria.mockResolvedValue({ reviewId: 10, status: 'pending' })
 
-    const result = await useCase.execute({ currentUserId: 5, dto: { businessId: 1, overallRating: 4, content: 'Great experience and service', criteriaRatings: [{ criterionId: 1, ratingValue: 4 }] } })
+    const result = await useCase.execute({ currentUserId: 5, dto: { businessId: 1, overallRating: 4, content: 'Great experience and service', criteriaRatings: [{ criterionId: 1, ratingValue: 4 }, { criterionId: 2, ratingValue: 5 }] } })
 
     expect(result).toEqual({ reviewId: 10, status: 'pending' })
     expect(reviewRepository.createReviewWithCriteria).toHaveBeenCalled()
@@ -69,4 +69,23 @@ describe('CreateReviewUseCase', () => {
 
     await expect(useCase.execute({ currentUserId: 5, dto: { businessId: 1, overallRating: 6, content: 'Great experience and service', criteriaRatings: [{ criterionId: 1, ratingValue: 4 }] } })).rejects.toBeInstanceOf(InvalidRatingException)
   })
+  it.each([[[]], [[{ criterionId: 1, ratingValue: 4 }, { criterionId: 2, ratingValue: 5 }]]])('accepts overall-only or complete ratings: %j', async (criteriaRatings) => {
+    getBusinessSummaryUseCase.execute.mockResolvedValue({ businessId: 1, name: 'Acme', status: 'approved', ownerUserId: null } as any)
+    reviewRepository.findByWriterAndBusiness.mockResolvedValue(null)
+    reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }, { criterionId: 2 }, { criterionId: 1 }])
+    await useCase.execute({ currentUserId: 5, dto: { businessId: 1, overallRating: 4, content: 'Great experience and service', criteriaRatings } })
+    expect(reviewRepository.createReviewWithCriteria).toHaveBeenCalledWith(expect.objectContaining({ criteriaRatings }))
+  })
+
+  it.each([
+    [[{ criterionId: 1, ratingValue: 4 }]],
+    [[{ criterionId: 1, ratingValue: 4 }, { criterionId: 1, ratingValue: 5 }]],
+  ])('rejects incomplete or repeated criteria: %j', async (criteriaRatings) => {
+    getBusinessSummaryUseCase.execute.mockResolvedValue({ businessId: 1, status: 'approved' } as any)
+    reviewRepository.findByWriterAndBusiness.mockResolvedValue(null)
+    reviewRepository.findBusinessCriteria.mockResolvedValue([{ criterionId: 1 }, { criterionId: 2 }])
+    await expect(useCase.execute({ currentUserId: 5, dto: { businessId: 1, overallRating: 4, content: 'Great experience and service', criteriaRatings } })).rejects.toBeInstanceOf(InvalidCriterionException)
+    expect(reviewRepository.createReviewWithCriteria).not.toHaveBeenCalled()
+  })
+
 })
