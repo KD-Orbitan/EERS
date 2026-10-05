@@ -10,7 +10,7 @@ export function OpeningHoursDetails({ value }: { value: string }) {
 export function PriceRangeDetails({ value }: { value: string }) {
   const price = parsePrice(value);
   if (!price) return <>{value}</>;
-  const format = (value: string) => new Intl.NumberFormat('vi-VN').format(Number(value));
+  const format = (value: string) => new Intl.NumberFormat('en-US').format(Number(value));
   return <>{format(price.min)}?{format(price.max)} VND / {price.unit}</>;
 }
 export function AmenitiesDetails({ value }: { value: string }) {

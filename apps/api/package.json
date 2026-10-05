@@ -20,7 +20,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:seed": "ts-node prisma/seed.ts",
-    "db:seed:admin": "ts-node prisma/seed-admin-demo.ts"
+    "db:seed:admin": "ts-node prisma/seed-admin-demo.ts",
+    "portfolio:migrate": "node ../../scripts/run-portfolio.cjs node_modules/prisma/build/index.js migrate deploy",
+    "portfolio:preview": "node ../../scripts/run-portfolio.cjs -r ts-node/register -r tsconfig-paths/register prisma/seed-portfolio.ts",
+    "portfolio:seed": "node ../../scripts/run-portfolio.cjs -r ts-node/register -r tsconfig-paths/register prisma/seed-portfolio.ts --apply",
+    "portfolio:dev": "node ../../scripts/run-portfolio.cjs node_modules/@nestjs/cli/bin/nest.js start --watch"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -8,12 +8,16 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "portfolio:infra": "docker compose -f docker-compose.portfolio.yml up -d --wait",
+    "portfolio:migrate": "pnpm --filter api portfolio:migrate",
+    "portfolio:seed": "pnpm --filter api portfolio:seed",
+    "portfolio:dev": "pnpm --parallel --filter api --filter web portfolio:dev"
   },
   "devDependencies": {
     "turbo": "^1.10.0"
   },
-    "engines": {
+  "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   }
