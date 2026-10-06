@@ -1,3 +1,4 @@
+import { RankingDbService } from '../infrastructure/services/ranking-db.service'
 import { RankingCalculationService } from '../application/services/ranking-calculation.service'
 import { ReviewWeightingService } from '../application/services/review-weighting.service'
 import { MultiCriteriaScoringService } from '../application/services/multi-criteria-scoring.service'
@@ -43,7 +44,7 @@ describe('Scoring pipeline regression scenarios', () => {
     const prisma = { review: { findMany: jest.fn().mockResolvedValue([{ reviewId: 2n, content }]), count: jest.fn().mockResolvedValue(0) } }
     const db = { getUserTrustScoresByUserIds: jest.fn().mockResolvedValue([]), upsertReviewFraudScore: jest.fn() }
     const similarity = { computeSimilarity: jest.fn().mockResolvedValue(0.9) }
-    const service = new FraudDetectionService(prisma as any, configService as any, db as any, similarity as any)
+    const service = new FraudDetectionService(configService as any, Object.assign(new RankingDbService(prisma as any), db), similarity as any)
     const review = { reviewId: 1, businessId: 1, writerUserId: 1, content, createdAt: now }
     await service.computeForReviews([review], config)
     expect(db.upsertReviewFraudScore).toHaveBeenLastCalledWith(expect.objectContaining({ duplicateSignal: 1, fraudStatus: 'SUSPICIOUS' }))
@@ -69,7 +70,7 @@ describe('Scoring pipeline regression scenarios', () => {
       reviewFraudScore: { findMany: jest.fn() },
       userTrustScore: { upsert: jest.fn() },
     }
-    const service = new TrustScoreService(prisma as any, configService as any)
+    const service = new TrustScoreService(new RankingDbService(prisma as any), configService as any)
     await service.computeAll(config)
     const first = prisma.userTrustScore.upsert.mock.calls[0][0].update
     expect(first.validReviews).toBe(1)
@@ -117,7 +118,7 @@ describe('Scoring pipeline regression scenarios', () => {
     const fraud = { computeForReviews: jest.fn() }
     const cache = { invalidateRankingCache: jest.fn() }
     const service = new RankingCalculationService(
-      prisma as any, configService as any, db as any, cache as any, trust as any, fraud as any,
+      configService as any, Object.assign(new RankingDbService(prisma as any), db), cache as any, trust as any, fraud as any,
       new MultiCriteriaScoringService(db as any), new ReviewWeightingService(db as any, configService as any),
     )
     await service.execute()

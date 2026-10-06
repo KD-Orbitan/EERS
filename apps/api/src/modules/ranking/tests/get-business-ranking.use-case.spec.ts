@@ -1,37 +1,34 @@
 import { GetBusinessRankingUseCase } from '../application/use-cases/get-business-ranking.use-case'
 import { RankingTrendConfigService } from '../infrastructure/services/ranking-trend-config.service'
-import { PrismaService } from '../../../infrastructure/database/prisma.service'
+import { RankingQueryRepository } from '../application/ports/ranking-query.repository'
 
 describe('GetBusinessRankingUseCase', () => {
-  let prisma: { rankingSnapshot: { findFirst: jest.Mock }; rankingSnapshotHistory: { findFirst: jest.Mock } }
+  let repository: jest.Mocked<Pick<RankingQueryRepository, 'getBusinessGlobalRanking'>>
   let rankingTrendConfigService: jest.Mocked<Pick<RankingTrendConfigService, 'getPeriod' | 'periodToDays' | 'getBaselines'>>
   let useCase: GetBusinessRankingUseCase
 
   beforeEach(() => {
-    prisma = {
-      rankingSnapshot: { findFirst: jest.fn() },
-      rankingSnapshotHistory: { findFirst: jest.fn() },
-    }
+    repository = { getBusinessGlobalRanking: jest.fn() }
     rankingTrendConfigService = {
       getPeriod: jest.fn().mockResolvedValue('WEEK'),
       periodToDays: jest.fn().mockReturnValue(7),
       getBaselines: jest.fn(),
     }
     useCase = new GetBusinessRankingUseCase(
-      prisma as unknown as PrismaService,
+      repository as unknown as RankingQueryRepository,
       rankingTrendConfigService as unknown as RankingTrendConfigService,
     )
   })
 
   it('returns null when the business has no GLOBAL ranking snapshot', async () => {
-    prisma.rankingSnapshot.findFirst.mockResolvedValue(null)
+    repository.getBusinessGlobalRanking.mockResolvedValue(null)
 
     await expect(useCase.execute(1)).resolves.toBeNull()
-    expect(prisma.rankingSnapshotHistory.findFirst).not.toHaveBeenCalled()
+    expect(rankingTrendConfigService.getBaselines).not.toHaveBeenCalled()
   })
 
   it('returns trend=null when there is no history baseline yet', async () => {
-    prisma.rankingSnapshot.findFirst.mockResolvedValue({ rank: 3, rankingScore: 4.2 })
+    repository.getBusinessGlobalRanking.mockResolvedValue({ rank: 3, rankingScore: 4.2 })
     rankingTrendConfigService.getBaselines.mockResolvedValue(new Map())
 
     const result = await useCase.execute(1)
@@ -40,7 +37,7 @@ describe('GetBusinessRankingUseCase', () => {
   })
 
   it('computes rankChange and scoreChange from the closest history row at/before the lookback cutoff', async () => {
-    prisma.rankingSnapshot.findFirst.mockResolvedValue({ rank: 2, rankingScore: 4.5 })
+    repository.getBusinessGlobalRanking.mockResolvedValue({ rank: 2, rankingScore: 4.5 })
     rankingTrendConfigService.getBaselines.mockResolvedValue(new Map([[1, { rank: 5, rankingScore: 4.1 }]]))
 
     const result = await useCase.execute(1)

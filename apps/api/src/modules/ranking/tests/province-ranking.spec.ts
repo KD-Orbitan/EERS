@@ -1,3 +1,4 @@
+import { PrismaRankingQueryRepository } from '../infrastructure/repositories/prisma-ranking-query.repository'
 import { GetGlobalRankingUseCase } from '../application/use-cases/get-global-ranking.use-case'
 import { GetTopBusinessesUseCase } from '../application/use-cases/get-top-businesses.use-case'
 
@@ -8,8 +9,8 @@ describe('Ranking province selection', () => {
       snapshot(1, 'Hà Nội'), snapshot(2, 'Thành phố Hồ Chí Minh'), snapshot(3, 'Hồ Chí Minh'),
     ]) } }
     const cache = { getCachedRanking: jest.fn().mockResolvedValue([{ businessId: 1 }]), setCachedRanking: jest.fn() }
-    const global = new GetGlobalRankingUseCase(db as any, cache as any, {} as any)
-    const top = new GetTopBusinessesUseCase(db as any, cache as any)
+    const global = new GetGlobalRankingUseCase(new PrismaRankingQueryRepository(db as any), cache as any, {} as any)
+    const top = new GetTopBusinessesUseCase(new PrismaRankingQueryRepository(db as any), cache as any)
     const result = await global.execute({ categoryId: 4, province: 'Hồ Chí Minh', limit: 1 })
     expect(result.total).toBe(2)
     expect(result.items.map((item) => item.businessId)).toEqual([2])

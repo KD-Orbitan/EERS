@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-import { RankingCacheService } from '../../infrastructure/services/ranking-cache.service'
+import { RankingQueryRepository } from '../ports/ranking-query.repository'
+import { RankingCachePort } from '../ports/ranking-cache.port'
 
 @Injectable()
 export class GetTopBusinessesUseCase {
-  constructor(private readonly prisma: PrismaService, private readonly rankingCacheService: RankingCacheService) {}
+  constructor(private readonly repository: RankingQueryRepository, private readonly rankingCacheService: RankingCachePort) {}
 
   async execute({ limit = 10, categoryId, province }: { limit?: number; categoryId?: number; province?: string }) {
     const normalizedLimit = Math.min(Math.max(limit, 1), 20)
@@ -12,28 +12,13 @@ export class GetTopBusinessesUseCase {
     let items = cacheItems
 
     if (!items) {
-      const where: any = {}
-      if (categoryId) {
-        where.scope = 'CATEGORY'
-        where.scopeId = BigInt(categoryId)
-      } else if (province) {
-        where.scope = 'PROVINCE'
-      } else {
-        where.scope = 'GLOBAL'
-      }
-
-      const snapshots = await this.prisma.rankingSnapshot.findMany({
-        where,
-        orderBy: [{ rank: 'asc' }],
-        include: { business: { select: { name: true, locations: { include: { location: true } } } } },
-        ...(province ? {} : { take: normalizedLimit }),
-      })
+      const snapshots = await this.repository.getSnapshots({ categoryId, province, ...(province ? {} : { limit: normalizedLimit }) })
       const normalize = (value: string) => value.trim().replace(/^(tỉnh|thành phố|tp\.?)\s*/iu, '').trim().toLocaleLowerCase('vi')
-      const matching = province ? snapshots.filter((snapshot) => normalize(snapshot.business.locations[0]?.location?.province ?? '') === normalize(province)) : snapshots
+      const matching = province ? snapshots.filter((snapshot) => normalize(snapshot.province ?? '') === normalize(province)) : snapshots
       items = matching.map((snapshot) => ({
         rank: snapshot.rank,
         businessId: Number(snapshot.businessId),
-        businessName: snapshot.business.name,
+        businessName: snapshot.businessName,
         avgRating: Number(snapshot.avgRating),
         reviewCount: snapshot.reviewCount,
         rankingScore: Number(snapshot.rankingScore),

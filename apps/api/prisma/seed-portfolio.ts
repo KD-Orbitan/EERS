@@ -108,9 +108,9 @@ async function main() {
 
   const db = new RankingDbService(prisma)
   const config = new ScoringConfigService(prisma)
-  await new RankingCalculationService(prisma, config, db, new RankingCacheService(redis),
-    new TrustScoreService(prisma, config),
-    new FraudDetectionService(prisma, config, db, new PgTrgmSimilarityService(prisma)),
+  await new RankingCalculationService(config, db, new RankingCacheService(redis),
+    new TrustScoreService(db, config),
+    new FraudDetectionService(config, db, new PgTrgmSimilarityService(prisma)),
     new MultiCriteriaScoringService(db), new ReviewWeightingService(db, config)).execute()
   const [businesses, reviews, criterionRatings, rankedBusinesses] = await Promise.all([
     prisma.business.count(), prisma.review.count(), prisma.reviewCriterion.count(),

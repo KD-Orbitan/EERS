@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-import { ScoringConfig, ScoringConfigService } from '../../infrastructure/services/scoring-config.service'
-import { RankingDbService } from '../../infrastructure/services/ranking-db.service'
-import { SimilarityService } from '../../infrastructure/services/similarity.service'
+import { ScoringConfig, ScoringConfigPort } from '../ports/scoring-config.port'
+import { RankingRepository } from '../ports/ranking.repository'
+import { SimilarityPort } from '../ports/similarity.port'
 
 @Injectable()
 export class FraudDetectionService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly scoringConfigService: ScoringConfigService,
-    private readonly rankingDbService: RankingDbService,
-    private readonly similarityService: SimilarityService,
+    private readonly scoringConfigService: ScoringConfigPort,
+    private readonly rankingDbService: RankingRepository,
+    private readonly similarityService: SimilarityPort,
   ) {}
 
   private async computeDuplicateSignal(reviewId: number, reviewContent: string, businessId: number, config: ScoringConfig) {
@@ -18,15 +16,7 @@ export class FraudDetectionService {
       return 0
     }
 
-    const approvedReviews = await this.prisma.review.findMany({
-      where: {
-        businessId: BigInt(businessId),
-        reviewId: { not: BigInt(reviewId) },
-        status: 'approved',
-        deletedAt: null,
-      },
-      select: { content: true, reviewId: true },
-    })
+    const approvedReviews = await this.rankingDbService.getDuplicateCandidates(businessId, reviewId)
 
     for (const other of approvedReviews) {
       if (!other.content || Number(other.reviewId) === reviewId) {
@@ -44,12 +34,7 @@ export class FraudDetectionService {
 
   private async computeSpamSignal(reviewId: number, userId: number, createdAt: Date, config: ScoringConfig) {
     const windowStart = new Date(createdAt.getTime() - config.spamWindowHours * 60 * 60 * 1000)
-    const count = await this.prisma.review.count({
-      where: {
-        writerUserId: BigInt(userId),
-        createdAt: { gte: windowStart, lt: createdAt },
-      },
-    })
+    const count = await this.rankingDbService.countUserReviewsInWindow(userId, windowStart, createdAt)
     return Math.min(1, count / config.thetaSpam)
   }
 

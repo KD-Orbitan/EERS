@@ -1,33 +1,10 @@
+import { ScoringConfigPort, ScoringConfig } from '../../application/ports/scoring-config.port'
+export type { ScoringConfig } from '../../application/ports/scoring-config.port'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 
-export type ScoringConfig = {
-  configId: number
-  bayesianC: number
-  bayesianM: number
-  fraudLambda1: number
-  fraudLambda2: number
-  fraudLambda3: number
-  thetaDup: number
-  lDup: number
-  thetaSpam: number
-  spamWindowHours: number
-  thetaSus: number
-  thetaReject: number
-  trustAlpha: number
-  trustBeta: number
-  trustGamma: number
-  suspiciousDelta: number
-  timeDecayLambda: number
-  sentimentLambda: number
-  weightAlpha: number
-  weightBeta: number
-  weightGamma: number
-  lMin: number
-}
-
 @Injectable()
-export class ScoringConfigService {
+export class ScoringConfigService implements ScoringConfigPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async getConfig(): Promise<ScoringConfig> {

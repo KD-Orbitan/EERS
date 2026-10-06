@@ -1,41 +1,9 @@
+import { RankingRepository, RankingSnapshotWrite, ApprovedBusinessRecord, ApprovedReviewRecord, ReviewCriterionRecord, CriterionWeightRecord, UserTrustScoreRecord } from '../../application/ports/ranking.repository'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
 
-export type ApprovedBusinessRecord = {
-  businessId: number
-  categoryIds: number[]
-  province: string | null
-  avgRating: number
-}
-
-export type ApprovedReviewRecord = {
-  reviewId: number
-  businessId: number
-  writerUserId: number
-  content: string
-  overallRating: number
-  createdAt: Date
-}
-
-export type ReviewCriterionRecord = {
-  reviewId: number
-  criterionId: number
-  ratingValue: number
-}
-
-export type CriterionWeightRecord = {
-  categoryId: number
-  criterionId: number
-  weight: number
-}
-
-export type UserTrustScoreRecord = {
-  userId: number
-  trustScore: number
-}
-
 @Injectable()
-export class RankingDbService {
+export class RankingDbService implements RankingRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getApprovedBusinesses(): Promise<ApprovedBusinessRecord[]> {
@@ -191,36 +159,57 @@ export class RankingDbService {
     })
   }
 
-  async deleteAllRankingSnapshots(): Promise<void> {
-    await this.prisma.rankingSnapshot.deleteMany({})
-  }
-
-  async createRankingSnapshots(snapshots: Array<{
-    scope: string
-    scopeId: number | null
-    rank: number
-    rankingScore: number
-    avgRating: number
-    reviewCount: number
-    businessId: number
-  }>): Promise<void> {
-    await this.prisma.rankingSnapshot.createMany({
-      data: snapshots.map((item) => ({
-        scope: item.scope,
-        scopeId: item.scopeId === null ? null : BigInt(item.scopeId),
-        rank: item.rank,
-        rankingScore: item.rankingScore,
-        avgRating: item.avgRating,
-        reviewCount: item.reviewCount,
-        businessId: BigInt(item.businessId),
-      })),
-    })
-  }
-
   async updateBusinessAvgRating(businessId: number, avgRating: number): Promise<void> {
     await this.prisma.business.updateMany({
       where: { businessId: BigInt(businessId), deletedAt: null },
       data: { avgRating },
+    })
+  }
+
+  async getDuplicateCandidates(businessId: number, excludeReviewId: number): Promise<Array<{ reviewId: number; content: string }>> {
+    const rows = await this.prisma.review.findMany({
+      where: { businessId: BigInt(businessId), reviewId: { not: BigInt(excludeReviewId) }, status: 'approved', deletedAt: null },
+      select: { content: true, reviewId: true },
+    })
+    return rows.map((row) => ({ reviewId: Number(row.reviewId), content: row.content }))
+  }
+
+  async countUserReviewsInWindow(userId: number, from: Date, before: Date): Promise<number> {
+    return this.prisma.review.count({
+      where: { writerUserId: BigInt(userId), createdAt: { gte: from, lt: before } },
+    })
+  }
+
+  async getReviewFraudStatuses(reviewIds: number[]): Promise<Array<{ reviewId: number; fraudStatus: string }>> {
+    const rows = await this.prisma.reviewFraudScore.findMany({
+      where: { reviewId: { in: reviewIds.map((id) => BigInt(id)) } },
+      select: { reviewId: true, fraudStatus: true },
+    })
+    return rows.map((row) => ({ reviewId: Number(row.reviewId), fraudStatus: row.fraudStatus }))
+  }
+
+  async replaceSnapshotsWithHistory(snapshots: RankingSnapshotWrite[], retentionCutoff: Date): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.rankingSnapshot.deleteMany({})
+      await tx.rankingSnapshot.createMany({ data: snapshots.map((item) => ({
+        scope: item.scope,
+        scopeId: item.scopeId === null ? null : BigInt(item.scopeId),
+        rank: item.rank,
+        rankingScore: Number(item.rankingScore.toFixed(2)),
+        avgRating: item.avgRating,
+        reviewCount: item.reviewCount,
+        businessId: BigInt(item.businessId),
+      })) })
+
+      // Append-only GLOBAL-scope trend history (see DECISIONS.md D-031)
+      await tx.rankingSnapshotHistory.createMany({
+        data: snapshots.filter((item) => item.scope === 'GLOBAL').map((item) => ({
+          rank: item.rank,
+          rankingScore: Number(item.rankingScore.toFixed(2)),
+          businessId: BigInt(item.businessId),
+        })),
+      })
+      await tx.rankingSnapshotHistory.deleteMany({ where: { calculatedAt: { lt: retentionCutoff } } })
     })
   }
 }

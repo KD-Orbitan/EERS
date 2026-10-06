@@ -76,9 +76,9 @@ async function main() {
   const db = new RankingDbService(prisma)
   const config = new ScoringConfigService(prisma)
   const cache = new RankingCacheService(redis)
-  const ranking = new RankingCalculationService(prisma, config, db, cache,
-    new TrustScoreService(prisma, config),
-    new FraudDetectionService(prisma, config, db, new PgTrgmSimilarityService(prisma)),
+  const ranking = new RankingCalculationService(config, db, cache,
+    new TrustScoreService(db, config),
+    new FraudDetectionService(config, db, new PgTrgmSimilarityService(prisma)),
     new MultiCriteriaScoringService(db), new ReviewWeightingService(db, config))
   console.log('Recalculating with current application ranking services...')
   await ranking.execute()

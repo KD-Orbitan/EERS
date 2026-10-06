@@ -1,19 +1,11 @@
+import { RankingCachePort, RankingSnapshotCacheItem } from '../../application/ports/ranking-cache.port'
+export type { RankingSnapshotCacheItem } from '../../application/ports/ranking-cache.port'
 import { Injectable } from '@nestjs/common'
 import { RedisService } from '../../../../infrastructure/cache/redis.service'
 import { CACHE_KEYS } from '@eers/shared-constants'
 
-export type RankingSnapshotCacheItem = {
-  rank: number
-  businessId: number
-  businessName: string
-  avgRating: number
-  reviewCount: number
-  rankingScore: number
-  province?: string | null
-}
-
 @Injectable()
-export class RankingCacheService {
+export class RankingCacheService implements RankingCachePort {
   constructor(private readonly redisService: RedisService) {}
 
   private getCacheKey(categoryId?: number, province?: string): string {

@@ -1,3 +1,9 @@
+import { RankingRepository } from './application/ports/ranking.repository'
+import { RankingQueryRepository } from './application/ports/ranking-query.repository'
+import { ScoringConfigPort } from './application/ports/scoring-config.port'
+import { RankingCachePort } from './application/ports/ranking-cache.port'
+import { RankingTrendConfigPort } from './application/ports/ranking-trend-config.port'
+import { PrismaRankingQueryRepository } from './infrastructure/repositories/prisma-ranking-query.repository'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { InfrastructureModule } from '../../infrastructure/infrastructure.module'
@@ -35,6 +41,13 @@ import { JwtModule } from '@nestjs/jwt'
   })],
   controllers: [RankingController],
   providers: [
+    PrismaRankingQueryRepository,
+    { provide: RankingRepository, useExisting: RankingDbService },
+    { provide: RankingQueryRepository, useExisting: PrismaRankingQueryRepository },
+    { provide: ScoringConfigPort, useExisting: ScoringConfigService },
+    { provide: RankingCachePort, useExisting: RankingCacheService },
+    { provide: RankingTrendConfigPort, useExisting: RankingTrendConfigService },
+
     {
       provide: SimilarityService,
       useClass: PgTrgmSimilarityService,

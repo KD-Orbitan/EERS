@@ -1,42 +1,36 @@
 import { GetMarketCompetitorsUseCase } from '../application/use-cases/get-market-competitors.use-case'
-import { PrismaService } from '../../../infrastructure/database/prisma.service'
+import { RankingQueryRepository } from '../application/ports/ranking-query.repository'
 
 describe('GetMarketCompetitorsUseCase', () => {
-  let prisma: {
-    rankingSnapshot: { findMany: jest.Mock }
-    category: { findUnique: jest.Mock }
-  }
+  let repository: jest.Mocked<Pick<RankingQueryRepository, 'getBusinessCategoryRanks' | 'getCategoryName' | 'getCategoryCompetitors'>>
   let useCase: GetMarketCompetitorsUseCase
 
   beforeEach(() => {
-    prisma = {
-      rankingSnapshot: { findMany: jest.fn() },
-      category: { findUnique: jest.fn() },
-    }
-    useCase = new GetMarketCompetitorsUseCase(prisma as unknown as PrismaService)
+    repository = { getBusinessCategoryRanks: jest.fn(), getCategoryName: jest.fn(), getCategoryCompetitors: jest.fn() }
+    useCase = new GetMarketCompetitorsUseCase(repository as unknown as RankingQueryRepository)
   })
 
   it('returns an empty result when the business has no CATEGORY-scope ranking yet', async () => {
-    prisma.rankingSnapshot.findMany.mockResolvedValueOnce([])
+    repository.getBusinessCategoryRanks.mockResolvedValueOnce([])
 
     const result = await useCase.execute({ businessId: 1 })
 
     expect(result).toEqual({ categoryId: null, categoryName: null, businessRank: null, competitors: [] })
-    expect(prisma.category.findUnique).not.toHaveBeenCalled()
+    expect(repository.getCategoryName).not.toHaveBeenCalled()
   })
 
   it('defaults to the category with the business\'s best rank and returns nearest-ranked competitors', async () => {
-    prisma.rankingSnapshot.findMany
+    repository.getBusinessCategoryRanks
       .mockResolvedValueOnce([
-        { scopeId: BigInt(1), rank: 2 },
-        { scopeId: BigInt(2), rank: 5 },
+        { scopeId: 1, rank: 2 },
+        { scopeId: 2, rank: 5 },
       ])
-      .mockResolvedValueOnce([
-        { businessId: BigInt(10), rank: 1, rankingScore: 9.1, avgRating: 4.9, business: { name: 'Nexus Corp' } },
-        { businessId: BigInt(11), rank: 4, rankingScore: 8.0, avgRating: 4.5, business: { name: 'Far Away Co' } },
-        { businessId: BigInt(12), rank: 3, rankingScore: 8.5, avgRating: 4.7, business: { name: 'Orbit Logistics' } },
+    repository.getCategoryCompetitors.mockResolvedValueOnce([
+        { businessId: 10, rank: 1, rankingScore: 9.1, avgRating: 4.9, businessName: 'Nexus Corp' },
+        { businessId: 11, rank: 4, rankingScore: 8.0, avgRating: 4.5, businessName: 'Far Away Co' },
+        { businessId: 12, rank: 3, rankingScore: 8.5, avgRating: 4.7, businessName: 'Orbit Logistics' },
       ])
-    prisma.category.findUnique.mockResolvedValue({ categoryId: 1, categoryName: 'Logistics' })
+    repository.getCategoryName.mockResolvedValue('Logistics')
 
     const result = await useCase.execute({ businessId: 1, limit: 2 })
 

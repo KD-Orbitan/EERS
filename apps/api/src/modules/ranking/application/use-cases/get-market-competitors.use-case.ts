@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { RankingQueryRepository } from '../ports/ranking-query.repository'
 
 @Injectable()
 export class GetMarketCompetitorsUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: RankingQueryRepository) {}
 
   async execute({ businessId, categoryId, limit = 5 }: { businessId: number; categoryId?: number; limit?: number }) {
     const normalizedLimit = Math.min(Math.max(limit, 1), 20)
 
-    const ownCategorySnapshots = await this.prisma.rankingSnapshot.findMany({
-      where: { scope: 'CATEGORY', businessId: BigInt(businessId) },
-      orderBy: { rank: 'asc' },
-    })
+    const ownCategorySnapshots = await this.repository.getBusinessCategoryRanks(businessId)
 
     const emptyResult = { categoryId: null, categoryName: null, businessRank: null, competitors: [] as Array<{ businessId: number; businessName: string; rank: number; rankingScore: number; avgRating: number }> }
 
@@ -29,18 +26,15 @@ export class GetMarketCompetitorsUseCase {
 
     const targetCategoryId = Number(target.scopeId)
 
-    const [category, categorySnapshots] = await Promise.all([
-      this.prisma.category.findUnique({ where: { categoryId: targetCategoryId } }),
-      this.prisma.rankingSnapshot.findMany({
-        where: { scope: 'CATEGORY', scopeId: BigInt(targetCategoryId), businessId: { not: BigInt(businessId) } },
-        include: { business: { select: { name: true } } },
-      }),
+    const [categoryName, categorySnapshots] = await Promise.all([
+      this.repository.getCategoryName(targetCategoryId),
+      this.repository.getCategoryCompetitors(targetCategoryId, businessId),
     ])
 
     const competitors = categorySnapshots
       .map((snapshot) => ({
         businessId: Number(snapshot.businessId),
-        businessName: snapshot.business.name,
+        businessName: snapshot.businessName,
         rank: snapshot.rank,
         rankingScore: Number(snapshot.rankingScore),
         avgRating: Number(snapshot.avgRating),
@@ -52,7 +46,7 @@ export class GetMarketCompetitorsUseCase {
 
     return {
       categoryId: targetCategoryId,
-      categoryName: category?.categoryName ?? null,
+      categoryName,
       businessRank: target.rank,
       competitors,
     }

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { RankingDbService } from '../../infrastructure/services/ranking-db.service'
-import { ScoringConfig, ScoringConfigService } from '../../infrastructure/services/scoring-config.service'
+import { RankingRepository } from '../ports/ranking.repository'
+import { ScoringConfig, ScoringConfigPort } from '../ports/scoring-config.port'
 
 @Injectable()
 export class ReviewWeightingService {
-  constructor(private readonly rankingDbService: RankingDbService, private readonly scoringConfigService: ScoringConfigService) {}
+  constructor(private readonly rankingDbService: RankingRepository, private readonly scoringConfigService: ScoringConfigPort) {}
 
   private getFraudStatusWeight(status: string, suspiciousDelta: number): number {
     if (status === 'VALID') return 1.0

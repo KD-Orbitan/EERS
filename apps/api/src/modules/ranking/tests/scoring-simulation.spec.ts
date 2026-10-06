@@ -1,3 +1,4 @@
+import { RankingDbService } from '../infrastructure/services/ranking-db.service'
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -101,9 +102,9 @@ async function runRanking(scenarios: Scenario[], config: ScoringConfig, coordina
     const value = await computeWeight(review, settings); weights.set(review.writerUserId, value); return value
   })
   await new RankingCalculationService(
-    prisma as any, configService as any, db as any, { invalidateRankingCache: jest.fn() } as any,
-    coordinatedCopies ? new TrustScoreService(prisma as any, configService as any) : { computeAll: jest.fn() } as any,
-    coordinatedCopies ? new FraudDetectionService(prisma as any, configService as any, db as any, {
+    configService as any, Object.assign(new RankingDbService(prisma as any), db), { invalidateRankingCache: jest.fn() } as any,
+    coordinatedCopies ? new TrustScoreService(new RankingDbService(prisma as any), configService as any) : { computeAll: jest.fn() } as any,
+    coordinatedCopies ? new FraudDetectionService(configService as any, Object.assign(new RankingDbService(prisma as any), db), {
       computeSimilarity: () => { throw new Error('Coordinated probe uses exact duplicates only') },
     } as any) : { computeForReviews: jest.fn() } as any,
     scoring, weighting,
@@ -136,7 +137,7 @@ async function trustProbes() {
     review: { groupBy: jest.fn(async ({ where }) => profiles.map((p, i) => ({ writerUserId: BigInt(i + 1), _count: { reviewId: where.status === 'approved' ? p.n : p.f } }))) },
     userTrustScore: { upsert: jest.fn() },
   }
-  await new TrustScoreService(prisma as any, {} as any).computeAll(DEFAULTS)
+  await new TrustScoreService(new RankingDbService(prisma as any), {} as any).computeAll(DEFAULTS)
   return profiles.map((p, i) => ({ ...p, trust: prisma.userTrustScore.upsert.mock.calls[i][0].update.trustScore }))
 }
 
@@ -159,7 +160,7 @@ async function fraudProbes() {
     } }
     const db = { getUserTrustScoresByUserIds: jest.fn().mockResolvedValue([{ userId: 1, trustScore: input.trust }]), upsertReviewFraudScore: jest.fn() }
     const similarity = { computeSimilarity: jest.fn(() => { throw new Error('These probes must only use exact text matching') }) }
-    await new FraudDetectionService(prisma as any, {} as any, db as any, similarity as any).computeForReviews([
+    await new FraudDetectionService({} as any, Object.assign(new RankingDbService(prisma as any), db), similarity as any).computeForReviews([
       { reviewId: 1, businessId: 1, writerUserId: 1, content, createdAt: NOW },
     ], DEFAULTS)
     const output = db.upsertReviewFraudScore.mock.calls[0][0]

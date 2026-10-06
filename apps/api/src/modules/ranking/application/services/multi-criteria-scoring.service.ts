@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { RankingDbService } from '../../infrastructure/services/ranking-db.service'
+import { RankingRepository } from '../ports/ranking.repository'
 
 @Injectable()
 export class MultiCriteriaScoringService {
-  constructor(private readonly rankingDbService: RankingDbService) {}
+  constructor(private readonly rankingDbService: RankingRepository) {}
 
   private normalizeRating(ratingValue: number): number {
     return (ratingValue - 1) / (5 - 1)

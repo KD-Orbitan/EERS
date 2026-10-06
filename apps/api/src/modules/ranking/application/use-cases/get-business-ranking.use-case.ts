@@ -1,19 +1,16 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-import { RankingTrendConfigService } from '../../infrastructure/services/ranking-trend-config.service'
+import { RankingQueryRepository } from '../ports/ranking-query.repository'
+import { RankingTrendConfigPort } from '../ports/ranking-trend-config.port'
 
 @Injectable()
 export class GetBusinessRankingUseCase {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly rankingTrendConfigService: RankingTrendConfigService,
+    private readonly repository: RankingQueryRepository,
+    private readonly rankingTrendConfigService: RankingTrendConfigPort,
   ) {}
 
   async execute(businessId: number) {
-    const ranking = await this.prisma.rankingSnapshot.findFirst({
-      where: { businessId: BigInt(businessId), scope: 'GLOBAL' },
-      orderBy: { rank: 'asc' },
-    })
+    const ranking = await this.repository.getBusinessGlobalRanking(businessId)
     if (!ranking) {
       return null
     }

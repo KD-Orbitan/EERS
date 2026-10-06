@@ -1,23 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-import { ScoringConfigService } from '../../infrastructure/services/scoring-config.service'
-import { RankingDbService } from '../../infrastructure/services/ranking-db.service'
-import { RankingCacheService } from '../../infrastructure/services/ranking-cache.service'
+import { ScoringConfigPort } from '../ports/scoring-config.port'
+import { RankingRepository } from '../ports/ranking.repository'
+import { RankingCachePort } from '../ports/ranking-cache.port'
 import { TrustScoreService } from './trust-score.service'
 import { FraudDetectionService } from './fraud-detection.service'
 import { MultiCriteriaScoringService } from './multi-criteria-scoring.service'
 import { ReviewWeightingService } from './review-weighting.service'
-import { RANKING_HISTORY_RETENTION_DAYS } from '../../infrastructure/services/ranking-trend-config.service'
+import { RANKING_HISTORY_RETENTION_DAYS } from '../ports/ranking-trend-config.port'
 
 @Injectable()
 export class RankingCalculationService {
   private readonly logger = new Logger(RankingCalculationService.name)
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly scoringConfigService: ScoringConfigService,
-    private readonly rankingDbService: RankingDbService,
-    private readonly rankingCacheService: RankingCacheService,
+    private readonly scoringConfigService: ScoringConfigPort,
+    private readonly rankingDbService: RankingRepository,
+    private readonly rankingCacheService: RankingCachePort,
     private readonly trustScoreService: TrustScoreService,
     private readonly fraudDetectionService: FraudDetectionService,
     private readonly multiCriteriaScoringService: MultiCriteriaScoringService,
@@ -44,10 +42,7 @@ export class RankingCalculationService {
       provinceByBusiness.set(business.businessId, business.province)
     })
 
-    const fraudScores = await this.prisma.reviewFraudScore.findMany({
-      where: { reviewId: { in: reviews.map((review) => BigInt(review.reviewId)) } },
-      select: { reviewId: true, fraudStatus: true },
-    })
+    const fraudScores = await this.rankingDbService.getReviewFraudStatuses(reviews.map((review) => review.reviewId))
     const fraudMap = new Map<number, string>(fraudScores.map((item) => [Number(item.reviewId), item.fraudStatus]))
 
     const businessAggregates = new Map<number, { weightedSum: number; weightSum: number; reviewCount: number; eligibleCount: number; validCount: number; avgRating: number }>()
@@ -165,29 +160,10 @@ export class RankingCalculationService {
       rankSnapshots(items, 'PROVINCE', null),
     )
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.rankingSnapshot.deleteMany({})
-      await tx.rankingSnapshot.createMany({ data: [...globalSnap, ...categorySnapshots, ...provinceSnapshots].map((item) => ({
-        scope: item.scope,
-        scopeId: item.scopeId === null ? null : BigInt(item.scopeId),
-        rank: item.rank,
-        rankingScore: Number(item.rankingScore.toFixed(2)),
-        avgRating: item.avgRating,
-        reviewCount: item.reviewCount,
-        businessId: BigInt(item.businessId),
-      })) })
-
-      // Append-only GLOBAL-scope trend history (see DECISIONS.md D-031)
-      await tx.rankingSnapshotHistory.createMany({
-        data: globalSnap.map((item) => ({
-          rank: item.rank,
-          rankingScore: Number(item.rankingScore.toFixed(2)),
-          businessId: BigInt(item.businessId),
-        })),
-      })
-      const retentionCutoff = new Date(Date.now() - RANKING_HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000)
-      await tx.rankingSnapshotHistory.deleteMany({ where: { calculatedAt: { lt: retentionCutoff } } })
-    })
+    const retentionCutoff = new Date(Date.now() - RANKING_HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+    await this.rankingDbService.replaceSnapshotsWithHistory(
+      [...globalSnap, ...categorySnapshots, ...provinceSnapshots], retentionCutoff,
+    )
 
     await this.rankingCacheService.invalidateRankingCache()
 

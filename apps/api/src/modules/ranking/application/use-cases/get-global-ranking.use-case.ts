@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-import { RankingCacheService, RankingSnapshotCacheItem } from '../../infrastructure/services/ranking-cache.service'
-import { RankingTrendConfigService } from '../../infrastructure/services/ranking-trend-config.service'
+import { RankingQueryRepository } from '../ports/ranking-query.repository'
+import { RankingCachePort, RankingSnapshotCacheItem } from '../ports/ranking-cache.port'
+import { RankingTrendConfigPort } from '../ports/ranking-trend-config.port'
 
 export type RankingListQuery = {
   page?: number
@@ -14,55 +14,13 @@ export type RankingListQuery = {
 @Injectable()
 export class GetGlobalRankingUseCase {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly rankingCacheService: RankingCacheService,
-    private readonly rankingTrendConfigService: RankingTrendConfigService,
+    private readonly repository: RankingQueryRepository,
+    private readonly rankingCacheService: RankingCachePort,
+    private readonly rankingTrendConfigService: RankingTrendConfigPort,
   ) {}
 
-  private buildCacheItem(row: any): RankingSnapshotCacheItem {
-    return {
-      rank: row.rank,
-      businessId: Number(row.businessId),
-      businessName: row.business.name,
-      avgRating: Number(row.avgRating),
-      reviewCount: Number(row.reviewCount),
-      rankingScore: Number(row.rankingScore),
-      province: row.business.locations?.[0]?.location?.province ?? null,
-    }
-  }
-
   private async querySnapshots(query: RankingListQuery) {
-    const where: any = {}
-    if (query.categoryId) {
-      where.scope = 'CATEGORY'
-      where.scopeId = BigInt(query.categoryId)
-    } else if (query.province) {
-      where.scope = 'PROVINCE'
-    } else {
-      where.scope = 'GLOBAL'
-    }
-
-    const snapshots = await this.prisma.rankingSnapshot.findMany({
-      where,
-      orderBy: [{ rank: 'asc' }],
-      include: {
-        business: {
-          include: {
-            locations: { include: { location: true } },
-          },
-        },
-      },
-    })
-
-    let items = snapshots.map((snapshot) => ({
-      rank: snapshot.rank,
-      businessId: Number(snapshot.businessId),
-      businessName: snapshot.business.name,
-      avgRating: Number(snapshot.avgRating),
-      reviewCount: snapshot.reviewCount,
-      rankingScore: Number(snapshot.rankingScore),
-      province: snapshot.business.locations[0]?.location?.province ?? null,
-    }))
+    let items = await this.repository.getSnapshots({ categoryId: query.categoryId, province: query.province })
 
     if (query.search) {
       const term = query.search.toLowerCase()

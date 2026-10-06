@@ -1,18 +1,15 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
+import { RankingQueryRepository } from '../ports/ranking-query.repository'
 
 @Injectable()
 export class GetRankingMetadataUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: RankingQueryRepository) {}
 
   async execute() {
-    const lastSnapshot = await this.prisma.rankingSnapshot.findFirst({
-      orderBy: { calculatedAt: 'desc' },
-    })
-    const totalRankedBusinesses = await this.prisma.rankingSnapshot.count({ where: { scope: 'GLOBAL' } })
+    const { lastCalculatedAt, totalRankedBusinesses } = await this.repository.getMetadata()
 
     return {
-      lastCalculatedAt: lastSnapshot?.calculatedAt.toISOString() ?? null,
+      lastCalculatedAt: lastCalculatedAt?.toISOString() ?? null,
       totalRankedBusinesses,
     }
   }

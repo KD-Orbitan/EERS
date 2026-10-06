@@ -1,7 +1,8 @@
+import { RankingTrendConfigPort, RankingTrendPeriod } from '../../application/ports/ranking-trend-config.port'
+export { RANKING_HISTORY_RETENTION_DAYS } from '../../application/ports/ranking-trend-config.port'
+export type { RankingTrendPeriod } from '../../application/ports/ranking-trend-config.port'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-
-export type RankingTrendPeriod = 'DAY' | 'WEEK' | 'MONTH'
 
 const PERIOD_DAYS: Record<RankingTrendPeriod, number> = {
   DAY: 1,
@@ -9,10 +10,8 @@ const PERIOD_DAYS: Record<RankingTrendPeriod, number> = {
   MONTH: 30,
 }
 
-export const RANKING_HISTORY_RETENTION_DAYS = 40
-
 @Injectable()
-export class RankingTrendConfigService {
+export class RankingTrendConfigService implements RankingTrendConfigPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async getPeriod(): Promise<RankingTrendPeriod> {

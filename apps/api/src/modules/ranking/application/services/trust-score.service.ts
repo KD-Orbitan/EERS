@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../../../infrastructure/database/prisma.service'
-import { ScoringConfig, ScoringConfigService } from '../../infrastructure/services/scoring-config.service'
+import { RankingRepository } from '../ports/ranking.repository'
+import { ScoringConfig, ScoringConfigPort } from '../ports/scoring-config.port'
 
 @Injectable()
 export class TrustScoreService {
-  constructor(private readonly prisma: PrismaService, private readonly scoringConfigService: ScoringConfigService) {}
+  constructor(private readonly repository: RankingRepository, private readonly scoringConfigService: ScoringConfigPort) {}
 
   private sigmoid(x: number): number {
     return 1 / (1 + Math.exp(-x))
@@ -14,29 +14,10 @@ export class TrustScoreService {
     config ??= await this.scoringConfigService.getConfig()
     const now = new Date()
 
-    const users = await this.prisma.user.findMany({
-      where: { deletedAt: null },
-      select: { userId: true, createdAt: true },
-    })
-
-    const reviewCounts = await this.prisma.review.groupBy({
-      by: ['writerUserId'],
-      where: { status: 'approved', deletedAt: null },
-      _count: { reviewId: true },
-    })
-
-    // Only moderation decisions affect trust. Feeding automatic fraud labels
-    // back into trust would let suspicion reinforce itself on every run.
-    const rejectedCounts = await this.prisma.review.groupBy({
-      by: ['writerUserId'],
-      where: { status: 'rejected', deletedAt: null },
-      _count: { reviewId: true },
-    })
-
-    const fraudCountByUser = new Map(rejectedCounts.map((item) => [Number(item.writerUserId), item._count.reviewId]))
-
-    const reviewCountByUser = new Map<number, number>()
-    reviewCounts.forEach((item) => reviewCountByUser.set(Number(item.writerUserId), item._count.reviewId))
+    const users = await this.repository.getAllUsers()
+    const reviewCountByUser = await this.repository.getApprovedReviewCountsByUser()
+    // Only moderation decisions affect trust, never automatic fraud labels.
+    const fraudCountByUser = await this.repository.getFlaggedReviewCountsByUser()
 
     const upserts = users.map(async (user) => {
       const n = reviewCountByUser.get(Number(user.userId)) ?? 0
@@ -44,21 +25,8 @@ export class TrustScoreService {
       const f = fraudCountByUser.get(Number(user.userId)) ?? 0
       const score = this.sigmoid(config.trustAlpha * Math.log(1 + n) + config.trustBeta * Math.log(1 + a) - config.trustGamma * f)
 
-      await this.prisma.userTrustScore.upsert({
-        where: { userId: user.userId },
-        update: {
-          trustScore: score,
-          validReviews: n,
-          accountAgeDays: a,
-          flaggedCount: f,
-        },
-        create: {
-          userId: user.userId,
-          trustScore: score,
-          validReviews: n,
-          accountAgeDays: a,
-          flaggedCount: f,
-        },
+      await this.repository.upsertUserTrustScore({
+        userId: user.userId, trustScore: score, validReviews: n, accountAgeDays: a, flaggedCount: f,
       })
     })
 
