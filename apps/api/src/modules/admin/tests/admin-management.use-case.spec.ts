@@ -57,7 +57,7 @@ describe('Admin management use cases', () => {
   })
 
   describe('ListAdminReviewsUseCase', () => {
-    it('maps reviews to admin list items with business/author names', async () => {
+    it('maps reviews to admin list items with business/author names and moderation details', async () => {
       prisma.review.findMany.mockResolvedValue([
         {
           reviewId: BigInt(5),
@@ -68,14 +68,30 @@ describe('Admin management use cases', () => {
           createdAt: new Date('2026-02-01T00:00:00Z'),
           business: { name: 'Acme' },
           writer: { name: 'Bob' },
+          managedBy: null,
+          moderatedAt: null,
+          moderationReason: null,
+        },
+        {
+          reviewId: BigInt(6),
+          overallRating: 1,
+          content: 'Duplicate review',
+          status: 'rejected',
+          businessId: BigInt(2),
+          createdAt: new Date('2026-02-02T00:00:00Z'),
+          business: { name: 'Acme' },
+          writer: { name: 'Bob' },
+          managedBy: { userId: BigInt(7), name: 'Admin' },
+          moderatedAt: new Date('2026-02-03T00:00:00Z'),
+          moderationReason: 'Duplicate content',
         },
       ])
-      prisma.review.count.mockResolvedValue(1)
+      prisma.review.count.mockResolvedValue(2)
 
       const useCase = new ListAdminReviewsUseCase(prisma as unknown as PrismaService)
       const result = await useCase.execute({})
 
-      expect(result.total).toBe(1)
+      expect(result.total).toBe(2)
       expect(result.items).toEqual([
         {
           reviewId: 5,
@@ -86,6 +102,22 @@ describe('Admin management use cases', () => {
           businessName: 'Acme',
           authorName: 'Bob',
           createdAt: '2026-02-01T00:00:00.000Z',
+          managedBy: null,
+          moderatedAt: null,
+          moderationReason: null,
+        },
+        {
+          reviewId: 6,
+          overallRating: 1,
+          content: 'Duplicate review',
+          status: 'rejected',
+          businessId: 2,
+          businessName: 'Acme',
+          authorName: 'Bob',
+          createdAt: '2026-02-02T00:00:00.000Z',
+          managedBy: { userId: 7, name: 'Admin' },
+          moderatedAt: '2026-02-03T00:00:00.000Z',
+          moderationReason: 'Duplicate content',
         },
       ])
     })
