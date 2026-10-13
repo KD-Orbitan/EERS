@@ -16,9 +16,9 @@ export function GrowBusinessCtaSection() {
             <TrendingUp className="h-6 w-6" />
           </span>
           <div>
-            <h2 className="font-sans text-xl font-bold text-ink-900">Looking to Grow Your Business?</h2>
+            <h2 className="font-sans text-xl font-bold text-ink-900">Your Business on EERS</h2>
             <p className="mt-1 max-w-md text-sm text-ink-700">
-              Claim your profile, reply to reviews, and track your ranking &mdash; free to list.
+              Manage your listing, reply to reviews, and track your rank.
             </p>
           </div>
         </div>

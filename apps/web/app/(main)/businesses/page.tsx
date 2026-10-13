@@ -50,11 +50,7 @@ function BusinessesPageContent() {
     sortOrder: 'desc',
   });
 
-  // The "top" business is simply items[0] of the already avgRating-sorted,
-  // currently-filtered result set — the global top when nothing is
-  // filtered/searched, the top match when something is. Only meaningful on
-  // page 1 (items[0] on later pages is just that page's first row, not a
-  // real "top").
+  // Highlight the first result on page one, labeled by the active sort order.
   const items = data?.items ?? [];
   const showSpotlight = page === 1 && items.length > 0;
   const topBusiness = showSpotlight ? items[0] : undefined;
@@ -108,7 +104,7 @@ function BusinessesPageContent() {
           <div>
             {topBusiness ? (
               <div className="mb-6">
-                <BusinessSpotlightCard business={topBusiness} />
+                <BusinessSpotlightCard business={topBusiness} sortBy={sortBy} />
               </div>
             ) : null}
 

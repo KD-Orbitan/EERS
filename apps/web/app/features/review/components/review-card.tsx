@@ -32,6 +32,7 @@ interface ReviewCardProps {
 
 export function ReviewCard({ review, businessId, isAuthor, canReply, onEdit, onDelete, onReplySubmit, isReplying, onReport }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showAllCriteria, setShowAllCriteria] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
 
   const isLong = review.content.length > CONTENT_PREVIEW_LENGTH;
@@ -65,11 +66,16 @@ export function ReviewCard({ review, businessId, isAuthor, canReply, onEdit, onD
 
       {review.criteriaRatings.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {review.criteriaRatings.map((criterion) => (
+          {(showAllCriteria ? review.criteriaRatings : review.criteriaRatings.slice(0, 4)).map((criterion) => (
             <Badge key={criterion.criterionId} variant="brand">
               {criterion.criterionName} {criterion.ratingValue}/5
             </Badge>
           ))}
+          {review.criteriaRatings.length > 4 ? (
+            <button type="button" aria-expanded={showAllCriteria} onClick={() => setShowAllCriteria(value => !value)} className="px-1 text-xs font-medium text-primary-600 hover:underline">
+              {showAllCriteria ? 'Show fewer criteria' : `+${review.criteriaRatings.length - 4} more`}
+            </button>
+          ) : null}
         </div>
       ) : null}
 

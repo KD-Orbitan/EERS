@@ -31,10 +31,7 @@ interface BusinessDirectoryMapProps {
   pins: MapPin[];
 }
 
-// Loaded client-only (via next/dynamic with ssr: false) since Leaflet needs
-// `window`. Only real geocoded coordinates are ever plotted (see D-032) —
-// businesses without a successful geocode are simply omitted, never given a
-// fabricated center point.
+// Coordinates can include approximate demo points; the map discloses this.
 function FitBounds({ pins }: { pins: MapPin[] }) {
   const map = useMap();
 
@@ -56,13 +53,14 @@ export function BusinessDirectoryMap({ pins }: BusinessDirectoryMapProps) {
     return (
       <div className="flex h-full min-h-[400px] flex-col items-center justify-center rounded-3xl bg-ink-50 p-6 text-center shadow-xs ring-1 ring-ink-200">
         <p className="text-sm font-medium text-ink-900">No mapped locations yet</p>
-        <p className="mt-1 text-xs text-ink-500">Businesses shown here haven&apos;t had their address geocoded.</p>
+        <p className="mt-1 text-xs text-ink-500">No coordinates are available for the businesses in this view.</p>
       </div>
     );
   }
 
   return (
     <div className="relative isolate h-full min-h-[400px] overflow-hidden rounded-3xl shadow-xs ring-1 ring-ink-200">
+      <p className="absolute bottom-7 right-3 max-w-[calc(100%-1.5rem)] z-[1000] rounded-lg bg-white/95 px-3 py-2 text-xs text-ink-700 shadow">Demo map ? Locations may be approximate.</p>
       <MapContainer center={[pins[0].latitude, pins[0].longitude]} zoom={12} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

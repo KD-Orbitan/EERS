@@ -22,7 +22,7 @@ const FOOTER_COLUMNS: Array<{ heading: string; links: Array<{ label: string; hre
     ],
   },
   {
-    heading: 'Company',
+    heading: 'Project',
     links: [{ label: 'About Us', href: '/about' }],
   },
 ];
@@ -37,6 +37,7 @@ export function SiteFooter() {
               EERS
             </Link>
             <p className="mt-2 text-sm text-white/60">Enterprise Evaluation &amp; Ranking System</p>
+            <p className="mt-2 text-xs text-white/60">Demo project with sample data.</p>
           </div>
 
           {FOOTER_COLUMNS.map((column) => (

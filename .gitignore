@@ -40,7 +40,7 @@ yarn-debug.log*
 # =========================
 # PRISMA
 # =========================
-**/prisma/migrations/**/migration_lock.toml
+# Keep migration_lock.toml versioned alongside the SQL migrations.
 
 # =========================
 # IDE
@@ -83,4 +83,11 @@ docs/bao-cao-do-an/
 docs/notes/
 makedir.py
 img_check/
-report/
+/report/
+
+# Local assistant settings, implementation prompts, and scratch output.
+/.claude/
+/claude
+/docs/promptFE*.md
+/apps/web/docs/CLAUD-PHASE-*.md
+/apps/web/docs/CLAUDE-PHASE-*.md

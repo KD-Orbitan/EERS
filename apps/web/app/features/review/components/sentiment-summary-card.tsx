@@ -10,7 +10,7 @@ const RADIUS = 40;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 // Hand-rolled SVG ring (no chart library in this repo) mirroring the Figma
-// "Customer Sentiment — AI-powered perception analysis" widget: a single
+// "Review Sentiment — Approved reviews; includes demo labels." widget: a single
 // dominant percentage (positive share) in a ring, with the neutral/negative
 // breakdown as a small legend underneath rather than a second ring segment.
 export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) {
@@ -23,9 +23,9 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
   if (!data || data.totalReviews === 0) {
     return (
       <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
-        <h2 className="font-sans text-lg font-bold text-ink-900">Customer Sentiment</h2>
-        <p className="mt-1 text-xs text-ink-500">AI-powered perception analysis</p>
-        <p className="mt-8 text-center text-sm text-ink-500">Not enough analyzed reviews yet.</p>
+        <h2 className="font-sans text-lg font-bold text-ink-900">Review Sentiment</h2>
+        <p className="mt-1 text-xs text-ink-500">Approved reviews; includes demo labels.</p>
+        <p className="mt-8 text-center text-sm text-ink-500">No approved reviews with sentiment labels yet.</p>
       </div>
     );
   }
@@ -34,8 +34,9 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
 
   return (
     <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
-      <h2 className="font-sans text-lg font-bold text-ink-900">Customer Sentiment</h2>
-      <p className="mt-1 text-xs text-ink-500">AI-powered perception analysis</p>
+      <h2 className="font-sans text-lg font-bold text-ink-900">Review Sentiment</h2>
+      <p className="mt-1 text-xs text-ink-500">Approved reviews; includes demo labels.</p>
+
 
       <div className="relative mt-4 flex items-center justify-center">
         <svg width={104} height={104} viewBox="0 0 104 104" className="-rotate-90">
@@ -57,6 +58,8 @@ export function SentimentSummaryCard({ businessId }: SentimentSummaryCardProps) 
           <span className="text-[10px] uppercase tracking-wide text-ink-500">Positive</span>
         </div>
       </div>
+
+      <p className="mt-3 text-center text-xs text-ink-500">Based on {data.totalReviews} labeled reviews</p>
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
         <div>

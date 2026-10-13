@@ -7,34 +7,27 @@ import { useRankingMetadataQuery } from '@/features/ranking/queries/use-ranking-
 const PRINCIPLES = [
   {
     icon: ShieldCheck,
-    title: 'Moderated, Not Open',
-    description: 'Every review is checked before it counts. Pending and rejected reviews never affect a score.',
+    title: 'Review Moderation',
+    description: 'Approved reviews can contribute to rankings; approval does not verify a purchase.',
   },
   {
     icon: Scale,
-    title: 'Fair to Small Businesses',
+    title: 'Adjusted for Review Volume',
     description:
-      'A Bayesian adjustment keeps a handful of reviews from swinging a score too far in either direction, so newer businesses aren’t unfairly boosted or penalized.',
+      'A Bayesian adjustment reduces the influence of a small volume of reviews on the calculated score.',
   },
   {
     icon: Clock,
-    title: 'Never Computed on the Fly',
-    description: 'Rankings are recalculated on a fixed hourly cycle from precomputed snapshots — never guessed live.',
+    title: 'Periodic Ranking Updates',
+    description: 'Updates are scheduled hourly. Rankings show the latest completed calculation.',
   },
   {
     icon: Eye,
-    title: 'Nothing Erased',
-    description: 'Records are soft-deleted, not destroyed, so every decision stays auditable.',
+    title: 'Moderation History',
+    description: 'The system records logs for supported moderation actions so administrators can review those changes.',
   },
 ];
 
-// New "About Us" page, linked from the new SiteFooter. Content is either
-// generic mission copy (same category as HomeHero's ISO badge — marketing
-// text, not a claim about specific data) or a direct restatement of this
-// app's real, already-implemented rules (hourly recalculation, Bayesian
-// adjustment, review moderation, soft-delete) — same principle
-// RankingMethodology already applies. No fabricated founding story, team
-// bios, or press mentions.
 export default function AboutPage() {
   const { data: metadata } = useRankingMetadataQuery();
 
@@ -47,8 +40,8 @@ export default function AboutPage() {
         <div className="relative mx-auto max-w-2xl">
           <h1 className="font-sans text-4xl font-bold text-ink-900 sm:text-5xl">About EERS</h1>
           <p className="mt-4 text-lg text-ink-700">
-            EERS &mdash; the Enterprise Evaluation &amp; Ranking System &mdash; helps people find businesses worth
-            trusting, and gives businesses a ranking they can point to and explain, not a black box.
+            EERS &mdash; the Enterprise Evaluation &amp; Ranking System &mdash; is a demonstration project for exploring business profiles,
+            reviews, and rankings calculated from the data available in EERS.
           </p>
         </div>
       </div>
@@ -71,7 +64,7 @@ export default function AboutPage() {
             <div>
               <h2 className="font-sans text-2xl font-bold">By the Numbers</h2>
               <p className="mt-2 text-sm text-white/70">
-                Live figures from our own ranking snapshot &mdash; the same data that powers the leaderboard.
+                Latest ranking figures, including sample data.
               </p>
             </div>
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:gap-8">

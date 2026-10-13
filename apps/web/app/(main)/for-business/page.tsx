@@ -9,40 +9,33 @@ const FEATURES = [
   {
     icon: Building2,
     title: 'Own Your Profile',
-    description: 'Manage your logo, cover photo, gallery, and every location from one dashboard you control.',
+    description: 'Manage your business details, photos, and locations from your profile and editing pages.',
   },
   {
     icon: MessageSquareText,
     title: 'Respond to Reviews',
-    description: 'Reply publicly to any review on your listing, so customers see how you handle feedback.',
+    description: 'Respond to reviews on the business profile you manage.',
   },
   {
     icon: LineChart,
     title: 'Track Your Ranking',
-    description: 'See your average rating, review count, and global rank update as new reviews come in.',
+    description: 'View your rating, review count, and latest EERS rank.',
   },
   {
     icon: ShieldCheck,
-    title: 'Fair, Moderated Scoring',
+    title: 'Review-Based Scoring',
     description:
-      'Every review is checked before it counts, and a Bayesian adjustment keeps a handful of reviews from swinging your score too far in either direction.',
+      'Rankings use eligible approved reviews, weighted criteria, and a Bayesian adjustment for review volume.',
   },
 ];
 
 const STEPS = [
-  { title: 'List your business', description: 'Submit your business details in a couple of minutes.' },
-  { title: 'Get reviewed', description: 'Our moderation team checks the listing before it goes live.' },
+  { title: 'List your business', description: 'Submit your business details and photos.' },
+  { title: 'Get reviewed', description: 'Listings are reviewed before publication.' },
   { title: 'Manage your profile', description: 'Add photos, locations, and reply to customer reviews.' },
-  { title: 'Track your rank', description: 'Watch your rating and global rank update on an hourly cycle.' },
+  { title: 'Track your rank', description: 'Check your overall rank after each completed ranking update.' },
 ];
 
-// "For Business Owners" marketing page, modeled after business.trustpilot.com's
-// business-side landing page but scoped to features that actually exist here —
-// same "no fabricated claim" principle as AboutPage and HomeHero: no pricing
-// plans (no subscription concept in this app), no client logos or testimonials
-// (no backing data/endpoint for either), no "Analytics" (already excluded from
-// the main nav for the same reason). The "By the Numbers" block reuses the same
-// real GET /rankings/metadata data as AboutPage instead of an invented figure.
 export default function ForBusinessPage() {
   const { isAuthenticated } = useAuth();
   const { data: metadata } = useRankingMetadataQuery();
@@ -64,11 +57,10 @@ export default function ForBusinessPage() {
           </span>
 
           <h1 className="mt-4 font-sans text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">
-            Grow Your Business&apos;s Reputation
+            Your Business on EERS
           </h1>
           <p className="mt-4 text-lg text-ink-700">
-            Claim your listing, respond to reviews, and track a ranking you can point to and explain &mdash; not a
-            black box.
+            Manage your listing, respond to reviews, and track your EERS rank.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
@@ -122,7 +114,7 @@ export default function ForBusinessPage() {
             <div>
               <h2 className="font-sans text-2xl font-bold">Join the Ranked Businesses</h2>
               <p className="mt-2 text-sm text-white/70">
-                Live figures from our own ranking snapshot &mdash; the same data that powers the leaderboard.
+                Latest ranking figures, including sample data.
               </p>
             </div>
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:gap-8">
@@ -151,8 +143,7 @@ export default function ForBusinessPage() {
           <div className="relative">
             <h2 className="font-sans text-2xl font-bold text-white sm:text-3xl">Ready to Get Started?</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-primary-100">
-              Listing your business takes a couple of minutes. Our moderation team reviews every submission before it
-              goes live.
+              Submit your business details and photos. Listings are reviewed before publication.
             </p>
             <Link
               href="/businesses/create"

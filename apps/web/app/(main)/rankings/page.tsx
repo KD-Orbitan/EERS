@@ -37,7 +37,7 @@ function RankingsPageContent() {
           <div className="max-w-xl">
             <h1 className="font-sans text-4xl font-bold text-ink-900 sm:text-5xl">Enterprise Leaderboard</h1>
             <p className="mt-3 text-base text-ink-700">
-              Businesses ranked by review score across EERS, recalculated hourly from approved customer reviews.
+              Compare businesses by review-based scores from the latest EERS ranking update.
             </p>
           </div>
           <RankingFilters

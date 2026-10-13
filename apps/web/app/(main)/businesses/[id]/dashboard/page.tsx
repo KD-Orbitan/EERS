@@ -62,7 +62,7 @@ export default function BusinessOwnerDashboardPage({ params }: { params: Promise
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="font-sans text-3xl font-bold text-ink-900">Dashboard Overview</h1>
-              <p className="mt-1 text-sm text-ink-700">Real-time performance metrics for {business.name}</p>
+              <p className="mt-1 text-sm text-ink-700">Performance overview for {business.name}</p>
             </div>
             {lastCalculated ? (
               <span className="rounded-full border border-ink-200 bg-ink-50 px-4 py-2 text-xs font-medium text-ink-700">

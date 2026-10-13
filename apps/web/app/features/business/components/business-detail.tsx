@@ -60,7 +60,7 @@ export function BusinessDetail({ business, ranking, isOwner, onDelete, isDeletin
                   <span className="inline-flex items-center gap-2 rounded-full bg-ink-50/15 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
                     <span className="inline-flex items-center gap-1">
                       <Trophy className="h-3.5 w-3.5" />
-                      Global Rank #{ranking.rank}
+                      EERS Rank #{ranking.rank}
                     </span>
                     <RankingTrendBadge trend={ranking.trend} />
                   </span>

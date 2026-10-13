@@ -18,7 +18,7 @@ export function RankingMethodology() {
       <div className="rounded-3xl border border-ink-200 bg-ink-50/70 p-6 shadow-xs backdrop-blur-sm">
         <h2 className="font-sans text-lg font-bold text-ink-900">How rankings work</h2>
         <p className="mt-3 text-sm text-ink-700">
-          Scores are recalculated hourly from approved reviews and weighted criteria ratings. Reviews rejected
+          Score updates are scheduled hourly using approved reviews and weighted criteria ratings. Reviews rejected
           by fraud checks have no influence; suspicious reviews carry less weight. Bayesian adjustment moderates
           scores using the total weight of contributing reviews. Businesses need at least one contributing review
           classified as valid by fraud checks to be ranked.
@@ -44,8 +44,7 @@ export function RankingMethodology() {
           <h3 className="font-sans text-base font-bold">Moderated reviews</h3>
         </div>
         <p className="mt-2 text-sm text-primary-100">
-          Every review is checked before it affects a ranking &mdash; only approved reviews count toward a
-          business&apos;s score.
+          Only eligible approved reviews contribute to ranking scores. Moderation does not certify a business or verify a customer transaction.
         </p>
       </div>
     </div>

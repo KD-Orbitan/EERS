@@ -8,19 +8,16 @@ import { BusinessListItem } from '@/features/business/types/business.type';
 
 interface BusinessSpotlightCardProps {
   business: BusinessListItem;
+  sortBy: 'avgRating' | 'createdAt' | 'reviewCount';
 }
 
-// Featured card above the directory grid for the #1 result of the current
-// search/filter (or the global top when nothing is filtered) — items[0] of
-// the already avgRating-sorted GET /businesses response, not a separate
-// ranking system. See businesses/page.tsx for the selection logic.
-//
+// Highlight the first result using the active sort order and filters.
 // GET /businesses doesn't return coverUrl (see API.md), so this additionally
 // fetches GET /businesses/:businessId — same pattern TopRankedBento already
 // uses to get fields the list endpoint doesn't carry — to use its cover
 // photo as the card background. Falls back to the plain gradient below until
 // that loads (or if the business has no cover).
-export function BusinessSpotlightCard({ business }: BusinessSpotlightCardProps) {
+export function BusinessSpotlightCard({ business, sortBy }: BusinessSpotlightCardProps) {
   const { data: detail } = useBusinessDetailQuery(business.businessId);
 
   return (
@@ -34,9 +31,9 @@ export function BusinessSpotlightCard({ business }: BusinessSpotlightCardProps) 
       <div className="relative flex items-start gap-4">
         <BusinessLogoBadge logoUrl={business.logoUrl} name={business.name} size="lg" />
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+          <span title="Based on the current search, filters, and sort order" className="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
             <Trophy className="h-3.5 w-3.5" />
-            Top Pick
+            {sortBy === 'createdAt' ? 'Newest Listing' : sortBy === 'reviewCount' ? 'Most Reviewed' : 'Highest Rated'}
           </span>
           <h2 className="mt-2 font-sans text-2xl font-bold text-ink-900">{business.name}</h2>
           {business.description ? <p className="mt-1 max-w-xl line-clamp-2 break-words text-sm text-ink-700" dangerouslySetInnerHTML={{ __html: descriptionExcerpt(business.description) }} /> : null}

@@ -6,7 +6,7 @@ interface CriteriaScoresCardProps {
   businessId: number;
 }
 
-// Mirrors the Figma "Performance Benchmarks" widget, but scored on the
+// Mirrors the Figma "Ratings by Criteria" widget, but scored on the
 // existing 1-5 rating scale (see docs/API.md criteria-scores notes) rather
 // than the mockup's fabricated 0-10 numbers, since that's what the data
 // actually supports.
@@ -23,7 +23,7 @@ export function CriteriaScoresCard({ businessId }: CriteriaScoresCardProps) {
 
   return (
     <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
-      <h2 className="font-sans text-lg font-bold text-ink-900">Performance Benchmarks</h2>
+      <h2 className="font-sans text-lg font-bold text-ink-900">Ratings by Criteria</h2>
       <p className="mt-1 text-xs text-ink-500">Average rating per criterion, out of 5</p>
 
       <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">

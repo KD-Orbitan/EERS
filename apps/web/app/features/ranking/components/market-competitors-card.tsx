@@ -18,18 +18,20 @@ export function MarketCompetitorsCard({ businessId }: MarketCompetitorsCardProps
   if (!data || !data.categoryId || data.competitors.length === 0) {
     return (
       <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
-        <h2 className="font-sans text-lg font-bold text-ink-900">Market Competitors</h2>
-        <p className="mt-8 text-center text-sm text-ink-500">Not ranked in any category yet.</p>
+        <h2 className="font-sans text-lg font-bold text-ink-900">Similar Businesses</h2>
+        <p className="mt-8 text-center text-sm text-ink-500">No similar ranked businesses yet.</p>
       </div>
     );
   }
 
   return (
     <div className="rounded-3xl bg-ink-50 p-6 shadow-xs ring-1 ring-ink-200">
-      <h2 className="font-sans text-lg font-bold text-ink-900">Market Competitors</h2>
+      <h2 className="font-sans text-lg font-bold text-ink-900">Similar Businesses</h2>
       <p className="mt-1 text-xs text-ink-500">
         {data.categoryName} · Rank #{data.businessRank}
       </p>
+
+      <p className="mt-1 text-xs text-ink-500">Same category, nearby ranks.</p>
 
       <ul className="mt-4 space-y-2">
         {data.competitors.map((competitor) => (

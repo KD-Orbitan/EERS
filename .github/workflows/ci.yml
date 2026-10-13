@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'portfolio/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'portfolio/**']
+  workflow_dispatch:
 
 env:
   NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
@@ -21,11 +22,13 @@ jobs:
           node-version: 22
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter api exec prisma generate
       # `pnpm --filter api run lint` is intentionally not run here: the
       # script reports ~440 pre-existing errors unrelated to any of this
       # CI setup, so it would fail on every run. Wire it in once that debt
       # has its own cleanup pass.
       - run: pnpm --filter api run test
+      - run: pnpm --filter api run test:e2e --runInBand
       - run: pnpm --filter api run build
 
   web:
@@ -39,6 +42,7 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter web run lint
+      - run: pnpm --filter web exec tsc --noEmit
       - run: pnpm --filter web run build
 
   docker:

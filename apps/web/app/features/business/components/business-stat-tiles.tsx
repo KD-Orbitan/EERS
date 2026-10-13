@@ -33,7 +33,7 @@ export function BusinessStatTiles({ avgRating, reviewCount, rank, trend }: Busin
       </div>
 
       <div className="rounded-3xl border border-ink-200 bg-primary-50 p-6">
-        <p className="text-xs uppercase tracking-wide text-ink-700">Global Rank</p>
+        <p className="text-xs uppercase tracking-wide text-ink-700">EERS Rank</p>
         <div className="mt-1 flex items-center gap-2">
           <span className="font-sans text-4xl font-bold text-ink-900">{rank ? `#${rank}` : '—'}</span>
           <Trophy className="h-6 w-6 text-amber-500" />

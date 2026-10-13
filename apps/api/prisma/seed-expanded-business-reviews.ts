@@ -64,7 +64,7 @@ async function main() {
         const rating = [5, 4, 3][i]
         await tx.review.create({ data: {
           businessId: b.businessId, writerUserId, status: 'approved', overallRating: rating,
-          content: `[DEMO - đánh giá giả lập cho đồ án, không phải trải nghiệm khách hàng thực tế] ${b.name}: ${scenarios[categoryId][i]}`,
+          content: `${b.name}: ${scenarios[categoryId][i]}`,
           reviewCriteria: { create: categoryCriteria.map((c, j) => ({ criterionId: c.criterionId, ratingValue: Math.max(1, Math.min(5, rating + [0, -1, 0, 1][(i + j) % 4])) })) },
         } })
         created++

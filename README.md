@@ -72,6 +72,8 @@ Google login and image uploads require your own Google OAuth and Cloudinary conf
 
 ## Architecture
 
+Browse the [documentation index](docs/README.md) for technical references, contribution conventions, and the distinction between current documentation and implementation history.
+
 ```text
 apps/web                 Next.js / React / Tailwind / TanStack Query
 apps/api                 NestJS API and background jobs
@@ -84,6 +86,8 @@ The API separates domain, application, and infrastructure concerns. PostgreSQL s
 
 ## Suggested portfolio walkthrough
 
+See the [full-stack portfolio guide](docs/PORTFOLIO.md) for an architecture diagram, code references, a five-minute demo, and CV bullet examples.
+
 1. Browse businesses and filter by category or city.
 2. Open a profile to inspect reviews, criterion scores, and sentiment summaries.
 3. Compare businesses in the ranking page and explain the scoring methodology.
@@ -93,9 +97,9 @@ The API separates domain, application, and infrastructure concerns. PostgreSQL s
 ## Validation
 
 ```sh
-pnpm --filter web exec tsc --noEmit
-pnpm --filter api build
-pnpm --filter api exec jest --runInBand
+pnpm portfolio:check
 ```
+
+This runs frontend TypeScript checks, the API build, backend unit tests, and authentication HTTP contract tests. The HTTP tests use real controllers and middleware with mocked application use cases; they require no database and are not full browser end-to-end tests. CI also runs frontend lint, the web production build, and Docker image builds on `main` and `portfolio/**` branches and pull requests targeting those branches.
 
 The portfolio seed verifies business, review, criterion-rating, and global-ranking counts after it runs. Add your hosted demo URL, screenshots, and a short architecture walkthrough to this README when publishing the project for your CV.
