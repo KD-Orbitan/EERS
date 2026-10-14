@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@fontsource-variable/roboto/wght.css";
 
 :root {
   --background: #fffbfe;
@@ -8,8 +9,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-roboto);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Roboto Variable", Arial, Helvetica, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Material You (Material Design 3) — site-wide, see docs/promptFE6.md and
      app/lib/tokens/colors.ts for the source-of-truth table and full
@@ -61,7 +62,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-roboto), Arial, Helvetica, sans-serif;
+  font-family: "Roboto Variable", Arial, Helvetica, sans-serif;
 }
 
 @keyframes marquee {
