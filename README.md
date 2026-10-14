@@ -13,7 +13,7 @@ An English-language portfolio project for discovering businesses, writing multi-
 
 ## English portfolio edition
 
-Branch: `portfolio/english`. The demo contains **15 fictional businesses**, **90 English reviews**, **5 categories**, **4 criteria**, **360 criterion ratings**, and **15 owner replies** across three cities in Vietnam. Names, descriptions, reviews, replies, and locations are supplied in English or Romanised form. Prices remain in VND and opening hours use Vietnam local time.
+The English portfolio edition is on `main` and remains available on `portfolio/english`. The demo contains **15 fictional businesses**, **90 English reviews**, **5 categories**, **4 criteria**, **360 criterion ratings**, and **15 owner replies** across three cities in Vietnam. Names, descriptions, reviews, replies, and locations are supplied in English or Romanised form. Prices remain in VND and opening hours use Vietnam local time.
 
 All demo businesses, people, and reviews are fictional. Map coordinates are illustrative; links and emails use the reserved `example.invalid` domain. Sentiment labels are authored demo data. Rankings are computed using the application's actual ranking services. Ranking history starts when the seed runs; historical trends are not fabricated.
 
