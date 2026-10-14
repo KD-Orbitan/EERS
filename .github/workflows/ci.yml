@@ -23,6 +23,7 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter api exec prisma generate
+      - run: pnpm --filter @eers/shared-constants --filter @eers/shared-types run build
       # `pnpm --filter api run lint` is intentionally not run here: the
       # script reports ~440 pre-existing errors unrelated to any of this
       # CI setup, so it would fail on every run. Wire it in once that debt
